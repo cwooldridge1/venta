@@ -1,2 +1,2 @@
-# venta
- A light weight fast javascript library for building web applications
+# Venta
+ A light weight fast JavaScript library for building web applications
