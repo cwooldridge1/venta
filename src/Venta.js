@@ -1,30 +1,56 @@
 let globalId = 0
 const componentState = new Map();
-let globalParent;
+const stateMap = new Map();
+const elementMap = new Map();
 
 const renderJSX = (type, props, ...children) => {
   if (typeof type === 'function') {
     return type({ ...props, children: children.length > 1 ? children : !children.length ? null : children[0] })
   }
   const elem = document.createElement(type);
+  const stateRef = { element: elem, attributeState: {}, childState: {} }
 
   for (let [key, value] of Object.entries(props || {})) {
     if (key.startsWith('on')) {
-      // Remove 'on' and convert to lowercase to get the event name, e.g., 'onClick' -> 'click'
       const eventName = key.substring(2).toLowerCase();
       elem.addEventListener(eventName, value);
     } else {
-      elem.setAttribute(key, value);
+      if (typeof value === 'object') {
+        elem.setAttribute(key, value.state);
+        if (stateRef.attributeState[value.id] === undefined) stateRef.attributeState[value.id] = []
+        stateRef.attributeState[value.id].push([key, value])
+      } else {
+        elem.setAttribute(key, value);
+      }
+    }
+  }
+  const renderChild = (child, index) => {
+    if (Array.isArray(child)) {
+      child.forEach(renderChild)
+      return
+    }
+    if (typeof child === "string" || typeof child === "number") {
+      elem.appendChild(document.createTextNode(child));
+      return
+    }
+    if (child instanceof HTMLElement) {
+      elem.appendChild(child);
+      return;
+    }
+    if (typeof child === 'object') {
+      const state = stateMap.get(child.id)
+      state.elements.push(elem)
+      elem.appendChild(document.createTextNode(child.state));
+      if (stateRef.childState[child.id] === undefined) stateRef.childState[child.id] = []
+      stateRef.childState[child.id].push([index, child])
     }
   }
 
-  children.forEach(child => {
-    if (typeof child === "string" || typeof child === "number") {
-      elem.appendChild(document.createTextNode(child));
-    } else if (child instanceof HTMLElement) {
-      elem.appendChild(child);
-    }
-  });
+  children.forEach(renderChild);
+
+  if (Object.keys(stateRef.attributeState) || Object.keys(stateRef.childState.keys())) {
+    elementMap.set(elem, stateRef)
+  }
 
   return elem;
 }
@@ -35,85 +61,40 @@ export const render = (component, props, parent) => {
   const state = componentState.get(parent) || { cache: [] };
   componentState.set(parent, { ...state, component, props });
   globalId = 0;
-  globalParent = parent
   parent.innerHTML = '';
   parent.appendChild(component(props));
 }
 
+const updateNode = (elem, stateIndex) => {
+  const { attributeState, childState } = elementMap.get(elem)
+  console.log(attributeState, childState)
+  attributeState[stateIndex].forEach(([key, value]) => {
+    elem.setAttribute(key, value.state)
+  })
+  childState[stateIndex].forEach(([index, value]) => {
+    elem.childNodes[index].textContent = value.state
+  })
+}
 
 export const useState = (initialValue) => {
-  const id = globalId;
-  globalId++;
-  const parent = globalParent;
+  const id = globalId++;
   return (() => {
-    const { cache } = componentState.get(parent);
-    if (cache[id] == null) {
-      cache[id] = {
-        value: typeof initialValue === 'function' ? initialValue() : initialValue
-      }
-    }
-
     const setState = (newValue) => {
-      const { cache, props, component } = componentState.get(parent);
-      if (typeof newValue === 'function') {
-        cache[id].value = newValue(cache[id].value)
-      } else {
-        cache[id].value = newValue
-      }
-      render(component, props, parent)
+      let state = stateMap.get(id)
+      const { sideEffects, elements } = state
+      state.state = newValue
+      sideEffects.forEach(sideEffect => sideEffect());
+      elements.forEach(node => updateNode(node, state.id))
     }
 
-    return [cache[id].value, setState]
-  })()
-}
+    stateMap.set(id, { sideEffects: [], elements: [], state: initialValue, setState: setState, id: id });
 
-
-export const useEffect = (callback, dependencies) => {
-
-  const id = globalId;
-  const parent = globalParent;
-  globalId++;
-  (() => {
-    const { cache } = componentState.get(parent);
-    if (cache[id] == null) {
-      cache[id] = {
-        dependencies: undefined,
-      }
-    }
-    const dependenciesChanged = cache[id].dependencies === undefined || dependencies == null || dependencies.some((dependency, index) => {
-      return cache[id].dependencies == null || cache[id].dependencies[index] !== dependency
-    })
-
-    if (dependenciesChanged) {
-      if (cache[id].cleanup != null) cache[id].cleanup()
-      cache[id].cleanup = callback()
-      cache[id].dependencies = dependencies
-    }
+    return stateMap.get(id)
   })()
 }
 
 
 
-export const useMemo = (callback, dependencies) => {
 
-  const id = globalId;
-  globalId++;
-  const parent = globalParent;
-  return (() => {
-    const { cache } = componentState.get(parent);
-    if (cache[id] == null) {
-      cache[id] = {
-        dependencies: [],
-      }
-    }
-    const dependenciesChanged = cache[id].dependencies === undefined || dependencies === null || dependencies.some((dependency, index) => {
-      return cache[id].dependencies === null || cache[id].dependencies[index] !== dependency
-    })
 
-    if (dependenciesChanged) {
-      cache[id].memo = callback()
-      cache[id].dependencies = dependencies
-    }
-    return cache[id].memo
-  })()
-}
+

@@ -1,37 +1,20 @@
 import Button from './Button.js'
-import { useState, useEffect, useMemo } from './Venta.js'
+import { useState } from './Venta.js'
 
 const App = () => {
-  const [count, setCount] = useState(0)
-  const countDoubled = useMemo(() => {
-    console.log('useMemo called')
-    return count * 2
-  }, [count])
-
-  useEffect(() => {
-    console.log('useEffect called')
-
-    return () => {
-      console.log('useEffect cleanup')
-    }
-  }, [])
-
+  const state = useState(0)
+  const callback = () => {
+    console.log('callback', state)
+    state.setState(state.state + 1)
+  }
 
   return (
     <div>
       <div>
-        <span style='margin-right:1rem'>
-          Count:
-          {count}
-        </span >
-        <span>
-          Double Count:
-          {countDoubled}
-        </span>
+        <Button onClick={callback} name={state}>
+          Click Count = {state}
+        </Button>
       </div>
-      <Button onClick={() => setCount(count + 1)}>
-        Increment Count
-      </Button>
     </div>
   )
 }
