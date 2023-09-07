@@ -1,3 +1,4 @@
+import Button from './Button.js'
 import { useState, useEffect, useMemo } from './Venta.js'
 
 const App = () => {
@@ -28,7 +29,9 @@ const App = () => {
           {countDoubled}
         </span>
       </div>
-      <button onClick={() => setCount(count + 1)}>Increment Count</button>
+      <Button onClick={() => setCount(count + 1)}>
+        Increment Count
+      </Button>
     </div>
   )
 }

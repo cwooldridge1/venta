@@ -3,6 +3,9 @@ const componentState = new Map();
 let globalParent;
 
 const renderJSX = (type, props, ...children) => {
+  if (typeof type === 'function') {
+    return type({ ...props, children: children.length > 1 ? children : !children.length ? null : children[0] })
+  }
   const elem = document.createElement(type);
 
   for (let [key, value] of Object.entries(props || {})) {
