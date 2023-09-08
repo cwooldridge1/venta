@@ -1,4 +1,4 @@
-import { render } from "./Venta.js"
+import { render } from "../src"
 import App from "./App.js"
 
 render(

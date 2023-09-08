@@ -1,0 +1,1 @@
+export { updateNode } from './rendering'
