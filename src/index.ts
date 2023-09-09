@@ -5,8 +5,6 @@ export * from './hooks'
 export * from './types'
 
 
-
-
 //this is a hack to make jsx work with typescript
 declare global {
   interface Window {
@@ -15,6 +13,3 @@ declare global {
 }
 
 window.renderVentaNode = renderVentaNode // so babel can compile jsx
-
-
-

@@ -34,6 +34,7 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
         if (stateRef.attributeState[value.id] === undefined) stateRef.attributeState[value.id] = []
         stateRef.attributeState[value.id].push([key, value])
       } else {
+        elem.setAttribute(key, value);
       }
     }
   }

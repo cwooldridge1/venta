@@ -1,4 +1,5 @@
 import Button from './Button.js'
+import Card from './Card.js'
 import { useEffect, useState, useMemo } from '../src/hooks'
 const App = () => {
   const count = useState(0)
@@ -12,13 +13,16 @@ const App = () => {
   }, [doubleCount])
 
   return (
-    <div>
-      <div>
+    <Card>
+      <Button onClick={callback} name={doubleCount}>
+        Click Count: {count}
+      </Button>
+      {count > 2 &&
         <Button onClick={callback} name={doubleCount}>
           Click Count: {count}
         </Button>
-      </div>
-    </div>
+      }
+    </Card>
   )
 }
 
