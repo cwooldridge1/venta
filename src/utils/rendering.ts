@@ -6,14 +6,12 @@ export const updateNode = (elem: HTMLElement, stateIndex: number) => {
   if (!elementState) throw new Error('element state not found')
   const { attributeState, childState } = elementState
   attributeState[stateIndex]?.forEach(([key, value]) => {
-    elem.setAttribute(key, value.state)
+    elem.setAttribute(key, value.value)
   })
   childState[stateIndex]?.forEach(([index, value]) => {
-    elem.childNodes[index].textContent = value.state
+    elem.childNodes[index].textContent = value.value
   })
 }
-
-
 
 export const renderVentaNode = (type: any, props: Props, ...children: any[]) => {
   if (typeof type === 'function') {
@@ -55,24 +53,52 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
       const state = stateMap.get(child.id)
       if (!state) throw new Error('state not found')
       dependentStates.add(state)
-      elem.appendChild(document.createTextNode(child.state));
+      elem.appendChild(document.createTextNode(child.value));
       if (stateRef.childState[child.id] === undefined) stateRef.childState[child.id] = []
       stateRef.childState[child.id].push([index, child])
     }
   }
 
   children.forEach(renderChild);
-
   if (Object.keys(stateRef.attributeState).length > 0 || Object.keys(stateRef.childState).length > 0) {
     elementMap.set(elem, stateRef)
     dependentStates.forEach(state => state.elements.push(elem))
   }
 
   return elem;
+
 }
+
 
 
 export const render = (component: any, props: Props, parent: HTMLElement) => {
   parent.innerHTML = '';
   parent.appendChild(component(props));
 }
+
+export const renderReactiveConditional = (
+  test: () => boolean,
+  contentIfTrue: any,
+  contentIfFalse: any,
+  parent: any,
+  ...deps: VentaState[]
+) => {
+  let lastTestValue: undefined | boolean = undefined
+
+  deps.forEach(dep => {
+    dep.conditionalElements.push(() => {
+      let testValue = test()
+      if (testValue != lastTestValue) { // only update if we need to 
+        const parentElement = document.querySelector(`[ventanodeid=${parent}`)
+        if (parentElement?.lastElementChild) {
+          parentElement.removeChild(parentElement.lastElementChild);
+        }
+        parentElement?.appendChild(test() ? contentIfTrue : contentIfFalse)
+      }
+    })
+  })
+
+  return test() ? contentIfTrue : contentIfFalse;
+};
+
+

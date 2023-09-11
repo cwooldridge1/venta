@@ -9,13 +9,14 @@ const useMemo = (callback: any, dependencies: VentaState[]) => {
   //this function is what should is ultimatley a dependency for other states to call
   const setState = () => {
     let state = stateMap.get(id)!
-    const { sideEffects, elements } = state;
-    state.state = callback();
+    const { sideEffects, elements, conditionalElements } = state;
+    state.value = callback();
     sideEffects.forEach(sideEffect => sideEffect());
     elements.forEach(node => updateNode(node, state.id))
+    conditionalElements.forEach(test => test())
   }
 
-  stateMap.set(id, { sideEffects: [], elements: [], state: callback(), setState: () => { }, id: id });
+  stateMap.set(id, { sideEffects: [], elements: [], conditionalElements: [], value: callback(), setState: () => { }, id: id });
 
   dependencies.forEach((dep) => {
     const state = stateMap.get(dep.id)

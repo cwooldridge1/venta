@@ -1,8 +1,9 @@
 export interface VentaState {
   id: number;
-  state: any;
+  value: any;
   sideEffects: Function[];
   elements: HTMLElement[];
+  conditionalElements: Function[];
   setState: (newValue: any) => void;
 }
 

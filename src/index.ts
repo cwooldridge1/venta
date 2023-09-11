@@ -1,5 +1,5 @@
 import { Props } from "./types";
-import { renderVentaNode } from "./utils/rendering";
+import { renderReactiveConditional, renderVentaNode } from "./utils/rendering";
 export { render } from "./utils/rendering"
 export * from './hooks'
 export * from './types'
@@ -9,7 +9,10 @@ export * from './types'
 declare global {
   interface Window {
     renderVentaNode: (type: any, props: Props, ...children: any[]) => HTMLElement;
+    test: any;
+    renderConditional: any;
   }
 }
 
 window.renderVentaNode = renderVentaNode // so babel can compile jsx
+window.renderConditional = renderReactiveConditional

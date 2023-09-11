@@ -7,13 +7,14 @@ const useState = (initialValue: any) => {
   incrementGlobalId();
   const setState = (newValue: any) => {
     let state = stateMap.get(id)!
-    const { sideEffects, elements } = state
-    state.state = newValue
+    const { sideEffects, elements, conditionalElements } = state
+    state.value = newValue
     sideEffects.forEach(sideEffect => sideEffect());
     elements.forEach(node => updateNode(node, state.id))
+    conditionalElements.forEach(test => test())
   }
 
-  stateMap.set(id, { sideEffects: [], elements: [], state: initialValue, setState: setState, id: id });
+  stateMap.set(id, { sideEffects: [], elements: [], conditionalElements: [], value: initialValue, setState: setState, id: id });
 
   return stateMap.get(id) as VentaState
 }

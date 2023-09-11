@@ -4,25 +4,26 @@ import { useEffect, useState, useMemo } from '../src/hooks'
 const App = () => {
   const count = useState(0)
   const callback = () => {
-    count.setState(count.state + 1)
+    count.setState(count.value + 1)
   }
-  const doubleCount = useMemo(() => count.state * 2, [count])
+  const doubleCount = useMemo(() => count.value * 2, [count])
 
   useEffect(() => {
-    console.log('useffect called', doubleCount.state)
+    console.log('useffect called', doubleCount.value)
   }, [doubleCount])
 
   return (
-    <Card>
-      <Button onClick={callback} name={doubleCount}>
-        Click Count: {count}
+    <div>
+      <Button onClick={callback}>
+        Click Count {count}
       </Button>
-      {count > 2 &&
-        <Button onClick={callback} name={doubleCount}>
-          Click Count: {count}
-        </Button>
-      }
-    </Card>
+      <Button onClick={() => count.setState(0)}>
+        Reset
+      </Button>
+      <div>
+        {count.value >= 1 ? count.value > 3 ? <span>{count}</span> : <span>Not greater than 3</span> : <span>less than 1</span>}
+      </div>
+    </div>
   )
 }
 
