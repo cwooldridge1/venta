@@ -60,13 +60,10 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
   }
 
   children.forEach(renderChild);
-  if (Object.keys(stateRef.attributeState).length > 0 || Object.keys(stateRef.childState).length > 0) {
-    elementMap.set(elem, stateRef)
-    dependentStates.forEach(state => state.elements.push(elem))
-  }
+  elementMap.set(elem, stateRef)
+  dependentStates.forEach(state => state.elements.push(elem))
 
   return elem;
-
 }
 
 
@@ -76,44 +73,51 @@ export const render = (component: any, props: Props, parent: HTMLElement) => {
   parent.appendChild(component(props));
 }
 
+
+type Content = HTMLElement | (() => Content);
+
+export const renderConditional = (
+  test: () => boolean,
+  contentIfTrue: Content,
+  contentIfFalse: Content,
+): Content => {
+  const testValue = test();
+  let content = testValue ? contentIfTrue : contentIfFalse;
+  while (typeof content === 'function') content = content()
+  return content
+};
+
+
 export const registerConditional = (
   test: () => boolean,
-  contentIfTrue: any,
-  contentIfFalse: any,
-  parent: any,
+  contentIfTrue: Content,
+  contentIfFalse: Content,
   ...deps: VentaState[]
 ) => {
+  let lastContent: HTMLElement;
 
   deps.forEach(dep => {
     dep.conditionalElements.push(() => {
       let testValue = test()
       let content = testValue ? contentIfTrue : contentIfFalse
       while (typeof content === 'function') content = content();
-      // if (testValue != lastTestValue) { // only update if we need to 
-      const parentElement = document.querySelector(`[ventanodeid=${parent}`)
-      if (parentElement?.lastElementChild) {
-        parentElement.removeChild(parentElement.lastElementChild);
-      }
 
-      parentElement?.appendChild(content)
-      // }
+      //remove all dependencies that referenece this state
+      deps.forEach((dep) => {
+        const targetIndex = dep.elements.indexOf(lastContent)
+        if (targetIndex !== -1) {
+          dep.elements.splice(targetIndex, 1)
+        }
+      })
+      elementMap.delete(lastContent)
+      lastContent.replaceWith(content)
+      lastContent = content;
     })
   })
   const testValue = test()
   let content = testValue ? contentIfTrue : contentIfFalse
   while (typeof content === 'function') content = content();
+  lastContent = content;
   return content;
 };
 
-export const renderConditional = (
-  test: () => boolean,
-  contentIfTrue: any,
-  contentIfFalse: any,
-  parent: any,
-  ...deps: VentaState[]
-) => {
-  const testValue = test()
-  let content = testValue ? contentIfTrue : contentIfFalse
-  while (typeof content === 'function') content = content();
-  return content;
-}

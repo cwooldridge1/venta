@@ -9,7 +9,6 @@ export * from './types'
 declare global {
   interface Window {
     renderVentaNode: (type: any, props: Props, ...children: any[]) => HTMLElement;
-    test: any;
     renderConditional: any;
     registerConditional: any;
   }
