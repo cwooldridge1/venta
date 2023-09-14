@@ -3,6 +3,7 @@ import Card from './Card.js'
 import { useEffect, useState, useMemo } from '../src/hooks'
 const App = () => {
   const count = useState(0)
+  const count2 = useState(0)
   const callback = () => {
     count.setState(count.value + 1)
   }
@@ -20,9 +21,10 @@ const App = () => {
       <Button onClick={() => count.setState(0)}>
         Reset
       </Button>
-      <div>
-        {count.value >= 1 ? count.value > 3 ? <span>{count}</span> : <span>Not greater than 3</span> : <span>less than 1</span>}
-      </div>
+      <Button onClick={() => count2.setState(count2.value + 1)}>
+        count 2 {count2}
+      </Button>
+      {count.value >= 1 ? (count2.value >= 3 ? <span>{count}</span> : doubleCount.value > 4 ? <span>doouble</span> : <span>Not greater than 3</span>) : <span>less than 1</span>}
     </div>
   )
 }

@@ -76,29 +76,44 @@ export const render = (component: any, props: Props, parent: HTMLElement) => {
   parent.appendChild(component(props));
 }
 
-export const renderReactiveConditional = (
+export const registerConditional = (
   test: () => boolean,
   contentIfTrue: any,
   contentIfFalse: any,
   parent: any,
   ...deps: VentaState[]
 ) => {
-  let lastTestValue: undefined | boolean = undefined
 
   deps.forEach(dep => {
     dep.conditionalElements.push(() => {
       let testValue = test()
-      if (testValue != lastTestValue) { // only update if we need to 
-        const parentElement = document.querySelector(`[ventanodeid=${parent}`)
-        if (parentElement?.lastElementChild) {
-          parentElement.removeChild(parentElement.lastElementChild);
-        }
-        parentElement?.appendChild(test() ? contentIfTrue : contentIfFalse)
+      let content = testValue ? contentIfTrue : contentIfFalse
+      while (typeof content === 'function') content = content();
+      // if (testValue != lastTestValue) { // only update if we need to 
+      const parentElement = document.querySelector(`[ventanodeid=${parent}`)
+      if (parentElement?.lastElementChild) {
+        parentElement.removeChild(parentElement.lastElementChild);
       }
+
+      parentElement?.appendChild(content)
+      // }
     })
   })
-
-  return test() ? contentIfTrue : contentIfFalse;
+  const testValue = test()
+  let content = testValue ? contentIfTrue : contentIfFalse
+  while (typeof content === 'function') content = content();
+  return content;
 };
 
-
+export const renderConditional = (
+  test: () => boolean,
+  contentIfTrue: any,
+  contentIfFalse: any,
+  parent: any,
+  ...deps: VentaState[]
+) => {
+  const testValue = test()
+  let content = testValue ? contentIfTrue : contentIfFalse
+  while (typeof content === 'function') content = content();
+  return content;
+}

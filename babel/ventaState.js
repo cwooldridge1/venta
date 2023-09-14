@@ -1,5 +1,33 @@
 module.exports = function(babel) {
   const { types: t } = babel;
+  function wrapInRenderConditional(expression, parentRef, referencedIdentifiers, statefulVariables) {
+    if (t.isConditionalExpression(expression)) {
+      const { test, consequent, alternate } = expression;
+      babel.traverse(test, {
+        noScope: true,
+        Identifier(path) {
+          if (statefulVariables.has(path.node.name)) {
+            referencedIdentifiers.add(t.identifier(path.node.name));
+          }
+        }
+      });
+      const newConsequent = wrapInRenderConditional(consequent, parentRef, referencedIdentifiers, statefulVariables);
+      const newAlternate = wrapInRenderConditional(alternate, parentRef, referencedIdentifiers, statefulVariables);
+
+      const testFunc = t.arrowFunctionExpression([], test);
+      return t.callExpression(
+        t.identifier("renderConditional"),
+        [
+          testFunc,
+          t.arrowFunctionExpression([], newConsequent),
+          t.arrowFunctionExpression([], newAlternate),
+          parentRef,
+          ...Array.from(referencedIdentifiers)
+        ],
+      );
+    }
+    return expression;
+  }
 
   return {
     name: "transform-jsx-conditional",
@@ -49,13 +77,21 @@ module.exports = function(babel) {
                     }
                   },
                 });
-
                 if (referencesStatefulVariable) {
                   const testFunc = t.arrowFunctionExpression([], test);
+                  const newConsequent = wrapInRenderConditional(consequent, parentRef, referencedIdentifiers, statefulVariables);
+                  const newAlternate = wrapInRenderConditional(alternate, parentRef, referencedIdentifiers, statefulVariables);
+
                   innerPath.replaceWith(
                     t.callExpression(
-                      t.identifier("renderConditional"),
-                      [testFunc, consequent, alternate, parentRef, ...Array.from(referencedIdentifiers)]
+                      t.identifier("registerConditional"),
+                      [
+                        testFunc,
+                        t.arrowFunctionExpression([], newConsequent),
+                        t.arrowFunctionExpression([], newAlternate),
+                        parentRef,
+                        ...Array.from(referencedIdentifiers)
+                      ],
                     )
                   );
                 }
