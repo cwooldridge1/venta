@@ -1,5 +1,6 @@
 module.exports = function(babel) {
   const { types: t } = babel;
+  let conditionalId = 0;
   function wrapInRenderConditional(expression, referencedIdentifiers, statefulVariables) {
     if (t.isConditionalExpression(expression)) {
       const { test, consequent, alternate } = expression;
@@ -21,6 +22,7 @@ module.exports = function(babel) {
           testFunc,
           t.arrowFunctionExpression([], newConsequent),
           t.arrowFunctionExpression([], newAlternate),
+          t.numericLiteral(conditionalId++)
         ],
       );
     }

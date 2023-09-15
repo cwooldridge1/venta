@@ -67,26 +67,45 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
 }
 
 
-
 export const render = (component: any, props: Props, parent: HTMLElement) => {
   parent.innerHTML = '';
   parent.appendChild(component(props));
 }
 
 
-type Content = HTMLElement | (() => Content);
 
+type Content = (() => HTMLElement)
+
+
+const cache = new Map<string, HTMLElement>();
+
+let callCount = 0;
+/*
+ * This function is used when there is condtional renders inside of a conditional. It essentially just determins what to render and returns that
+ * contentIfTrue and contentIfFalse can be this function or a function that returns the html
+ * */
 export const renderConditional = (
   test: () => boolean,
   contentIfTrue: Content,
   contentIfFalse: Content,
-): Content => {
+  id: number
+): HTMLElement => {
   const testValue = test();
-  let content = testValue ? contentIfTrue : contentIfFalse;
-  while (typeof content === 'function') content = content()
-  return content
-};
+  const key = `${id}-${testValue}`
 
+  callCount++;
+  const cacheVal = cache.get(key)
+  if (cacheVal) {
+    return cacheVal
+  }
+  const currentCallCount = callCount;
+  const content = testValue ? contentIfTrue() : contentIfFalse();
+  if (callCount === currentCallCount) { // this is a very hacky way to see if the base case is met of not rendering another conditional
+    cache.set(key, content)
+  }
+
+  return content;
+};
 
 export const registerConditional = (
   test: () => boolean,
@@ -99,8 +118,9 @@ export const registerConditional = (
   deps.forEach(dep => {
     dep.conditionalElements.push(() => {
       let testValue = test()
-      let content = testValue ? contentIfTrue : contentIfFalse
-      while (typeof content === 'function') content = content();
+      let content = testValue ? contentIfTrue() : contentIfFalse()
+
+      if (content === lastContent) return
 
       //remove all dependencies that referenece this state
       deps.forEach((dep) => {
@@ -114,10 +134,8 @@ export const registerConditional = (
       lastContent = content;
     })
   })
-  const testValue = test()
-  let content = testValue ? contentIfTrue : contentIfFalse
-  while (typeof content === 'function') content = content();
-  lastContent = content;
-  return content;
+  lastContent = test() ? contentIfTrue() : contentIfFalse();
+
+  return lastContent;
 };
 

@@ -25,6 +25,8 @@ const App = () => {
         count 2 {count2}
       </Button>
       {count.value >= 1 ? (count2.value >= 3 ? <span>{count}</span> : doubleCount.value > 4 ? <span>doouble</span> : <span>Not greater than 3</span>) : <span>less than 1</span>}
+
+      {/* {count.value >= 1 ? <span>greater than 1</span> : <span>less than 1</span>} */}
     </Card>
   )
 }
