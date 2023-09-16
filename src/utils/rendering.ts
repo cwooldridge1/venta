@@ -1,5 +1,7 @@
 import { elementMap, stateMap } from "../state"
 import { Props, VentaNode, VentaState } from "../types"
+import { componentReferenceMap, getComponentId, incrementComponentId, componentStateMap } from "../state"
+
 
 export const updateNode = (elem: HTMLElement, stateIndex: number) => {
   const elementState = elementMap.get(elem)
@@ -15,7 +17,12 @@ export const updateNode = (elem: HTMLElement, stateIndex: number) => {
 
 export const renderVentaNode = (type: any, props: Props, ...children: any[]) => {
   if (typeof type === 'function') {
-    return type({ ...props, children: children.length > 1 ? children : !children.length ? null : children[0] })
+    console.log('component register')
+    componentStateMap.set(getComponentId(), { state: [], unmountCallbacks: [] })
+    const component = type({ ...props, children: children.length > 1 ? children : !children.length ? null : children[0] })
+    componentReferenceMap.set(component, getComponentId())
+    incrementComponentId()
+    return component
   }
   const elem = document.createElement(type);
   const stateRef: VentaNode = { element: elem, attributeState: {}, childState: {} }
@@ -107,6 +114,23 @@ export const renderConditional = (
   return content;
 };
 
+
+const handleComponentUnmount = (componentId: number, element: HTMLElement) => {
+  const { state, unmountCallbacks } = componentStateMap.get(componentId)!
+  state.forEach(state => {
+    state.elements.forEach(elem => elementMap.delete(elem))
+    stateMap.delete(state.id)
+  })
+  unmountCallbacks.forEach(callback => callback())
+  //we also need to remove it from component cache as we want it to rerender when mounted
+  cache.forEach((val, key) => {
+    if (val === element) {
+      cache.delete(key)
+    }
+  })
+
+}
+
 export const registerConditional = (
   test: () => boolean,
   contentIfTrue: Content,
@@ -120,7 +144,9 @@ export const registerConditional = (
       let testValue = test()
       let content = testValue ? contentIfTrue() : contentIfFalse()
 
-      if (content === lastContent) return
+      if (content === lastContent) {
+        return
+      }
 
       //remove all dependencies that referenece this state
       deps.forEach((dep) => {
@@ -129,6 +155,8 @@ export const registerConditional = (
           dep.elements.splice(targetIndex, 1)
         }
       })
+      const componentId = componentReferenceMap.get(lastContent)
+      if (componentId) handleComponentUnmount(componentId, lastContent)
       elementMap.delete(lastContent)
       lastContent.replaceWith(content)
       lastContent = content;

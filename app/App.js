@@ -18,15 +18,15 @@ const App = () => {
       <Button onClick={callback}>
         Click Count {count}
       </Button>
-      <Button onClick={() => count.setState(0)}>
+      <Button onClick={() => count.setState(1)}>
         Reset
       </Button>
-      <Button onClick={() => count2.setState(count2.value + 1)}>
-        count 2 {count2}
-      </Button>
-      {count.value >= 1 ? (count2.value >= 3 ? <span>{count}</span> : doubleCount.value > 4 ? <span>doouble</span> : <span>Not greater than 3</span>) : <span>less than 1</span>}
+      {/* <Button onClick={() => count2.setState(count2.value + 1)}> */}
+      {/*   count 2 {count2} */}
+      {/* </Button> */}
+      {count.value >= 1 ? (count2.value >= 3 ? <Card>{count}</Card> : doubleCount.value > 4 ? <Card>doouble</Card> : <Card>Not greater than 3</Card>) : <span>less than 1</span>}
 
-      {/* {count.value >= 1 ? <span>greater than 1</span> : <span>less than 1</span>} */}
+      {/* {count.value >= 1 ? <Card>greater than 1</Card> : <Card>less than 1</Card>} */}
     </Card>
   )
 }

@@ -1,4 +1,4 @@
-import { getGlobalId, incrementGlobalId, stateMap } from "../state";
+import { componentStateMap, getComponentId, getGlobalId, incrementGlobalId, stateMap } from "../state";
 import { VentaState } from "../types";
 import { updateNode } from "../utils";
 
@@ -17,6 +17,9 @@ const useMemo = (callback: any, dependencies: VentaState[]) => {
   }
 
   stateMap.set(id, { sideEffects: [], elements: [], conditionalElements: [], value: callback(), setState: () => { }, id: id });
+  const state = stateMap.get(id) as VentaState
+
+  componentStateMap.get(getComponentId())?.state.push(state)
 
   dependencies.forEach((dep) => {
     const state = stateMap.get(dep.id)
@@ -24,7 +27,7 @@ const useMemo = (callback: any, dependencies: VentaState[]) => {
     state.sideEffects.push(setState)
   })
 
-  return stateMap.get(id) as VentaState
+  return state
 }
 
 export default useMemo;

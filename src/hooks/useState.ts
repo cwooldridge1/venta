@@ -1,4 +1,4 @@
-import { stateMap, getGlobalId, incrementGlobalId } from "../state";
+import { stateMap, getGlobalId, incrementGlobalId, componentStateMap, getComponentId } from "../state";
 import { VentaState } from "../types";
 import { updateNode } from "../utils";
 
@@ -16,7 +16,9 @@ const useState = (initialValue: any) => {
 
   stateMap.set(id, { sideEffects: [], elements: [], conditionalElements: [], value: initialValue, setState: setState, id: id });
 
-  return stateMap.get(id) as VentaState
+  const state = stateMap.get(id) as VentaState
+  componentStateMap.get(getComponentId())?.state.push(state)
+  return state
 }
 
 export default useState;
