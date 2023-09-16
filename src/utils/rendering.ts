@@ -138,15 +138,25 @@ export const registerConditional = (
   ...deps: VentaState[]
 ) => {
   let lastContent: HTMLElement;
+  let localCache = new Map<boolean, HTMLElement>();
+
 
   deps.forEach(dep => {
     dep.conditionalElements.push(() => {
       let testValue = test()
-      let content = testValue ? contentIfTrue() : contentIfFalse()
+      let content = localCache.get(testValue)
+      if (!content) {
+        const lastCount = callCount
+        content = testValue ? contentIfTrue() : contentIfFalse()
+        if (callCount === lastCount) {
+          localCache.set(testValue, content)
+        }
+      }
 
       if (content === lastContent) {
         return
       }
+      localCache.delete(!testValue)
 
       //remove all dependencies that referenece this state
       deps.forEach((dep) => {
@@ -156,7 +166,9 @@ export const registerConditional = (
         }
       })
       const componentId = componentReferenceMap.get(lastContent)
-      if (componentId) handleComponentUnmount(componentId, lastContent)
+      if (componentId) {
+        handleComponentUnmount(componentId, lastContent)
+      }
       elementMap.delete(lastContent)
       lastContent.replaceWith(content)
       lastContent = content;
