@@ -1,9 +1,22 @@
 import { Props } from "./types";
-import { renderConditional, registerConditional, renderVentaNode } from "./utils/rendering";
-export { render } from "./utils/rendering"
-export * from './hooks'
-export * from './types'
+import { renderConditional, registerConditional, renderVentaNode, render } from "./utils/rendering";
+import { useState, useEffect, useMemo } from './hooks';
+export * from './types';
 
+export { render, renderConditional, registerConditional, renderVentaNode };
+export { useState, useEffect, useMemo };
+
+const Venta = {
+  render,
+  useState,
+  useEffect,
+  useMemo,
+  renderConditional,
+  registerConditional,
+  renderVentaNode,
+};
+
+export default Venta;
 
 //this is a hack to make jsx work with typescript
 declare global {

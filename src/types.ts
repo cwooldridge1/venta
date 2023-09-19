@@ -4,7 +4,7 @@ export interface VentaState {
   sideEffects: Function[];
   elements: HTMLElement[];
   conditionalElements: Function[];
-  setState: (newValue: any) => void;
+  setValue: (newValue: any) => void;
 }
 
 export type Props = {
@@ -15,4 +15,3 @@ export interface VentaNode {
   attributeState: Record<number, Array<[string, VentaState]>>;
   childState: Record<number, Array<[number, VentaState]>>;
 }
-

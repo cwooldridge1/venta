@@ -17,7 +17,6 @@ export const updateNode = (elem: HTMLElement, stateIndex: number) => {
 
 export const renderVentaNode = (type: any, props: Props, ...children: any[]) => {
   if (typeof type === 'function') {
-    console.log('component register')
     componentStateMap.set(getComponentId(), { state: [], unmountCallbacks: [] })
     const component = type({ ...props, children: children.length > 1 ? children : !children.length ? null : children[0] })
     componentReferenceMap.set(component, getComponentId())
@@ -128,6 +127,7 @@ const handleComponentUnmount = (componentId: number, element: HTMLElement) => {
       cache.delete(key)
     }
   })
+  componentStateMap.delete(componentId)
 
 }
 
@@ -166,7 +166,7 @@ export const registerConditional = (
         }
       })
       const componentId = componentReferenceMap.get(lastContent)
-      if (componentId) {
+      if (componentId !== undefined) {
         handleComponentUnmount(componentId, lastContent)
       }
       elementMap.delete(lastContent)
