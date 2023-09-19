@@ -82,6 +82,19 @@ describe('conditional jsx render', () => {
     expect(componentReferenceMap.get(element)).toBe(componentId)
   })
 
+  it('state change of same test should not cause rerender', () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+
+    count.setValue(4);
+
+    expect(element.textContent).toBe('Count is Greater than 2');
+    expect(elementMap.has(element)).toBe(true);
+
+    expect(logSpy.mock.calls.length).toBe(0);
+
+    logSpy.mockRestore();
+  })
+
   it('reversion to initial state cleans up properly', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
 
