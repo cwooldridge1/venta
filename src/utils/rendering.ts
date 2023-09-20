@@ -51,7 +51,7 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
       elem.appendChild(document.createTextNode(child.toString()));
       return
     }
-    if (child instanceof HTMLElement) {
+    if (child instanceof HTMLElement || child.nodeType) {
       elem.appendChild(child);
       return;
     }
@@ -95,7 +95,7 @@ export const renderConditional = (
   contentIfTrue: Content,
   contentIfFalse: Content,
   id: number
-): HTMLElement => {
+): HTMLElement | null => {
   const testValue = test();
   const key = `${id}-${testValue}`
 
@@ -175,6 +175,7 @@ export const registerConditional = (
     })
   })
   lastContent = test() ? contentIfTrue() : contentIfFalse();
+  console.log(lastContent)
 
   return lastContent;
 };

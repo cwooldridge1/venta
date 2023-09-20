@@ -49,6 +49,58 @@ module.exports = function(babel) {
         path.traverse({
           JSXExpressionContainer(path) {
             path.traverse({
+              LogicalExpression(innerPath) {
+                const { left, right } = innerPath.node;
+
+
+                let referencesStatefulVariable = false;
+                const referencedIdentifiers = new Set();
+
+                innerPath.get('left').traverse({
+                  Identifier(testPath) {
+                    if (statefulVariables.has(testPath.node.name)) {
+                      referencesStatefulVariable = true;
+                      referencedIdentifiers.add(t.identifier(testPath.node.name));
+                    }
+                  },
+                });
+
+                if (referencesStatefulVariable) {
+                  const testFunc = t.arrowFunctionExpression([], left);
+                  //you can still have a ternary afer so we have to have this
+                  const newConsequent = wrapInRenderConditional(right, referencedIdentifiers, statefulVariables);
+                  //false case we just add a empty text node as we need an anchor still but this does not have any dom effect and it not even visible
+                  const newAlternate = t.arrowFunctionExpression(
+                    [],
+                    t.blockStatement([
+                      t.returnStatement(
+                        t.callExpression(
+                          t.memberExpression(
+                            t.identifier('document'),
+                            t.identifier('createTextNode')
+                          ),
+                          [
+                            t.stringLiteral('') // The text content for the text node
+                          ]
+                        )
+                      )
+                    ])
+                  );
+
+                  innerPath.replaceWith(
+                    t.callExpression(
+                      t.identifier("registerConditional"),
+                      [
+                        testFunc,
+                        t.arrowFunctionExpression([], newConsequent),
+                        newAlternate,
+                        ...Array.from(referencedIdentifiers)
+                      ],
+                    )
+                  );
+                }
+
+              },
               ConditionalExpression(innerPath) {
                 const { test, consequent, alternate } = innerPath.node;
 

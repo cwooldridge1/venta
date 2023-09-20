@@ -20,19 +20,20 @@ const App = () => {
       {/* <Button onClick={() => count2.setValue(count2.value + 1)}> */}
       {/*   count 2 {count2} */}
       {/* </Button> */}
-      {count.value >= 1 ? (
-        count2.value >= 3 ? (
-          <Card>{count}</Card>
-        ) : doubleCount.value > 4 ? (
-          <Card>doouble</Card>
-        ) : (
-          <Card>Not greater than 3</Card>
-        )
-      ) : (
-        <Card>less than 1</Card>
-      )}
+      {/* {count.value >= 1 ? ( */}
+      {/*   count2.value >= 3 ? ( */}
+      {/*     <Card>{count}</Card> */}
+      {/*   ) : doubleCount.value > 4 ? ( */}
+      {/*     <Card>doouble</Card> */}
+      {/*   ) : ( */}
+      {/*     <Card>Not greater than 3</Card> */}
+      {/*   ) */}
+      {/* ) : ( */}
+      {/*   <Card>less than 1</Card> */}
+      {/* )} */}
 
       {/* {count.value >= 1 ? <Card>greater than 1</Card> : <Card>less than 1</Card>} */}
+      {count.value >= 1 && count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>}
     </Card>
   );
 };

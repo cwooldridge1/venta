@@ -3,12 +3,12 @@
  */
 import {
   elementMap,
-} from '../src/state';
+} from '../../src/state';
 import {
   registerConditional,
   renderVentaNode,
-} from '../src/utils';
-import { useState, VentaState } from '../src';
+} from '../../src/utils';
+import { useState, VentaState } from '../../src';
 import { jest } from '@jest/globals';
 
 describe('Venta functions', () => {
@@ -22,7 +22,7 @@ describe('Venta functions', () => {
       const test = () => count.value > 2;
 
       const trueContent = () => renderVentaNode('span', {}, 'Count is Greater than 2');
-      const falseContent = () => renderVentaNode('span', {}, 'Count is Less than 2');
+      const falseContent = () => document.createTextNode('') as any
 
       element = registerConditional(test, trueContent, falseContent, count);
       document.body.appendChild(element);
@@ -30,10 +30,10 @@ describe('Venta functions', () => {
 
     it('should render the correct conditional initially', () => {
       expect(count.conditionalElements.length).toBe(1);
-      expect(elementMap.has(element)).toBe(true);
+      expect(elementMap.size).toBe(0)
 
       element = document.body.querySelector('span')!;
-      expect(element.textContent).toBe('Count is Less than 2');
+      expect(element).toBe(null);
     });
 
     it('should update to "greater than 2" when count is set to 3', () => {
@@ -48,9 +48,9 @@ describe('Venta functions', () => {
       count.setValue(1);
 
       element = document.body.querySelector('span')!;
-      expect(elementMap.has(element)).toBe(true);
-      expect(element.textContent).toBe('Count is Less than 2');
-      expect(elementMap.size).toBe(1);
+      expect(element).toBe(null)
+      expect(elementMap.size).toBe(0)
+      expect(count.conditionalElements.length).toBe(1);
     });
   });
 });
