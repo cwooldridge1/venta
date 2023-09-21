@@ -33,7 +33,9 @@ const App = () => {
       {/* )} */}
 
       {/* {count.value >= 1 ? <Card>greater than 1</Card> : <Card>less than 1</Card>} */}
-      {count.value >= 1 && count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>}
+      {/* {count.value >= 1 && <Card>greater than 1</Card>} */}
+      {count.value >= 1 && (count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>)}
+      {/* {count.value >= 1 && count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>} */}
     </Card>
   );
 };

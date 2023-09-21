@@ -51,6 +51,9 @@ module.exports = function(babel) {
             path.traverse({
               LogicalExpression(innerPath) {
                 const { left, right } = innerPath.node;
+                if (innerPath.findParent((parentPath) => parentPath.isConditionalExpression())) {
+                  return;
+                }
 
 
                 let referencesStatefulVariable = false;
@@ -100,7 +103,9 @@ module.exports = function(babel) {
                   );
                 }
 
-              },
+              }
+            })
+            path.traverse({
               ConditionalExpression(innerPath) {
                 const { test, consequent, alternate } = innerPath.node;
 
