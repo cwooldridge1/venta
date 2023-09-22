@@ -3,13 +3,13 @@
  */
 import {
   elementMap,
-} from '../../src/state';
+} from '../../../src/state';
 import {
   registerConditional,
   renderConditional,
   renderVentaNode,
-} from '../../src/utils';
-import { useState, VentaState } from '../../src';
+} from '../../../src/utils';
+import { useState, VentaState } from '../../../src';
 import { jest } from '@jest/globals';
 
 describe('Venta functions', () => {
