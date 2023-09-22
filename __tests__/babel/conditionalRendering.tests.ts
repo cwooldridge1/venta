@@ -237,3 +237,73 @@ test("non-useState render should catch useMemo as state", () => {
 `)
   expect(code).toBe(expectedCode)
 });
+
+
+
+test("non-jsx context ternary render test", () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      return  count.value >= 1 ? <Card>greater than 1</Card> : <Card>less than 1</Card>
+    };
+    `;
+  const code = normalizeCode(transformCode(input))
+  const expectedCode = normalizeCode(`
+    "use strict";
+
+    var App = function App() {
+      var count = useState(0);
+      return registerConditional(function () {
+        return count.value >= 1;
+      }, function () {
+        return renderVentaNode(Card, null, "greater than 1");
+      }, function () {
+        return renderVentaNode(Card, null, "less than 1");
+      }, count);
+    };
+   `)
+  expect(code).toBe(expectedCode)
+});
+
+
+test("non-jsx non-component context ternary render test", () => {
+  const input = `
+    const app = () => {
+      const count = useState(0);
+      return  count.value >= 1 ? <Card>greater than 1</Card> : <Card>less than 1</Card>
+    };
+    `;
+  const code = normalizeCode(transformCode(input))
+  const expectedCode = normalizeCode(`
+      "use strict";
+      var app = function app() {
+        var count = useState(0);
+        return count.value >= 1 ? renderVentaNode(Card, null, "greater than 1") : renderVentaNode(Card, null, "less than 1");
+      };
+   `)
+  expect(code).toBe(expectedCode)
+});
+
+test("non-jsx && render test", () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      return  count.value >= 1 && <Card>greater than 1</Card>
+    };
+    `;
+  const code = normalizeCode(transformCode(input))
+  const expectedCode = normalizeCode(`
+      "use strict";
+      var App = function App() {
+        var count = useState(0);
+        return registerConditional(function () {
+          return count.value >= 1;
+        }, function () {
+          return renderVentaNode(Card, null, "greater than 1");
+        }, function () {
+          return document.createTextNode("");
+        }, count);
+      };
+   `)
+  expect(code).toBe(expectedCode)
+});
