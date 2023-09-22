@@ -21,21 +21,22 @@ const App = () => {
       {/*   count 2 {count2} */}
       {/* </Button> */}
       {/* {count.value >= 1 ? ( */}
-      {/*   count2.value >= 3 ? ( */}
-      {/*     <Card>{count}</Card> */}
-      {/*   ) : doubleCount.value > 4 ? ( */}
-      {/*     <Card>doouble</Card> */}
-      {/*   ) : ( */}
+      {/*   count.value >= 3 ? ( */}
+      {/*     <Card>greater than 3</Card> */}
+      {/*   ) : */}
       {/*     <Card>Not greater than 3</Card> */}
-      {/*   ) */}
-      {/* ) : ( */}
-      {/*   <Card>less than 1</Card> */}
-      {/* )} */}
+      {/* ) */}
+      {/*   : ( */}
+      {/*     <Card>less than 1</Card> */}
+      {/*   )} */}
 
       {/* {count.value >= 1 ? <Card>greater than 1</Card> : <Card>less than 1</Card>} */}
-      {/* {count.value >= 1 && <Card>greater than 1</Card>} */}
-      {(count.value >= 1 || count.value > 2) && (count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>)}
+      {/* {count.value >= 1 && <Card>greater than 0</Card>} */}
+      {/* {(count.value >= 3 || count.value === 1) && <Card>greater than 0</Card>} */}
+      {/* {(count.value >= 1 || count.value > 2) && (count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>)} */}
+      {/* {count.value >= 1 && (count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>)} */}
       {/* {count.value >= 1 && count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>} */}
+      {doubleCount.value >= 2 && <span>gt2</span>}
     </Card>
   );
 };

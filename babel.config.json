@@ -11,6 +11,6 @@
         "pragma": "renderVentaNode"
       }
     ],
-    "./babel/ventaState.js"
+    "./babel/conditionalRendering.js"
   ]
 }
