@@ -1,1 +1,1 @@
-export { updateNode } from './rendering'
+export * from './rendering'

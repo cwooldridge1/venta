@@ -1,21 +1,37 @@
-import { stateMap, getGlobalId, incrementGlobalId } from "../state";
-import { VentaState } from "../types";
-import { updateNode } from "../utils";
+import {
+  stateMap,
+  getGlobalId,
+  incrementGlobalId,
+  componentStateMap,
+  getComponentId,
+} from '../state';
+import { VentaState } from '../types';
+import { updateNode } from '../utils';
 
 const useState = (initialValue: any) => {
   const id = getGlobalId();
   incrementGlobalId();
-  const setState = (newValue: any) => {
-    let state = stateMap.get(id)!
-    const { sideEffects, elements } = state
-    state.state = newValue
-    sideEffects.forEach(sideEffect => sideEffect());
-    elements.forEach(node => updateNode(node, state.id))
-  }
+  const setValue = (newValue: any) => {
+    let state = stateMap.get(id)!;
+    const { sideEffects, elements, conditionalElements } = state;
+    state.value = newValue;
+    sideEffects.forEach((sideEffect) => sideEffect());
+    elements.forEach((node) => updateNode(node, state.id));
+    conditionalElements.forEach((test) => test());
+  };
 
-  stateMap.set(id, { sideEffects: [], elements: [], state: initialValue, setState: setState, id: id });
+  stateMap.set(id, {
+    sideEffects: [],
+    elements: [],
+    conditionalElements: [],
+    value: initialValue,
+    setValue: setValue,
+    id: id,
+  });
 
-  return stateMap.get(id) as VentaState
-}
+  const state = stateMap.get(id) as VentaState;
+  componentStateMap.get(getComponentId())?.state.push(state);
+  return state;
+};
 
 export default useState;
