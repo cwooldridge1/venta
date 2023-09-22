@@ -50,11 +50,11 @@ module.exports = function(babel) {
           JSXExpressionContainer(path) {
             path.traverse({
               LogicalExpression(innerPath) {
-                const { left, right } = innerPath.node;
+                const { left, right, operator } = innerPath.node;
+                if (operator === '||') return
                 if (innerPath.findParent((parentPath) => parentPath.isConditionalExpression())) {
                   return;
                 }
-
 
                 let referencesStatefulVariable = false;
                 const referencedIdentifiers = new Set();

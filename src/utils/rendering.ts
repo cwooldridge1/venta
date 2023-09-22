@@ -95,7 +95,7 @@ export const renderConditional = (
   contentIfTrue: Content,
   contentIfFalse: Content,
   id: number
-): HTMLElement | null => {
+): HTMLElement => {
   const testValue = test();
   const key = `${id}-${testValue}`
 
@@ -175,7 +175,6 @@ export const registerConditional = (
     })
   })
   lastContent = test() ? contentIfTrue() : contentIfFalse();
-  console.log(lastContent)
 
   return lastContent;
 };
