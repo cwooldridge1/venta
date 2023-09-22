@@ -1,4 +1,4 @@
-import { Props } from "./types";
+import { Props, VentaState } from "./types";
 import { renderConditional, registerConditional, renderVentaNode, render } from "./utils/rendering";
 import { useState, useEffect, useMemo } from './hooks';
 export * from './types';
@@ -22,11 +22,23 @@ export default Venta;
 declare global {
   interface Window {
     renderVentaNode: (type: any, props: Props, ...children: any[]) => HTMLElement;
-    renderConditional: any;
-    registerConditional: any;
+    renderConditional: (
+      test: () => boolean,
+      contentIfTrue: (() => HTMLElement),
+      contentIfFalse: (() => HTMLElement),
+      id: number
+    ) => HTMLElement
+    registerConditional: (
+      test: () => boolean,
+      contentIfTrue: (() => HTMLElement),
+      contentIfFalse: (() => HTMLElement),
+      ...deps: VentaState[]
+    ) => HTMLElement
   }
 }
 
-window.renderVentaNode = renderVentaNode // so babel can compile jsx
+
+// so babel can reference these functions
+window.renderVentaNode = renderVentaNode
 window.renderConditional = renderConditional
 window.registerConditional = registerConditional

@@ -80,10 +80,8 @@ export const render = (component: any, props: Props, parent: HTMLElement) => {
 
 
 
-type Content = (() => HTMLElement)
-
-
 const cache = new Map<string, HTMLElement>();
+const inverseCache = new Map<HTMLElement, string>();
 
 let callCount = 0;
 /*
@@ -92,8 +90,8 @@ let callCount = 0;
  * */
 export const renderConditional = (
   test: () => boolean,
-  contentIfTrue: Content,
-  contentIfFalse: Content,
+  contentIfTrue: (() => HTMLElement),
+  contentIfFalse: (() => HTMLElement),
   id: number
 ): HTMLElement => {
   const testValue = test();
@@ -108,6 +106,7 @@ export const renderConditional = (
   const content = testValue ? contentIfTrue() : contentIfFalse();
   if (callCount === currentCallCount) { // this is a very hacky way to see if the base case is met of not rendering another conditional
     cache.set(key, content)
+    inverseCache.set(content, key)
   }
 
   return content;
@@ -122,21 +121,20 @@ const handleComponentUnmount = (componentId: number, element: HTMLElement) => {
   })
   unmountCallbacks.forEach(callback => callback())
   //we also need to remove it from component cache as we want it to rerender when mounted
-  cache.forEach((val, key) => {
-    if (val === element) {
-      cache.delete(key)
-    }
-  })
+  const cacheKey = inverseCache.get(element)
+  if (cacheKey) {
+    inverseCache.delete(element)
+    cache.delete(cacheKey)
+  }
   componentStateMap.delete(componentId)
-
 }
 
 export const registerConditional = (
   test: () => boolean,
-  contentIfTrue: Content,
-  contentIfFalse: Content,
+  contentIfTrue: (() => HTMLElement),
+  contentIfFalse: (() => HTMLElement),
   ...deps: VentaState[]
-) => {
+): HTMLElement => {
   let lastContent: HTMLElement;
   let localCache = new Map<boolean, HTMLElement>();
 
@@ -174,7 +172,12 @@ export const registerConditional = (
       lastContent = content;
     })
   })
-  lastContent = test() ? contentIfTrue() : contentIfFalse();
+  let testValue = test()
+  const lastCount = callCount
+  lastContent = testValue ? contentIfTrue() : contentIfFalse();
+  if (callCount === lastCount) { // this means that what was rendered was an html element or a component
+    localCache.set(testValue, lastContent)
+  }
 
   return lastContent;
 };

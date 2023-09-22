@@ -50,22 +50,28 @@ module.exports = function(babel) {
   }
 
 
-  const registerConditional = (path) => {
+  const getReferenceIdentifiers = (path) => {
 
-    const { test, consequent, alternate } = path.node;
-
-    let referencesStatefulVariable = false;
     const referencedIdentifiers = new Set();
 
-    path.get('test').traverse({
+    path.traverse({
       Identifier(testPath) {
         if (statefulVariables.has(testPath.node.name)) {
-          referencesStatefulVariable = true;
           referencedIdentifiers.add(t.identifier(testPath.node.name));
         }
       },
     });
-    if (referencesStatefulVariable) {
+    return referencedIdentifiers;
+  }
+
+
+  const registerConditional = (path) => {
+
+    const { test, consequent, alternate } = path.node;
+
+    const referencedIdentifiers = getReferenceIdentifiers(path.get('test'))
+
+    if (referencedIdentifiers.size) {
       const testFunc = t.arrowFunctionExpression([], test);
       const newConsequent = wrapInRenderConditional(consequent, referencedIdentifiers, statefulVariables);
       const newAlternate = wrapInRenderConditional(alternate, referencedIdentifiers, statefulVariables);
@@ -91,19 +97,9 @@ module.exports = function(babel) {
       return;
     }
 
-    let referencesStatefulVariable = false;
-    const referencedIdentifiers = new Set();
+    const referencedIdentifiers = getReferenceIdentifiers(path.get('left'));
 
-    path.get('left').traverse({
-      Identifier(testPath) {
-        if (statefulVariables.has(testPath.node.name)) {
-          referencesStatefulVariable = true;
-          referencedIdentifiers.add(t.identifier(testPath.node.name));
-        }
-      },
-    });
-
-    if (referencesStatefulVariable) {
+    if (referencedIdentifiers.size) {
       const testFunc = t.arrowFunctionExpression([], left);
       //you can still have a ternary afer so we have to have this
       const newConsequent = wrapInRenderConditional(right, referencedIdentifiers, statefulVariables);
