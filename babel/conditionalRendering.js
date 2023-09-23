@@ -21,21 +21,22 @@ module.exports = function(babel) {
 
     return !nonTextTypes.includes(type);
   }
+  const createTextNode = (value) => {
+    return t.callExpression(
+      t.identifier('renderTextNode'),
+      [value]
+    );
+  }
 
   const wrapInRenderConditional = (expression, referencedIdentifiers, statefulVariables) => {
     if (t.isConditionalExpression(expression)) {
 
       if (shouldBeTextNode(expression.consequent.type)) {
-        expression.consequent = t.callExpression(
-          t.identifier('renderTextNode'),
-          [expression.consequent]
-        );
-      }
+        expression.consequent = createTextNode(expression.consequent)
+      };
+
       if (shouldBeTextNode(expression.consequent.type)) {
-        expression.alternate = t.callExpression(
-          t.identifier('renderTextNode'),
-          [expression.alternate]
-        );
+        expression.alternate = createTextNode(expression.alternate)
       }
 
       const { test, consequent, alternate } = expression;
@@ -63,10 +64,7 @@ module.exports = function(babel) {
     }
 
     if (shouldBeTextNode(expression.type)) {
-      expression = t.callExpression(
-        t.identifier('renderTextNode'),
-        [expression]
-      );
+      expression = createTextNode(expression)
     }
     return expression;
   }
@@ -109,17 +107,11 @@ module.exports = function(babel) {
 
     if (shouldBeTextNode(path.node.consequent.type)) {
 
-      path.node.consequent = t.callExpression(
-        t.identifier('renderTextNode'),
-        [path.node.consequent]
-      );
+      path.node.consequent = createTextNode(path.node.consequent)
     }
 
     if (shouldBeTextNode(path.node.alternate.type)) {
-      path.node.alternate = t.callExpression(
-        t.identifier('renderTextNode'),
-        [path.node.alternate]
-      );
+      path.node.alternate = createTextNode(path.node.alternate)
     }
 
     const { test, consequent, alternate } = path.node;
@@ -147,12 +139,8 @@ module.exports = function(babel) {
   }
 
   const registerLogicalExpression = (path) => {
-    // if (path.node.right.type === 'StringLiteral' || path.node.right.type === 'Identifier') {
     if (shouldBeTextNode(path.node.right.type)) {
-      path.node.right = t.callExpression(
-        t.identifier('renderTextNode'),
-        [path.node.right]
-      );
+      path.node.right = createTextNode(path.node.right)
     }
     const { left, right, operator } = path.node;
     if (operator === '||') return
