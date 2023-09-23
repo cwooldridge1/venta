@@ -3,8 +3,41 @@ module.exports = function(babel) {
   let conditionalId = 0;
   const statefulVariables = new Set();
 
+  const shouldBeTextNode = (type) => {
+    const nonTextTypes = [
+      'JSXElement',
+      'JSXFragment',
+      'ConditionalExpression',
+      'BinaryExpression',
+      'CallExpression',
+      'MemberExpression',
+      'LogicalExpression',
+      'UnaryExpression',
+      'ArrowFunctionExpression',
+      'FunctionExpression',
+      'NewExpression',
+      'ThisExpression',
+    ];
+
+    return !nonTextTypes.includes(type);
+  }
+
   const wrapInRenderConditional = (expression, referencedIdentifiers, statefulVariables) => {
     if (t.isConditionalExpression(expression)) {
+
+      if (shouldBeTextNode(expression.consequent.type)) {
+        expression.consequent = t.callExpression(
+          t.identifier('renderTextNode'),
+          [expression.consequent]
+        );
+      }
+      if (shouldBeTextNode(expression.consequent.type)) {
+        expression.alternate = t.callExpression(
+          t.identifier('renderTextNode'),
+          [expression.alternate]
+        );
+      }
+
       const { test, consequent, alternate } = expression;
       babel.traverse(test, {
         noScope: true,
@@ -26,6 +59,13 @@ module.exports = function(babel) {
           t.arrowFunctionExpression([], newAlternate),
           t.numericLiteral(conditionalId++)
         ],
+      );
+    }
+
+    if (shouldBeTextNode(expression.type)) {
+      expression = t.callExpression(
+        t.identifier('renderTextNode'),
+        [expression]
       );
     }
     return expression;
@@ -67,7 +107,23 @@ module.exports = function(babel) {
 
   const registerConditional = (path) => {
 
+    if (shouldBeTextNode(path.node.consequent.type)) {
+
+      path.node.consequent = t.callExpression(
+        t.identifier('renderTextNode'),
+        [path.node.consequent]
+      );
+    }
+
+    if (shouldBeTextNode(path.node.alternate.type)) {
+      path.node.alternate = t.callExpression(
+        t.identifier('renderTextNode'),
+        [path.node.alternate]
+      );
+    }
+
     const { test, consequent, alternate } = path.node;
+
 
     const referencedIdentifiers = getReferenceIdentifiers(path.get('test'))
 
@@ -91,12 +147,18 @@ module.exports = function(babel) {
   }
 
   const registerLogicalExpression = (path) => {
+    // if (path.node.right.type === 'StringLiteral' || path.node.right.type === 'Identifier') {
+    if (shouldBeTextNode(path.node.right.type)) {
+      path.node.right = t.callExpression(
+        t.identifier('renderTextNode'),
+        [path.node.right]
+      );
+    }
     const { left, right, operator } = path.node;
     if (operator === '||') return
     if (path.findParent((parentPath) => parentPath.isConditionalExpression())) {
       return;
     }
-
     const referencedIdentifiers = getReferenceIdentifiers(path.get('left'));
 
     if (referencedIdentifiers.size) {
@@ -155,16 +217,25 @@ module.exports = function(babel) {
 
         path.traverse({
           ReturnStatement(path) {
-            path.traverse({
-              ConditionalExpression(innerPath) {
-                if (isJSXContext(innerPath) || !isComponentContext(path)) return;
-                registerConditional(innerPath)
-              },
-              LogicalExpression(innerPath) {
-                if (isJSXContext(innerPath) || !isComponentContext(path)) return;
-                registerLogicalExpression(innerPath)
-              }
-            })
+            const returnValue = path.node.argument;
+            if (!isComponentContext(path)) return
+            if (returnValue && shouldBeTextNode(returnValue.type)) {
+              path.node.argument = t.callExpression(
+                t.identifier('renderTextNode'),
+                [returnValue]
+              );
+            } else {
+              path.traverse({
+                ConditionalExpression(innerPath) {
+                  if (isJSXContext(innerPath) || !isComponentContext(path)) return;
+                  registerConditional(innerPath)
+                },
+                LogicalExpression(innerPath) {
+                  if (isJSXContext(innerPath) || !isComponentContext(path)) return;
+                  registerLogicalExpression(innerPath)
+                }
+              })
+            }
           },
           JSXExpressionContainer(path) {
             path.traverse({
