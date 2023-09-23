@@ -307,3 +307,132 @@ test("non-jsx && render test", () => {
    `)
   expect(code).toBe(expectedCode)
 });
+
+
+
+test("no jsx && render test", () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      return  count.value >= 1 && 'greater than 1'
+    };
+    `;
+  const code = normalizeCode(transformCode(input))
+  const expectedCode = normalizeCode(`
+    "use strict";
+    var App = function App() {
+      var count = useState(0);
+      return registerConditional(function () {
+        return count.value >= 1;
+      }, function () {
+        return renderTextNode('greater than 1');
+      }, function () {
+        return document.createTextNode("");
+      }, count);
+    };
+
+`)
+  expect(code).toBe(expectedCode)
+});
+
+
+
+test("no jsx ternary render test", () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      return  count.value >= 1 ? 'greater than 1' : count
+    };
+    `;
+  const code = normalizeCode(transformCode(input))
+  const expectedCode = normalizeCode(`
+    "use strict";
+    var App = function App() {
+      var count = useState(0);
+      return registerConditional(function () {
+        return count.value >= 1;
+      }, function () {
+        return renderTextNode('greater than 1');
+      }, function () {
+        return renderTextNode(count);
+      }, count);
+    };
+
+  `)
+  expect(code).toBe(expectedCode)
+});
+
+
+test("no jsx ternary render test", () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      const val = 2;
+      return  count.value >= 1 ? val : count
+    };
+    `;
+
+  const code = normalizeCode(transformCode(input))
+  const expectedCode = normalizeCode(`
+    "use strict";
+    var App = function App() {
+      var count = useState(0);
+      var val = 2;
+      return registerConditional(function () {
+        return count.value >= 1;
+      }, function () {
+        return renderTextNode(val);
+      }, function () {
+        return renderTextNode(count);
+      }, count);
+    };
+  `)
+  expect(code).toBe(expectedCode)
+});
+
+test("no jsx ternary render test", () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      return  count.value >= 1 ? 4 : count
+    };
+    `;
+
+  const code = normalizeCode(transformCode(input))
+  const expectedCode = normalizeCode(`
+      "use strict";
+      var App = function App() {
+        var count = useState(0);
+        return registerConditional(function () {
+          return count.value >= 1;
+        }, function () {
+          return renderTextNode(4);
+        }, function () {
+          return renderTextNode(count);
+        }, count);
+      };
+  `)
+  expect(code).toBe(expectedCode)
+});
+
+
+
+test("non jsx return value no conditions", () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      return count 
+    };
+    `;
+
+  const code = normalizeCode(transformCode(input))
+  const expectedCode = normalizeCode(`
+      "use strict";
+      var App = function App() {
+        var count = useState(0);
+        return renderTextNode(count);
+      };
+`)
+  expect(code).toBe(expectedCode)
+});
+

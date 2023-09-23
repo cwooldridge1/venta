@@ -2,7 +2,6 @@ import { elementMap, stateMap } from "../state"
 import { Props, VentaNode, VentaState } from "../types"
 import { componentReferenceMap, getComponentId, incrementComponentId, componentStateMap } from "../state"
 
-
 export const updateNode = (elem: HTMLElement, stateIndex: number) => {
   const elementState = elementMap.get(elem)
   if (!elementState) throw new Error('element state not found')
@@ -13,6 +12,22 @@ export const updateNode = (elem: HTMLElement, stateIndex: number) => {
   childState[stateIndex]?.forEach(([index, value]) => {
     elem.childNodes[index].textContent = value.value
   })
+}
+
+export const renderTextNode = (value: VentaState | string) => {
+  let node;
+
+  if (typeof value === 'object') {
+    node = document.createTextNode(value.value)
+    value.elements.push(node)
+  }
+  else {
+    node = document.createTextNode(value)
+  }
+
+  const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+  elementMap.set(node, stateRef)
+  return node
 }
 
 export const renderVentaNode = (type: any, props: Props, ...children: any[]) => {
@@ -80,8 +95,8 @@ export const render = (component: any, props: Props, parent: HTMLElement) => {
 
 
 
-const cache = new Map<string, HTMLElement>();
-const inverseCache = new Map<HTMLElement, string>();
+const cache = new Map<string, HTMLElement | Text>();
+const inverseCache = new Map<HTMLElement | Text, string>();
 
 let callCount = 0;
 /*
@@ -90,10 +105,10 @@ let callCount = 0;
  * */
 export const renderConditional = (
   test: () => boolean,
-  contentIfTrue: (() => HTMLElement),
-  contentIfFalse: (() => HTMLElement),
+  contentIfTrue: (() => HTMLElement | Text),
+  contentIfFalse: (() => HTMLElement | Text),
   id: number
-): HTMLElement => {
+): HTMLElement | Text => {
   const testValue = test();
   const key = `${id}-${testValue}`
 
@@ -113,7 +128,7 @@ export const renderConditional = (
 };
 
 
-const handleComponentUnmount = (componentId: number, element: HTMLElement) => {
+const handleComponentUnmount = (componentId: number, element: HTMLElement | Text) => {
   const { state, unmountCallbacks } = componentStateMap.get(componentId)!
   state.forEach(state => {
     state.elements.forEach(elem => elementMap.delete(elem))
@@ -131,12 +146,12 @@ const handleComponentUnmount = (componentId: number, element: HTMLElement) => {
 
 export const registerConditional = (
   test: () => boolean,
-  contentIfTrue: (() => HTMLElement),
-  contentIfFalse: (() => HTMLElement),
+  contentIfTrue: (() => HTMLElement | Text),
+  contentIfFalse: (() => HTMLElement | Text),
   ...deps: VentaState[]
-): HTMLElement => {
-  let lastContent: HTMLElement;
-  let localCache = new Map<boolean, HTMLElement>();
+): HTMLElement | Text => {
+  let lastContent: HTMLElement | Text;
+  let localCache = new Map<boolean, HTMLElement | Text>();
 
 
   deps.forEach(dep => {
@@ -146,7 +161,7 @@ export const registerConditional = (
       if (!content) {
         const lastCount = callCount
         content = testValue ? contentIfTrue() : contentIfFalse()
-        if (callCount === lastCount) {
+        if (callCount === lastCount) { // this means it was a direct html element or a component that got rendered
           localCache.set(testValue, content)
         }
       }

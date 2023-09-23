@@ -13,35 +13,37 @@ const App = () => {
     console.log('useffect called', doubleCount.value);
   }, [doubleCount]);
 
-  return (
-    <Card>
-      <Button onClick={callback}>Click Count {count}</Button>
-      <Button onClick={() => count.setValue(0)}>Reset</Button>
-      {/* <Button onClick={() => count2.setValue(count2.value + 1)}> */}
-      {/*   count 2 {count2} */}
-      {/* </Button> */}
-      {/* {count.value >= 1 ? ( */}
-      {/*   count.value >= 3 ? ( */}
-      {/*     <Card>greater than 3</Card> */}
-      {/*   ) : */}
-      {/*     <Card>Not greater than 3</Card> */}
-      {/* ) */}
-      {/*   : ( */}
-      {/*     <Card>less than 1</Card> */}
-      {/*   )} */}
+  return count.value >= 1 ? count : 'hi'
 
-      {/* {count.value >= 1 ? <Card>greater than 1</Card> : <Card>less than 1</Card>} */}
-      {/* {count.value >= 1 && <Card>greater than 0</Card>} */}
-      {/* {(count.value >= 3 || count.value === 1) && <Card>greater than 0</Card>} */}
-      {/* {(count.value >= 1 || count.value > 2) && (count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>)} */}
-      {/* {count.value >= 1 && (count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>)} */}
-      {/* {count.value >= 1 && count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>} */}
-      {/* {doubleCount.value >= 2 && <span>gt2</span>} */}
-      {/* {count.value >= 1 && <Card>greater than 0</Card>} */}
-      {count.value >= 1 && (count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>)}
-
-    </Card>
-  );
+  //   (
+  //   <Card>
+  //     <Button onClick={callback}>Click Count {count}</Button>
+  //     <Button onClick={() => count.setValue(0)}>Reset</Button>
+  //     {/* <Button onClick={() => count2.setValue(count2.value + 1)}> */}
+  //     {/*   count 2 {count2} */}
+  //     {/* </Button> */}
+  //     {/* {count.value >= 1 ? ( */}
+  //     {/*   count.value >= 3 ? ( */}
+  //     {/*     <Card>greater than 3</Card> */}
+  //     {/*   ) : */}
+  //     {/*     <Card>Not greater than 3</Card> */}
+  //     {/* ) */}
+  //     {/*   : ( */}
+  //     {/*     <Card>less than 1</Card> */}
+  //     {/*   )} */}
+  //
+  //     {/* {count.value >= 1 ? <Card>greater than 1</Card> : <Card>less than 1</Card>} */}
+  //     {/* {count.value >= 1 && <Card>greater than 0</Card>} */}
+  //     {/* {(count.value >= 3 || count.value === 1) && <Card>greater than 0</Card>} */}
+  //     {/* {(count.value >= 1 || count.value > 2) && (count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>)} */}
+  //     {/* {count.value >= 1 && (count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>)} */}
+  //     {/* {count.value >= 1 && count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>} */}
+  //     {doubleCount.value >= 2 && <span>gt2</span>}
+  //     {/* {count.value >= 1 && <Card>greater than 0</Card>} */}
+  //     {count.value >= 1 && (count.value >= 3 ? <Card>greater than 3</Card> : <Card>less than 3</Card>)}
+  //
+  //   </Card>
+  // );
 };
 
 export default App;

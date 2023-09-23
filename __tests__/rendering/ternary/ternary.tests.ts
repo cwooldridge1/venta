@@ -24,7 +24,7 @@ describe('Venta functions', () => {
       const trueContent = () => renderVentaNode('span', {}, 'Count is Greater than 2');
       const falseContent = () => renderVentaNode('span', {}, 'Count is Less than 2');
 
-      element = registerConditional(test, trueContent, falseContent, count);
+      element = registerConditional(test, trueContent, falseContent, count) as HTMLElement;
       document.body.appendChild(element);
     });
 

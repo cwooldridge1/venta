@@ -1,5 +1,5 @@
 import { Props, VentaState } from "./types";
-import { renderConditional, registerConditional, renderVentaNode, render } from "./utils/rendering";
+import { renderConditional, registerConditional, renderVentaNode, render, renderTextNode } from "./utils/rendering";
 import { useState, useEffect, useMemo } from './hooks';
 export * from './types';
 
@@ -24,16 +24,17 @@ declare global {
     renderVentaNode: (type: any, props: Props, ...children: any[]) => HTMLElement;
     renderConditional: (
       test: () => boolean,
-      contentIfTrue: (() => HTMLElement),
-      contentIfFalse: (() => HTMLElement),
+      contentIfTrue: (() => HTMLElement | Text),
+      contentIfFalse: (() => HTMLElement | Text),
       id: number
-    ) => HTMLElement
+    ) => HTMLElement | Text
     registerConditional: (
       test: () => boolean,
       contentIfTrue: (() => HTMLElement),
       contentIfFalse: (() => HTMLElement),
       ...deps: VentaState[]
-    ) => HTMLElement
+    ) => HTMLElement | Text,
+    renderTextNode: (state: VentaState | string) => Text
   }
 }
 
@@ -42,3 +43,4 @@ declare global {
 window.renderVentaNode = renderVentaNode
 window.renderConditional = renderConditional
 window.registerConditional = registerConditional
+window.renderTextNode = renderTextNode 
