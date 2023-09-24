@@ -419,20 +419,34 @@ test("no jsx ternary render test", () => {
 
 test("non jsx return value no conditions", () => {
   const input = `
+    const Component = (count) => {
+      return  count.value >= 1 ? 4 : count
+    };
     const App = () => {
       const count = useState(0);
-      return count 
+      return  <Component count={count}/>
     };
     `;
 
   const code = normalizeCode(transformCode(input))
   const expectedCode = normalizeCode(`
       "use strict";
+      var Component = function Component(count) {
+        return registerConditional(function () {
+          return count.value >= 1;
+        }, function () {
+          return renderTextNode(4);
+        }, function () {
+          return renderTextNode(count);
+        }, count);
+      };
       var App = function App() {
         var count = useState(0);
-        return renderTextNode(count);
+        return renderVentaNode(Component, {
+          count: count
+        });
       };
-`)
+  `)
   expect(code).toBe(expectedCode)
 });
 

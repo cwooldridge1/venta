@@ -1,7 +1,6 @@
 module.exports = function(babel) {
   const { types: t } = babel;
   let conditionalId = 0;
-  const statefulVariables = new Set();
 
   const shouldBeTextNode = (type) => {
     const nonTextTypes = [
@@ -28,7 +27,24 @@ module.exports = function(babel) {
     );
   }
 
-  const wrapInRenderConditional = (expression, referencedIdentifiers, statefulVariables) => {
+  const getReferenceIdentifiers = (path) => {
+
+    const referencedIdentifiers = new Set();
+
+    path.traverse({
+      Identifier(path) {
+        // If this Identifier is part of a MemberExpression and it's not the object, skip it
+        if (path.parent.type === "MemberExpression" && path.parent.property === path.node) {
+          return;
+        }
+        referencedIdentifiers.add(t.identifier(path.node.name));
+      },
+    });
+    return referencedIdentifiers;
+  }
+
+
+  const wrapInRenderConditional = (expression, referencedIdentifiers) => {
     if (t.isConditionalExpression(expression)) {
 
       if (shouldBeTextNode(expression.consequent.type)) {
@@ -40,16 +56,20 @@ module.exports = function(babel) {
       }
 
       const { test, consequent, alternate } = expression;
+
       babel.traverse(test, {
         noScope: true,
         Identifier(path) {
-          if (statefulVariables.has(path.node.name)) {
-            referencedIdentifiers.add(t.identifier(path.node.name));
+          // Skip if this Identifier is part of a MemberExpression and it's not the object
+          if (path.parent.type === "MemberExpression" && path.parent.property === path.node) {
+            return;
           }
+          referencedIdentifiers.add(t.identifier(path.node.name));
         }
       });
-      const newConsequent = wrapInRenderConditional(consequent, referencedIdentifiers, statefulVariables);
-      const newAlternate = wrapInRenderConditional(alternate, referencedIdentifiers, statefulVariables);
+
+      const newConsequent = wrapInRenderConditional(consequent, referencedIdentifiers);
+      const newAlternate = wrapInRenderConditional(alternate, referencedIdentifiers);
 
       const testFunc = t.arrowFunctionExpression([], test);
       return t.callExpression(
@@ -88,21 +108,6 @@ module.exports = function(babel) {
   }
 
 
-  const getReferenceIdentifiers = (path) => {
-
-    const referencedIdentifiers = new Set();
-
-    path.traverse({
-      Identifier(testPath) {
-        if (statefulVariables.has(testPath.node.name)) {
-          referencedIdentifiers.add(t.identifier(testPath.node.name));
-        }
-      },
-    });
-    return referencedIdentifiers;
-  }
-
-
   const registerConditional = (path) => {
 
     if (shouldBeTextNode(path.node.consequent.type)) {
@@ -116,13 +121,12 @@ module.exports = function(babel) {
 
     const { test, consequent, alternate } = path.node;
 
-
     const referencedIdentifiers = getReferenceIdentifiers(path.get('test'))
 
     if (referencedIdentifiers.size) {
       const testFunc = t.arrowFunctionExpression([], test);
-      const newConsequent = wrapInRenderConditional(consequent, referencedIdentifiers, statefulVariables);
-      const newAlternate = wrapInRenderConditional(alternate, referencedIdentifiers, statefulVariables);
+      const newConsequent = wrapInRenderConditional(consequent, referencedIdentifiers);
+      const newAlternate = wrapInRenderConditional(alternate, referencedIdentifiers);
 
       path.replaceWith(
         t.callExpression(
@@ -152,7 +156,7 @@ module.exports = function(babel) {
     if (referencedIdentifiers.size) {
       const testFunc = t.arrowFunctionExpression([], left);
       //you can still have a ternary afer so we have to have this
-      const newConsequent = wrapInRenderConditional(right, referencedIdentifiers, statefulVariables);
+      const newConsequent = wrapInRenderConditional(right, referencedIdentifiers);
       //false case we just add a empty text node as we need an anchor still but this does not have any dom effect and it not even visible
       const newAlternate = t.arrowFunctionExpression(
         [],
@@ -190,19 +194,6 @@ module.exports = function(babel) {
     name: "transform-jsx-conditional",
     visitor: {
       Function(path) {
-        statefulVariables.clear();
-
-        path.traverse({
-          VariableDeclarator(variablePath) {
-            if (
-              t.isCallExpression(variablePath.node.init) &&
-              (variablePath.node.init.callee.name === 'useState' || variablePath.node.init.callee.name === 'useMemo')
-            ) {
-              statefulVariables.add(variablePath.node.id.name);
-            }
-          },
-        });
-
         path.traverse({
           ReturnStatement(path) {
             const returnValue = path.node.argument;
