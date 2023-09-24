@@ -148,13 +148,14 @@ export const registerConditional = (
   test: () => boolean,
   contentIfTrue: (() => HTMLElement | Text),
   contentIfFalse: (() => HTMLElement | Text),
-  ...deps: VentaState[]
+  ...deps: Array<VentaState | any>
 ): HTMLElement | Text => {
   let lastContent: HTMLElement | Text;
   let localCache = new Map<boolean, HTMLElement | Text>();
 
 
   deps.forEach(dep => {
+    if (dep.id === undefined || !stateMap.has(dep.id)) return; // this is our filter as the compiler attaches all related variables
     dep.conditionalElements.push(() => {
       let testValue = test()
       let content = localCache.get(testValue)
