@@ -38,13 +38,13 @@ describe('conditional jsx render', () => {
     const trueContent = () => renderVentaNode(Component, {}, renderVentaNode('span', {}, 'Count is Greater than 2'));
     const falseContent = () => renderVentaNode(Component, {}, renderVentaNode('span', {}, 'Count is Less than 2'));
 
-    element = registerConditional(test, trueContent, falseContent, count);
+    element = registerConditional(test, trueContent, falseContent, count) as HTMLElement;
     document.body.appendChild(element);
   });
 
 
   it('should render the correct conditional initially', () => {
-    expect(count.conditionalElements.length).toBe(1);
+    expect(count.getConditionalElements().size).toBe(1);
     expect(elementMap.has(element)).toBe(true);
 
     element = document.body.querySelector('span')!;

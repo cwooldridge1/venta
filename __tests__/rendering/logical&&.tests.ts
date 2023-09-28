@@ -14,7 +14,7 @@ import { jest } from '@jest/globals';
 describe('Venta functions', () => {
 
   describe('conditional jsx render', () => {
-    let count: VentaState, element: HTMLElement;
+    let count: VentaState, element: HTMLElement | Text;
 
     beforeAll(() => {
       count = useState(0);
@@ -29,7 +29,7 @@ describe('Venta functions', () => {
     });
 
     it('should render the correct conditional initially', () => {
-      expect(count.conditionalElements.length).toBe(1);
+      expect(count.getConditionalElements().size).toBe(1);
       expect(elementMap.size).toBe(0)
 
       element = document.body.querySelector('span')!;
@@ -50,7 +50,7 @@ describe('Venta functions', () => {
       element = document.body.querySelector('span')!;
       expect(element).toBe(null)
       expect(elementMap.size).toBe(0)
-      expect(count.conditionalElements.length).toBe(1);
+      expect(count.getConditionalElements().size).toBe(1);
     });
   });
 });

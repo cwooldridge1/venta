@@ -28,7 +28,7 @@ describe('test clean up of state html dependencies', () => {
   });
 
   it('should render the correct conditional initially', () => {
-    expect(count.elements.length).toBe(0);
+    expect(count.getElements().size).toBe(0);
 
     element = document.body.querySelector('span')!;
     expect(element.textContent).toBe('less than 2');
@@ -37,7 +37,7 @@ describe('test clean up of state html dependencies', () => {
   it('should update to "greater than 2" when count is set to 3', () => {
     count.setValue(3);
 
-    expect(count.elements.length).toBe(1);
+    expect(count.getElements().size).toBe(1);
     element = document.body.querySelector('span')!;
     expect(elementMap.has(element)).toBe(true);
     expect(element.textContent).toBe('3');
@@ -46,7 +46,7 @@ describe('test clean up of state html dependencies', () => {
   it('should update back to "less than 2" when count is set to 1', () => {
     count.setValue(1);
 
-    expect(count.elements.length).toBe(0);
+    expect(count.getElements().size).toBe(0);
 
     element = document.body.querySelector('span')!;
     expect(element.textContent).toBe('less than 2');

@@ -2,31 +2,23 @@ import { elementMap, stateMap } from "../state"
 import { Props, VentaNode, VentaState } from "../types"
 import { componentReferenceMap, getComponentId, incrementComponentId, componentStateMap } from "../state"
 
-export const updateNode = (elem: HTMLElement, stateIndex: number) => {
-  const elementState = elementMap.get(elem)
-  if (!elementState) throw new Error('element state not found')
-  const { attributeState, childState } = elementState
-  attributeState[stateIndex]?.forEach(([key, value]) => {
-    elem.setAttribute(key, value.value)
-  })
-  childState[stateIndex]?.forEach(([index, value]) => {
-    elem.childNodes[index].textContent = value.value
-  })
-}
-
 export const renderTextNode = (value: VentaState | string) => {
   let node;
 
-  if (typeof value === 'object') {
+  if (value instanceof VentaState) {
     node = document.createTextNode(value.value)
-    value.elements.push(node)
+    value.addElement(node)
+    const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+    stateRef.childState[value.id] = []
+    stateRef.childState[value.id].push([0, value])
+    elementMap.set(node, stateRef)
   }
   else {
     node = document.createTextNode(value)
+    const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+    elementMap.set(node, stateRef)
   }
 
-  const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
-  elementMap.set(node, stateRef)
   return node
 }
 
@@ -82,7 +74,7 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
 
   children.forEach(renderChild);
   elementMap.set(elem, stateRef)
-  dependentStates.forEach(state => state.elements.push(elem))
+  dependentStates.forEach(state => state.addElement(elem))
 
   return elem;
 }
@@ -130,10 +122,8 @@ export const renderConditional = (
 
 const handleComponentUnmount = (componentId: number, element: HTMLElement | Text) => {
   const { state, unmountCallbacks } = componentStateMap.get(componentId)!
-  state.forEach(state => {
-    state.elements.forEach(elem => elementMap.delete(elem))
-    stateMap.delete(state.id)
-  })
+  state.forEach(state => state.destroy())
+
   unmountCallbacks.forEach(callback => callback())
   //we also need to remove it from component cache as we want it to rerender when mounted
   const cacheKey = inverseCache.get(element)
@@ -155,8 +145,8 @@ export const registerConditional = (
 
 
   deps.forEach(dep => {
-    if (dep.id === undefined || !stateMap.has(dep.id)) return; // this is our filter as the compiler attaches all related variables
-    dep.conditionalElements.push(() => {
+    if (!(dep instanceof VentaState)) return; // this is our filter as the compiler attaches all related variables
+    dep.addConditionalElements(() => {
       let testValue = test()
       let content = localCache.get(testValue)
       if (!content) {
@@ -174,9 +164,8 @@ export const registerConditional = (
 
       //remove all dependencies that referenece this state
       deps.forEach((dep) => {
-        const targetIndex = dep.elements.indexOf(lastContent)
-        if (targetIndex !== -1) {
-          dep.elements.splice(targetIndex, 1)
+        if (dep instanceof VentaState) {
+          dep.deleteElement(lastContent)
         }
       })
       const componentId = componentReferenceMap.get(lastContent)
