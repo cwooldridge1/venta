@@ -9,8 +9,8 @@ export const renderTextNode = (value: VentaState | string) => {
     node = document.createTextNode(value.value)
     value.addElement(node)
     const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
-    stateRef.childState[value.id] = []
-    stateRef.childState[value.id].push([0, value])
+    stateRef.childState[value.getId()] = []
+    stateRef.childState[value.getId()].push([0, value])
     elementMap.set(node, stateRef)
   }
   else {

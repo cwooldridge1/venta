@@ -13,11 +13,11 @@ export const incrementComponentId = () => {
 
 export class VentaState {
   private static currentStateId: number = 0;
-  id: number;
-  value: any;
+  protected id: number;
   protected sideEffects: Set<Function>;
   protected elements: Set<HTMLElement | Text>;
   protected conditionalElements: Set<Function>;
+  value: any;
 
   constructor(
     value: any,
@@ -82,6 +82,8 @@ export class VentaState {
   addConditionalElements(callback: () => HTMLElement | Text | void) {
     this.conditionalElements.add(callback)
   }
+
+  getId() { return this.id }
 
   destroy() {
     this.elements.forEach(elem => elementMap.delete(elem))
