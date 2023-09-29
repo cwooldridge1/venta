@@ -104,6 +104,16 @@ module.exports = function(babel) {
     }
 
     if (!functionName || !/^[A-Z]/.test(functionName)) return false //component must start with capital letter
+    /* 
+     * TODO / NOTE
+     * For some reason VentaMemoState is being defined as a component, for some reason the compiled code it being ran through
+     * in which case the es6 syntax has a return statement in the constructor and it ends up wrapping the return statement of 'this'
+     * in a renderTextNode. I have spent too much time trying to fix this so I am just adding this patch for now and will come back later
+     * */
+    if(functionName === 'VentaMemoState')
+    {
+      return false
+    }
     return true;
   }
 

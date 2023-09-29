@@ -28,12 +28,12 @@ describe('Venta functions', () => {
       const ternary = () => renderConditional(() => count.value > 2, trueTernaryContent, falseTernaryContent, 1);
       const falseContent = () => document.createTextNode('') as any
 
-      element = registerConditional(test, ternary, falseContent, count)
+      element = registerConditional(test, ternary, falseContent, count) as HTMLElement
       document.body.appendChild(element);
     });
 
     it('should render the correct conditional initially', () => {
-      expect(count.conditionalElements.length).toBe(1);
+      expect(count.getConditionalElements().size).toBe(1);
       expect(elementMap.size).toBe(0)
 
       element = document.body.querySelector('span')!;
@@ -62,7 +62,7 @@ describe('Venta functions', () => {
       element = document.body.querySelector('span')!;
       expect(element).toBe(null)
       expect(elementMap.size).toBe(0)
-      expect(count.conditionalElements.length).toBe(1);
+      expect(count.getConditionalElements().size).toBe(1);
     });
   });
 });

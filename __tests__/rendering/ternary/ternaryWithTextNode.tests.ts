@@ -27,8 +27,8 @@ describe('conditional jsx render with text nodes', () => {
   });
 
   it('should render the correct conditional initially', () => {
-    expect(count.conditionalElements.length).toBe(1);
-    expect(count.elements.length).toBe(0);
+    expect(count.getConditionalElements().size).toBe(1);
+    expect(count.getElements().size).toBe(0);
     expect(elementMap.has(element)).toBe(true);
 
     expect(element.textContent).toBe('Count is Greater than 2');
@@ -37,13 +37,23 @@ describe('conditional jsx render with text nodes', () => {
   it('text node should be displayed properly', () => {
     count.setValue(0);
 
-    expect(count.conditionalElements.length).toBe(1);
-    expect(count.elements.length).toBe(1);
+    expect(count.getConditionalElements().size).toBe(1);
+    expect(count.getElements().size).toBe(1);
     expect(elementMap.has(element)).toBe(false);
-    expect(elementMap.has(count.elements[0])).toBe(true);
+    expect(elementMap.has(Array.from(count.getElements())[0])).toBe(true);
 
-    element = count.elements[0]
+    element = Array.from(count.getElements())[0]
     expect(element.textContent).toBe('0');
+  });
+
+
+  it('text nodes can update properly', () => {
+    count.setValue(1);
+
+    expect(count.getConditionalElements().size).toBe(1);
+    expect(count.getElements().size).toBe(1);
+    expect(elementMap.has(element)).toBe(true);
+    expect(element.textContent).toBe('1');
   });
 
   it('text node and deps should be deleted properly', () => {
@@ -51,7 +61,7 @@ describe('conditional jsx render with text nodes', () => {
 
     expect(elementMap.has(element)).toBe(false);
 
-    expect(count.conditionalElements.length).toBe(1);
-    expect(count.elements.length).toBe(0);
+    expect(count.getConditionalElements().size).toBe(1);
+    expect(count.getElements().size).toBe(0);
   });
 });

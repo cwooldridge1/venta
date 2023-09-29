@@ -46,13 +46,13 @@ describe('conditional jsx render', () => {
 
     const falseConditional = () => renderConditional(() => count.value === 0, countIs0Content, () => renderVentaNode('span', {}, 'Count less than 0'), 2)
 
-    element = registerConditional(test, trueConditional, falseConditional, count);
+    element = registerConditional(test, trueConditional, falseConditional, count) as HTMLElement;
     document.body.appendChild(element);
   });
 
 
   it('should render the correct conditional initially', () => {
-    expect(count.conditionalElements.length).toBe(1);
+    expect(count.getConditionalElements().size).toBe(1);
     expect(elementMap.has(element)).toBe(true);
 
     element = document.body.querySelector('span')!;
