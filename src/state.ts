@@ -16,20 +16,17 @@ export class VentaState {
   protected id: number;
   protected sideEffects: Set<Function>;
   protected elements: Set<HTMLElement | Text>;
-  protected conditionalElements: Set<Function>;
   value: any;
 
   constructor(
     value: any,
     sideEffects: Set<Function> = new Set(),
     elements: Set<HTMLElement | Text> = new Set(),
-    conditionalElements: Set<Function> = new Set()
   ) {
     this.id = VentaState.currentStateId++;
     this.value = value;
     this.sideEffects = sideEffects;
     this.elements = elements;
-    this.conditionalElements = conditionalElements;
 
     componentStateMap.get(getComponentId())?.state.push(this);
     stateMap.set(this.id, this)
@@ -56,15 +53,10 @@ export class VentaState {
     this.value = newValue;
     this.sideEffects.forEach((sideEffect) => sideEffect());
     this.elements.forEach((node) => this.updateNode(node, this.id));
-    this.conditionalElements.forEach((test) => test());
   }
 
   getElements() {
     return this.elements;
-  }
-
-  getConditionalElements() {
-    return this.conditionalElements;
   }
 
   addElement(element: HTMLElement | Text) {
@@ -79,9 +71,7 @@ export class VentaState {
     this.sideEffects.add(callback)
   }
 
-  addConditionalElements(callback: () => HTMLElement | Text | void) {
-    this.conditionalElements.add(callback)
-  }
+  getSideEffects() { return this.sideEffects }
 
   getId() { return this.id }
 
@@ -99,9 +89,8 @@ export class VentaMemoState extends VentaState {
     callback: () => any,
     sideEffects: Set<Function> = new Set(),
     elements: Set<HTMLElement | Text> = new Set(),
-    conditionalElements: Set<Function> = new Set()
   ) {
-    super(value, sideEffects, elements, conditionalElements)
+    super(value, sideEffects, elements)
     this.callback = callback;
   }
 
@@ -109,7 +98,6 @@ export class VentaMemoState extends VentaState {
     this.value = this.callback();
     this.sideEffects.forEach((sideEffect) => sideEffect());
     this.elements.forEach((node) => this.updateNode(node, this.id));
-    this.conditionalElements.forEach((test) => test());
   }
 }
 

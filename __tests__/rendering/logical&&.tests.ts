@@ -29,7 +29,7 @@ describe('Venta functions', () => {
     });
 
     it('should render the correct conditional initially', () => {
-      expect(count.getConditionalElements().size).toBe(1);
+      expect(count.getSideEffects().size).toBe(1);
       expect(elementMap.size).toBe(0)
 
       element = document.body.querySelector('span')!;
@@ -50,7 +50,7 @@ describe('Venta functions', () => {
       element = document.body.querySelector('span')!;
       expect(element).toBe(null)
       expect(elementMap.size).toBe(0)
-      expect(count.getConditionalElements().size).toBe(1);
+      expect(count.getSideEffects().size).toBe(1);
     });
   });
 });

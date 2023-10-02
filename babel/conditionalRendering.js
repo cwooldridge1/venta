@@ -110,8 +110,7 @@ module.exports = function(babel) {
      * in which case the es6 syntax has a return statement in the constructor and it ends up wrapping the return statement of 'this'
      * in a renderTextNode. I have spent too much time trying to fix this so I am just adding this patch for now and will come back later
      * */
-    if(functionName === 'VentaMemoState')
-    {
+    if (functionName === 'VentaMemoState') {
       return false
     }
     return true;
@@ -200,6 +199,28 @@ module.exports = function(babel) {
   }
   const isJSXContext = (path) => path.findParent((parentPath) => parentPath.isJSXElement())
 
+  function getRootObject(node) {
+    if (node.type === 'MemberExpression') {
+      return getRootObject(node.object);
+    }
+    return node;
+  }
+
+  const handleMap = (path) => {
+    path.replaceWith(
+      t.callExpression(
+        t.identifier("renderLoop"),
+        [
+          t.arrowFunctionExpression(
+            [],
+            path.node,
+          ),
+          getRootObject(path.get('callee').node.object)
+        ],
+      )
+    );
+  }
+
   return {
     name: "transform-jsx-conditional",
     visitor: {
@@ -227,6 +248,21 @@ module.exports = function(babel) {
             }
           },
           JSXExpressionContainer(path) {
+            path.traverse({
+              CallExpression(innerPath) {
+                if (path.getData('processed')) return
+                const callee = innerPath.get('callee');
+                if (
+                  callee &&
+                  t.isMemberExpression(callee.node) &&
+                  t.isIdentifier(callee.node.property) &&
+                  callee.node.property.name === 'map'
+                ) {
+                  handleMap(innerPath)
+                  path.setData('processed', true);  // Mark as processed
+                }
+              },
+            })
             path.traverse({
               LogicalExpression(innerPath) {
                 registerLogicalExpression(innerPath)

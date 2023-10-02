@@ -3,8 +3,11 @@ import Card from './Card.js';
 import { useEffect, useState, useMemo } from '../src/hooks';
 const App = () => {
   const count = useState(1);
+
+  const arr = useState([1, 2, 3]);
   const callback = () => {
     count.setValue(count.value + 1);
+    arr.setValue([...arr.value, arr.value.length + 1]);
   };
   const doubleCount = useMemo(() => count.value * 2, [count]);
 
@@ -14,8 +17,10 @@ const App = () => {
 
   return (
     <Card>
-      <Button onClick={callback}>Click Count</Button>
-      <Button onClick={() => count.setValue(0)}>Reset {doubleCount}</Button>
+      {arr.value.map((item) => <div key={item}>{item}</div>)}
+      <Button onClick={callback}>add item</Button>
+      {/* <Button onClick={callback}>Click Count</Button> */}
+      {/* <Button onClick={() => count.setValue(0)}>Reset {doubleCount}</Button> */}
       {/* <Button onClick={() => count2.setValue(count2.value + 1)}> */}
       {/*   count 2 {count2} */}
       {/* </Button> */}

@@ -44,7 +44,7 @@ describe('conditional jsx render', () => {
 
 
   it('should render the correct conditional initially', () => {
-    expect(count.getConditionalElements().size).toBe(1);
+    expect(count.getSideEffects().size).toBe(1);
     expect(elementMap.has(element)).toBe(true);
 
     element = document.body.querySelector('span')!;

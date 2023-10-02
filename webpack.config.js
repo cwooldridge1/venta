@@ -9,8 +9,8 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.ts'],
   },
-  // mode: 'development', //dev
-  // devtool: 'eval-source-map',//dev
+  mode: 'development', //dev
+  devtool: 'eval-source-map',//dev
   module: {
     rules: [
       {
