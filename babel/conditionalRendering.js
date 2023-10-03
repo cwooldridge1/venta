@@ -243,7 +243,21 @@ module.exports = function(babel) {
                 LogicalExpression(innerPath) {
                   if (isJSXContext(innerPath) || !isComponentContext(path)) return;
                   registerLogicalExpression(innerPath)
-                }
+                },
+                CallExpression(innerPath) {
+                  if (isJSXContext(innerPath)) return
+                  if (path.getData('processed')) return
+                  const callee = innerPath.get('callee');
+                  if (
+                    callee &&
+                    t.isMemberExpression(callee.node) &&
+                    t.isIdentifier(callee.node.property) &&
+                    callee.node.property.name === 'map'
+                  ) {
+                    handleMap(innerPath)
+                    path.setData('processed', true);  // Mark as processed
+                  }
+                },
               })
             }
           },

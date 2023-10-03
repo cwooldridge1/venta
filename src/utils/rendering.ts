@@ -198,57 +198,58 @@ export const renderLoop = (func: () => Array<HTMLElement>, dependency: any) => {
     if (key) return key
     throw Error('All elements in a loop must have a unique key');
   }
+  if (dependency instanceof VentaState) {
+    dependency.addSideEffect(() => {
+      const newContent = func();
+      const oldKeysMap = new Map<string, number>();
+      const newKeysMap = new Map<string, number>();
 
-  dependency.addSideEffect(() => {
-    const newContent = func();
-    const oldKeysMap = new Map<string, number>();
-    const newKeysMap = new Map<string, number>();
-
-    if (!parent) {
-      //basically figure out where the anchor point it to add children
-      if (Array.isArray(initialContent)) {
-        parent = lastContent[0].parentNode!;
-        const childrenList = Array.from(parent.children);
-        parentListStartIndex = childrenList.indexOf(lastContent[0]);
-      } else {
-        parent = initialContent.parentNode!;
-        const childrenList = Array.from(parent.childNodes);
-        parentListStartIndex = childrenList.indexOf(initialContent as ChildNode);
+      if (!parent) {
+        //basically figure out where the anchor point it to add children
+        if (Array.isArray(initialContent)) {
+          parent = lastContent[0].parentNode!;
+          const childrenList = Array.from(parent.children);
+          parentListStartIndex = childrenList.indexOf(lastContent[0]);
+        } else {
+          parent = initialContent.parentNode!;
+          const childrenList = Array.from(parent.childNodes);
+          parentListStartIndex = childrenList.indexOf(initialContent as ChildNode);
+        }
       }
-    }
 
-    // Create maps for keys
-    lastContent.forEach((elem, i) => oldKeysMap.set(getKey(elem), i));
-    newContent.forEach((elem, i) => newKeysMap.set(getKey(elem), i));
+      // Create maps for keys
+      lastContent.forEach((elem, i) => oldKeysMap.set(getKey(elem), i));
+      newContent.forEach((elem, i) => newKeysMap.set(getKey(elem), i));
 
-    // Remove old nodes
-    oldKeysMap.forEach((oldIndex, key) => {
-      if (!newKeysMap.has(key)) {
-        lastContent[oldIndex].remove();
-      }
+      // Remove old nodes
+      oldKeysMap.forEach((oldIndex, key) => {
+        if (!newKeysMap.has(key)) {
+          lastContent[oldIndex].remove();
+        }
+      });
+
+      // Add or move new nodes
+      let offset = 0;
+      const children = Array.from(parent.children) //this is needed for reference as in the case order changes I cannot refference the current parent
+      newContent.forEach((node, i) => {
+        const key = getKey(node);
+        const oldIndex = oldKeysMap.get(key);
+
+        if (oldIndex === undefined) {
+          // Insert new node
+          parent.insertBefore(node, parent.childNodes[parentListStartIndex + i]);
+          offset += 1
+        }
+        else if (oldIndex !== i - offset) {
+          // Move existing node
+          parent.insertBefore(children[oldIndex], parent.childNodes[parentListStartIndex + i]);
+        }
+      });
+
+      lastContent = newContent;
     });
 
-    // Add or move new nodes
-    let offset = 0;
-    const children = Array.from(parent.children) //this is needed for reference as in the case order changes I cannot refference the current parent
-    newContent.forEach((node, i) => {
-      const key = getKey(node);
-      const oldIndex = oldKeysMap.get(key);
-
-      if (oldIndex === undefined) {
-        // Insert new node
-        parent.insertBefore(node, parent.childNodes[parentListStartIndex + i]);
-        offset += 1
-      }
-      else if (oldIndex !== i - offset) {
-        // Move existing node
-        parent.insertBefore(children[oldIndex], parent.childNodes[parentListStartIndex + i]);
-      }
-    });
-
-    lastContent = newContent;
-  });
-
+  }
   initialContent = lastContent.length ? lastContent : document.createTextNode('');
   return initialContent;
 };

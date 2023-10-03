@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from '../src/hooks';
 const App = () => {
   const count = useState(1);
 
-  const arr = useState([1, 2, 3]);
+  const arr = useState([]);
   const callback = () => {
     count.setValue(count.value + 1);
     arr.setValue([...arr.value, arr.value.length + 1]);

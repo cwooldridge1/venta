@@ -59,3 +59,28 @@ test('works with stateful list', () => {
   `)
   expect(normalizeCode(compileCode(code))).toBe(expectedCode)
 })
+
+test('works with list not in jsx context', () => {
+  const code = `
+    function MyComponent() {
+      const arr = useState([1, 2, 3]);
+      return arr.values.map((item, index) => <div key={index}>{item}</div>)
+    }
+    `
+  console.log(compileCode(code))
+  const expectedCode = normalizeCode(`
+    "use strict";
+
+    function MyComponent() {
+      var arr = useState([1, 2, 3]);
+      return renderLoop(function () {
+        return arr.values.map(function (item, index) {
+          return renderVentaNode("div", {
+            key: index
+          }, item);
+        });
+      }, arr);
+    }
+  `)
+  expect(normalizeCode(compileCode(code))).toBe(expectedCode)
+})
