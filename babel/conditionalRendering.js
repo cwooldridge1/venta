@@ -120,7 +120,6 @@ module.exports = function(babel) {
   const registerConditional = (path) => {
 
     if (shouldBeTextNode(path.node.consequent.type)) {
-
       path.node.consequent = createTextNode(path.node.consequent)
     }
 
@@ -199,12 +198,27 @@ module.exports = function(babel) {
   }
   const isJSXContext = (path) => path.findParent((parentPath) => parentPath.isJSXElement())
 
-  function getRootObject(node) {
+  const getRootObject = (node) => {
     if (node.type === 'MemberExpression') {
       return getRootObject(node.object);
     }
     return node;
   }
+
+  const handleCallExpression = (innerPath) => {
+    const callee = innerPath.get('callee');
+    if (callee.getData('processed')) return
+    if (
+      callee &&
+      t.isMemberExpression(callee.node) &&
+      t.isIdentifier(callee.node.property) &&
+      callee.node.property.name === 'map'
+    ) {
+      handleMap(innerPath)
+      callee.setData('processed', true);  // Mark as processed
+    }
+  }
+
 
   const handleMap = (path) => {
     path.replaceWith(
@@ -246,17 +260,7 @@ module.exports = function(babel) {
                 },
                 CallExpression(innerPath) {
                   if (isJSXContext(innerPath)) return
-                  if (path.getData('processed')) return
-                  const callee = innerPath.get('callee');
-                  if (
-                    callee &&
-                    t.isMemberExpression(callee.node) &&
-                    t.isIdentifier(callee.node.property) &&
-                    callee.node.property.name === 'map'
-                  ) {
-                    handleMap(innerPath)
-                    path.setData('processed', true);  // Mark as processed
-                  }
+                  handleCallExpression(innerPath)
                 },
               })
             }
@@ -264,17 +268,7 @@ module.exports = function(babel) {
           JSXExpressionContainer(path) {
             path.traverse({
               CallExpression(innerPath) {
-                if (path.getData('processed')) return
-                const callee = innerPath.get('callee');
-                if (
-                  callee &&
-                  t.isMemberExpression(callee.node) &&
-                  t.isIdentifier(callee.node.property) &&
-                  callee.node.property.name === 'map'
-                ) {
-                  handleMap(innerPath)
-                  path.setData('processed', true);  // Mark as processed
-                }
+                handleCallExpression(innerPath)
               },
             })
             path.traverse({

@@ -4,7 +4,7 @@
 import { VentaState, useState } from "../../../src"
 import { renderLoop, renderVentaNode } from "../../../src/utils";
 
-const isLoopedRenderCorrect = ((parent: HTMLElement, arr: Array<any>) => {
+const isLoopedRenderCorrect = ((parent: Element, arr: Array<any>) => {
   if (!parent.children.length) return
   expect(parent.children.length).toBe(arr.length)
   Array.from(parent.children).forEach((child, index) => {
@@ -14,7 +14,7 @@ const isLoopedRenderCorrect = ((parent: HTMLElement, arr: Array<any>) => {
   });
 })
 
-const wasMinimalRerender = (parent: HTMLElement, oldContent: Element[], expectNewElementCount: number) => {
+const wasMinimalRerender = (parent: Element, oldContent: Element[], expectNewElementCount: number) => {
   let newCount = 0;
 
   if (parent.children.length) {
@@ -145,11 +145,17 @@ describe('test for when initial content is empty', () => {
 
 
 
-describe('looped renders work with state and set state calls', () => {
+describe('nested loops', () => {
   let arr: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
   beforeAll(() => {
     arr = useState([[1, 2], [3, 4]])
-    const func = () => arr.value.map((item: number[]) => item.map(val => renderVentaNode('div', { key: val }, val)))
+    const func = () => arr.value.map((item: number[], index: number) =>
+      renderVentaNode("div", {
+        key: index
+      },
+        renderLoop(() => item.map((val) => renderVentaNode("div", { key: val }, val)), item))
+    )
+
     elements = renderLoop(func, arr) as HTMLElement[]
 
     parent = document.createElement('div')
@@ -157,14 +163,19 @@ describe('looped renders work with state and set state calls', () => {
     document.body.appendChild(parent)
   })
 
-  it('should render the correct state initially', () => {
-    isLoopedRenderCorrect(parent, arr.value.flatMap((val: number) => val))
+  it('nested content should match initially', () => {
+    elements.forEach((elem, index) => {
+      isLoopedRenderCorrect(elem, arr.value[index])
+    })
   })
-
 
   it('should update the correct state when the array is changed', () => {
     arr.setValue([...arr.value, [5, 6]])
-    isLoopedRenderCorrect(parent, arr.value.flatMap((val: number) => val))
-    wasMinimalRerender(parent, elements, 2)
+    Array.from(parent.children).forEach((elem, index) => {
+      isLoopedRenderCorrect(elem, arr.value[index])
+      wasMinimalRerender(elem, index === 2 ? [] : Array.from(elements[index].children), index === 2 ? 2 : 0)
+    })
+    wasMinimalRerender(parent, elements, 1)
+    elements = Array.from(parent.children) as HTMLElement[]
   })
 })

@@ -67,7 +67,6 @@ test('works with list not in jsx context', () => {
       return arr.values.map((item, index) => <div key={index}>{item}</div>)
     }
     `
-  console.log(compileCode(code))
   const expectedCode = normalizeCode(`
     "use strict";
 
@@ -90,13 +89,14 @@ test('nested loop', () => {
   const code = `
     function MyComponent() {
       const items = useState([1, 2, 3]);
-      const items2 = useState([1, 2, 3]);
       return (
         <div>
           {items.values.map((item, index) => (
-            items.map((val, index) => (
-              <div key={val}>{val}</div>
-            ))
+            <div key={index}>
+              {item.map((val, index) => (
+                <div key={val}>{val}</div>
+              ))}
+            </div>
           ))}
         </div>
       );
@@ -107,14 +107,17 @@ test('nested loop', () => {
 
     function MyComponent() {
       var items = useState([1, 2, 3]);
-      var items2 = useState([1, 2, 3]);
       return renderVentaNode("div", null, renderLoop(function () {
         return items.values.map(function (item, index) {
-          return items.map(function (val, index) {
-            return renderVentaNode("div", {
-              key: val
-            }, val);
-          });
+          return renderVentaNode("div", {
+            key: index
+          }, renderLoop(function () {
+            return item.map(function (val, index) {
+              return renderVentaNode("div", {
+                key: val
+              }, val);
+            });
+          }, item));
         });
       }, items));
     }

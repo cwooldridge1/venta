@@ -46,7 +46,6 @@ describe('conditional jsx render', () => {
 
   it('should update back to "less than 2" when count is set to 1', () => {
     c.setValue(0);
-    console.log(count.value)
 
     element = document.body.querySelector('span')!;
     expect(elementMap.has(element)).toBe(true);
