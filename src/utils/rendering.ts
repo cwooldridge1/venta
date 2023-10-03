@@ -189,7 +189,7 @@ export const registerConditional = (
 
 export const renderLoop = (func: () => Array<HTMLElement>, dependency: any) => {
   let lastContent = func();
-  let initialContent: Text | HTMLElement[]; //used to determine initial anchor point
+  let initialContent: Text | HTMLElement[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
   let parent: ParentNode;
   let parentListStartIndex: number;
 
@@ -229,6 +229,8 @@ export const renderLoop = (func: () => Array<HTMLElement>, dependency: any) => {
     });
 
     // Add or move new nodes
+    let offset = 0;
+    const children = Array.from(parent.children) //this is needed for reference as in the case order changes I cannot refference the current parent
     newContent.forEach((node, i) => {
       const key = getKey(node);
       const oldIndex = oldKeysMap.get(key);
@@ -236,9 +238,11 @@ export const renderLoop = (func: () => Array<HTMLElement>, dependency: any) => {
       if (oldIndex === undefined) {
         // Insert new node
         parent.insertBefore(node, parent.childNodes[parentListStartIndex + i]);
-      } else if (oldIndex !== i) {
+        offset += 1
+      }
+      else if (oldIndex !== i - offset) {
         // Move existing node
-        parent.insertBefore(lastContent[oldIndex], parent.childNodes[parentListStartIndex + i]);
+        parent.insertBefore(children[oldIndex], parent.childNodes[parentListStartIndex + i]);
       }
     });
 

@@ -1,6 +1,6 @@
 import { normalizeCode, compileCode } from "../../testUtils/helpers";
 
-test('proper render', () => {
+test('works with list', () => {
   const code = `
     function MyComponent() {
       const items = [1, 2, 3];
@@ -13,5 +13,49 @@ test('proper render', () => {
       );
     }
     `
-  console.log(compileCode(code))
+  const expectedCode = normalizeCode(`
+    "use strict";
+    function MyComponent() {
+      var items = [1, 2, 3];
+      return renderVentaNode("div", null, renderLoop(function () {
+        return items.map(function (item, index) {
+          return renderVentaNode("div", {
+            key: index
+          }, item);
+        });
+      }, items));
+    }
+  `)
+  expect(normalizeCode(compileCode(code))).toBe(expectedCode)
+})
+
+
+
+test('works with stateful list', () => {
+  const code = `
+    function MyComponent() {
+      const items = useState([1, 2, 3]);
+      return (
+        <div>
+          {items.values.map((item, index) => (
+            <div key={index}>{item}</div>
+          ))}
+        </div>
+      );
+    }
+    `
+  const expectedCode = normalizeCode(`
+    "use strict";
+    function MyComponent() {
+      var items = useState([1, 2, 3]);
+      return renderVentaNode("div", null, renderLoop(function () {
+        return items.values.map(function (item, index) {
+          return renderVentaNode("div", {
+            key: index
+          }, item);
+        });
+      }, items));
+    }
+  `)
+  expect(normalizeCode(compileCode(code))).toBe(expectedCode)
 })
