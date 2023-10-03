@@ -118,3 +118,53 @@ describe('test for when dep is not state', () => {
     isLoopedRenderCorrect(parent, arr)
   })
 })
+
+
+describe('test for when initial content is empty', () => {
+  let arr: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
+  beforeAll(() => {
+    arr = useState([])
+    const func = () => arr.value.map((item: number) => renderVentaNode('div', { key: item }, item))
+    elements = []
+    parent = document.createElement('div')
+    parent.append(renderLoop(func, arr) as Node)
+    document.body.appendChild(parent)
+  })
+
+  it('should render the correct state initially', () => {
+    isLoopedRenderCorrect(parent, arr.value)
+  })
+
+  it('should update the correct state when the array is changed', () => {
+    arr.setValue([arr.value.length + 1])
+    isLoopedRenderCorrect(parent, arr.value)
+    wasMinimalRerender(parent, elements, 1)
+    elements = Array.from(parent.children) as HTMLElement[]
+  })
+})
+
+
+
+describe('looped renders work with state and set state calls', () => {
+  let arr: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
+  beforeAll(() => {
+    arr = useState([[1, 2], [3, 4]])
+    const func = () => arr.value.map((item: number[]) => item.map(val => renderVentaNode('div', { key: val }, val)))
+    elements = renderLoop(func, arr) as HTMLElement[]
+
+    parent = document.createElement('div')
+    parent.append(...elements)
+    document.body.appendChild(parent)
+  })
+
+  it('should render the correct state initially', () => {
+    isLoopedRenderCorrect(parent, arr.value.flatMap((val: number) => val))
+  })
+
+
+  it('should update the correct state when the array is changed', () => {
+    arr.setValue([...arr.value, [5, 6]])
+    isLoopedRenderCorrect(parent, arr.value.flatMap((val: number) => val))
+    wasMinimalRerender(parent, elements, 2)
+  })
+})

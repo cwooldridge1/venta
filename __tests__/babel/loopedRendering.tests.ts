@@ -84,3 +84,40 @@ test('works with list not in jsx context', () => {
   `)
   expect(normalizeCode(compileCode(code))).toBe(expectedCode)
 })
+
+
+test('nested loop', () => {
+  const code = `
+    function MyComponent() {
+      const items = useState([1, 2, 3]);
+      const items2 = useState([1, 2, 3]);
+      return (
+        <div>
+          {items.values.map((item, index) => (
+            items.map((val, index) => (
+              <div key={val}>{val}</div>
+            ))
+          ))}
+        </div>
+      );
+    }
+    `
+  const expectedCode = normalizeCode(`
+    "use strict";
+
+    function MyComponent() {
+      var items = useState([1, 2, 3]);
+      var items2 = useState([1, 2, 3]);
+      return renderVentaNode("div", null, renderLoop(function () {
+        return items.values.map(function (item, index) {
+          return items.map(function (val, index) {
+            return renderVentaNode("div", {
+              key: val
+            }, val);
+          });
+        });
+      }, items));
+    }
+   `)
+  expect(normalizeCode(compileCode(code))).toBe(expectedCode)
+})

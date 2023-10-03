@@ -188,7 +188,7 @@ export const registerConditional = (
 };
 
 export const renderLoop = (func: () => Array<HTMLElement>, dependency: any) => {
-  let lastContent = func();
+  let lastContent = func().flatMap(elem => elem); // because we can have nested
   let initialContent: Text | HTMLElement[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
   let parent: ParentNode;
   let parentListStartIndex: number;
@@ -200,7 +200,7 @@ export const renderLoop = (func: () => Array<HTMLElement>, dependency: any) => {
   }
   if (dependency instanceof VentaState) {
     dependency.addSideEffect(() => {
-      const newContent = func();
+      const newContent = func().flatMap(elem => elem);
       const oldKeysMap = new Map<string, number>();
       const newKeysMap = new Map<string, number>();
 
