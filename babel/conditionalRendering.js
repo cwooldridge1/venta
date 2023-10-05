@@ -221,6 +221,54 @@ module.exports = function(babel) {
 
 
   const handleMap = (path) => {
+    const identifiers = new Set();
+    const identifierNames = new Set();
+    const ignoreList = new Set();
+    let stop = false;
+
+
+    const arrowFunc = path.get('arguments.0');
+    if (arrowFunc.isArrowFunctionExpression() || arrowFunc.isFunctionExpression()) {
+      const params = arrowFunc.get('params').map(paramPath => paramPath.node.name);
+      params.forEach(param => {
+        ignoreList.add(param)
+      })
+    }
+
+
+    path.get('arguments.0').traverse({
+      JSXExpressionContainer(innerPath) {
+        innerPath.traverse({
+          CallExpression(path) {
+            //essentially if there is a nested map then we need to stop as dependencies should only be top level
+            const callee = path.get('callee');
+            if (
+              callee &&
+              t.isMemberExpression(callee.node) &&
+              t.isIdentifier(callee.node.property) &&
+              callee.node.property.name === 'map'
+            ) {
+              stop = true; //kinda janky but could not find better way
+            }
+          },
+          Identifier(path) {
+            if (stop) return
+            const parentType = path.parent.type;
+
+            // If this Identifier is part of a MemberExpression and it's not the object, skip it
+            if (path.parent.type === "MemberExpression" && path.parent.property === path.node) {
+              return;
+            }
+            if (parentType === "JSXAttribute" || parentType === "JSXElement" || parentType === "JSXExpressionContainer" || parentType === "MemberExpression") {
+              const identifier = t.identifier(path.node.name);
+              if (ignoreList.has(path.node.name) || identifierNames.has(path.node.name)) return
+              identifiers.add(identifier);
+              identifierNames.add(path.node.name)
+            }
+          }
+        })
+      }
+    })
     path.replaceWith(
       t.callExpression(
         t.identifier("renderLoop"),
@@ -229,7 +277,8 @@ module.exports = function(babel) {
             [],
             path.node,
           ),
-          getRootObject(path.get('callee').node.object)
+          getRootObject(path.get('callee').node.object),
+          ...Array.from(identifiers)
         ],
       )
     );

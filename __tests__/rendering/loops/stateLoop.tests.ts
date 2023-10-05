@@ -2,14 +2,16 @@
  * @jest-environment jsdom
  */
 import { VentaState, useState } from "../../../src"
+import { componentStateMap, elementMap } from "../../../src/state";
 import { renderLoop, renderVentaNode } from "../../../src/utils";
 
-const isLoopedRenderCorrect = ((parent: Element, arr: Array<any>) => {
+const isLoopedRenderCorrect = ((parent: Element, arr: Array<any>, checkContent: boolean = true) => {
   if (!parent.children.length) return
   expect(parent.children.length).toBe(arr.length)
   Array.from(parent.children).forEach((child, index) => {
+
     const expectedValue = arr[index].toString()
-    expect(child.textContent).toBe(expectedValue)
+    if (checkContent) expect(child.textContent).toBe(expectedValue)
     expect(child.getAttribute('key')).toBe(expectedValue)
   });
 })
@@ -177,5 +179,45 @@ describe('nested loops', () => {
     })
     wasMinimalRerender(parent, elements, 1)
     elements = Array.from(parent.children) as HTMLElement[]
+  })
+})
+
+
+describe('loop with with stateful child variables - dep check', () => {
+  let arr: VentaState, count: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
+  beforeAll(() => {
+    arr = useState([1, 2, 3])
+    count = useState(0)
+    elementMap.clear()
+    const func = () => arr.value.map((item: number) => renderVentaNode('div', { key: item }, count))
+    elements = renderLoop(func, arr, count) as HTMLElement[]
+
+    parent = document.createElement('div')
+    parent.append(...elements)
+    document.body.appendChild(parent)
+  })
+
+  it('should render the correct state initially', () => {
+    isLoopedRenderCorrect(parent, arr.value, false)
+    let i = 0
+    count.getElements().forEach((elem) => expect(elem).toBe(elements[i++]))
+    expect(count.getSideEffects().size).toBe(0)
+    expect(elementMap.size).toBe(arr.value.length)
+    expect(componentStateMap.size).toBe(0)
+  })
+
+
+  it('when state is changed the inner value should change', () => {
+    count.setValue(1);
+    elements.forEach(elem => expect(elem.textContent).toBe(count.value.toString()))
+    expect(elementMap.size).toBe(arr.value.length)
+  })
+
+  it('when an element is addeded only needed deps get added', () => {
+    arr.value.pop()
+    arr.setValue(arr.value)
+    expect(elementMap.size).toBe(arr.value.length)
+    expect(count.getElements().size).toBe(arr.value.length)
+    expect(count.getSideEffects().size).toBe(0)
   })
 })

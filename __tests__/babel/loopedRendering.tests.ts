@@ -124,3 +124,86 @@ test('nested loop', () => {
    `)
   expect(normalizeCode(compileCode(code))).toBe(expectedCode)
 })
+
+
+
+test('loop with external identifier', () => {
+  const code = `
+    function MyComponent() {
+      const items = useState([1, 2, 3]);
+      const val = 2
+      return (
+        <div>
+          {items.values.map((item, index) => (
+            <div key={index}>
+              {val} 
+            </div>
+          ))}
+        </div>
+      );
+    }
+    `
+
+  const expectedCode = normalizeCode(`
+
+    "use strict";
+    function MyComponent() {
+      var items = useState([1, 2, 3]);
+      var val = 2;
+      return renderVentaNode("div", null, renderLoop(function () {
+        return items.values.map(function (item, index) {
+          return renderVentaNode("div", {
+            key: index
+          }, val);
+        });
+      }, items, val));
+    }
+  `
+  )
+  expect(normalizeCode(compileCode(code))).toBe(expectedCode)
+})
+
+
+
+test('nested loop that uses state', () => {
+  const code = `
+    function MyComponent() {
+      const items = useState([1, 2, 3]);
+      const state = useState(2)
+      return (
+        <div>
+          {items.values.map((item, index) => (
+            <div key={index}>
+              {item.map((val, index) => (
+                <div key={val}>{state.value}</div>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    `
+  const expectedCode = normalizeCode(`
+    "use strict";
+
+    function MyComponent() {
+      var items = useState([1, 2, 3]);
+      var state = useState(2);
+      return renderVentaNode("div", null, renderLoop(function () {
+        return items.values.map(function (item, index) {
+          return renderVentaNode("div", {
+            key: index
+          }, renderLoop(function () {
+            return item.map(function (val, index) {
+              return renderVentaNode("div", {
+                key: val
+              }, state.value);
+            });
+          }, item,state));
+        });
+      }, items));
+    }
+   `)
+  expect(normalizeCode(compileCode(code))).toBe(expectedCode)
+})
+

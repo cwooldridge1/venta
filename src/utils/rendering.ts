@@ -187,19 +187,21 @@ export const registerConditional = (
   return lastContent;
 };
 
-export const renderLoop = (func: () => Array<HTMLElement>, dependency: any) => {
+export const renderLoop = (func: () => Array<HTMLElement>, iterable: any, ...deps: any[]) => {
   let lastContent = func();
   let initialContent: Text | HTMLElement[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
   let parent: ParentNode;
   let parentListStartIndex: number;
+
+  const statefulDeps: VentaState[] = deps.filter((dep: any) => dep instanceof VentaState)
 
   const getKey = (elem: HTMLElement) => {
     const key = elem.getAttribute('key')
     if (key) return key
     throw Error('All elements in a loop must have a unique key');
   }
-  if (dependency instanceof VentaState) {
-    dependency.addSideEffect(() => {
+  if (iterable instanceof VentaState) {
+    iterable.addSideEffect(() => {
       const newContent = func();
       const oldKeysMap = new Map<string, number>();
       const newKeysMap = new Map<string, number>();
@@ -224,7 +226,12 @@ export const renderLoop = (func: () => Array<HTMLElement>, dependency: any) => {
       // Remove old nodes
       oldKeysMap.forEach((oldIndex, key) => {
         if (!newKeysMap.has(key)) {
-          lastContent[oldIndex].remove();
+          const node = lastContent[oldIndex]
+          elementMap.delete(node)
+          statefulDeps.forEach(state => {
+            state.deleteElement(node)
+          })
+          node.remove();
         }
       });
 
@@ -234,6 +241,13 @@ export const renderLoop = (func: () => Array<HTMLElement>, dependency: any) => {
       newContent.forEach((node, i) => {
         const key = getKey(node);
         const oldIndex = oldKeysMap.get(key);
+
+        if (oldIndex !== undefined) {
+          elementMap.delete(node)
+          statefulDeps.forEach(state => {
+            state.deleteElement(node) //new node wont get inserted because old one already exists so we delete
+          })
+        }
 
         if (oldIndex === undefined) {
           // Insert new node
@@ -248,7 +262,6 @@ export const renderLoop = (func: () => Array<HTMLElement>, dependency: any) => {
 
       lastContent = newContent;
     });
-
   }
   initialContent = lastContent.length ? lastContent : document.createTextNode('');
   return initialContent;
