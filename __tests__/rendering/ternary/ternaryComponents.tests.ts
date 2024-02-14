@@ -22,7 +22,11 @@ const Component = ({ children }: Props) => {
       console.log('dismount')
     }
   }, [])
-  return children
+  return renderVentaNode('div', {}, children)
+}
+
+const getSpanText = (element: HTMLElement) => {
+  return element.children.item(0)!.textContent
 }
 
 
@@ -39,6 +43,7 @@ describe('conditional jsx render', () => {
     const falseContent = () => renderVentaNode(Component, {}, renderVentaNode('span', {}, 'Count is Less than 2'));
 
     element = registerConditional(test, trueContent, falseContent, count) as HTMLElement;
+    componentId = componentReferenceMap.get(element)!
     document.body.appendChild(element);
   });
 
@@ -47,10 +52,12 @@ describe('conditional jsx render', () => {
     expect(count.getSideEffects().size).toBe(1);
     expect(elementMap.has(element)).toBe(true);
 
-    element = document.body.querySelector('span')!;
-    expect(element.textContent).toBe('Count is Less than 2');
+    expect(getSpanText(element)).toBe('Count is Less than 2');
 
+    expect(stateMap.size).toBe(2)
+    expect(componentStateMap.size).toBe(1)
     const componentState = componentStateMap.get(componentId)!
+
     expect(componentState.state.length).toBe(1)
     expect(componentState.unmountCallbacks.length).toBe(1)
 
@@ -62,18 +69,21 @@ describe('conditional jsx render', () => {
   it('should true condition render properly', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
 
+
     count.setValue(3);
+    element = document.querySelector('div')!;
 
-    element = document.body.querySelector('span')!;
-    expect(element.textContent).toBe('Count is Greater than 2');
-
+    expect(getSpanText(element)).toBe('Count is Greater than 2');
     expect(logSpy.mock.calls[0][0]).toBe('mount'); //technically a new mount happens before clean ups are called
     expect(logSpy.mock.calls[1][0]).toBe('dismount');
 
     logSpy.mockRestore();
 
     expect(componentStateMap.size).toBe(1)
-    const componentState = componentStateMap.get(++componentId)!
+    componentId = componentReferenceMap.get(element)!
+    expect(componentId).toBe(2)
+
+    const componentState = componentStateMap.get(componentId)!
     expect(componentState.state.length).toBe(1)
     expect(componentState.unmountCallbacks.length).toBe(1)
 
@@ -100,7 +110,7 @@ describe('conditional jsx render', () => {
 
     count.setValue(0);
 
-    element = document.body.querySelector('span')!;
+    element = document.body.querySelector('div')!;
     expect(element.textContent).toBe('Count is Less than 2');
 
     expect(logSpy.mock.calls[0][0]).toBe('mount'); //technically a new mount happens before clean ups are called
@@ -115,6 +125,7 @@ describe('conditional jsx render', () => {
 
     expect(elementMap.has(element)).toBe(true);
     expect(stateMap.size).toBe(2)
+    console.log(componentReferenceMap)
     expect(componentReferenceMap.get(element)).toBe(componentId)
   })
 });

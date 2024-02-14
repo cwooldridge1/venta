@@ -1,4 +1,4 @@
-import { elementMap, stateMap } from "../state"
+import { conditionalMap, conditionalReferenceMap, elementMap, getConditionalId, incrementConditionalId, stateMap } from "../state"
 import { Props, VentaNode, VentaState } from "../types"
 import { componentReferenceMap, getComponentId, incrementComponentId, componentStateMap } from "../state"
 
@@ -24,10 +24,10 @@ export const renderTextNode = (value: VentaState | string) => {
 
 export const renderVentaNode = (type: any, props: Props, ...children: any[]) => {
   if (typeof type === 'function') {
+    incrementComponentId()
     componentStateMap.set(getComponentId(), { state: [], unmountCallbacks: [] })
     const component = type({ ...props, children: children.length > 1 ? children : !children.length ? null : children[0] })
     componentReferenceMap.set(component, getComponentId())
-    incrementComponentId()
     return component
   }
   const elem = document.createElement(type);
@@ -123,7 +123,6 @@ export const renderConditional = (
 const handleComponentUnmount = (componentId: number, element: HTMLElement | Text) => {
   const { state, unmountCallbacks } = componentStateMap.get(componentId)!
   state.forEach(state => state.destroy())
-
   unmountCallbacks.forEach(callback => callback())
   //we also need to remove it from component cache as we want it to rerender when mounted
   const cacheKey = inverseCache.get(element)
@@ -140,42 +139,76 @@ export const registerConditional = (
   contentIfFalse: (() => HTMLElement | Text),
   ...deps: Array<VentaState | any>
 ): HTMLElement | Text => {
+  const id = getConditionalId();
   let lastContent: HTMLElement | Text;
   let localCache = new Map<boolean, HTMLElement | Text>();
 
+  const handleNodeDeletion = (elem: HTMLElement | Text) => {
+    const componentId = componentReferenceMap.get(elem)
+    if (componentId !== undefined) {
+      handleComponentUnmount(componentId, elem)
+    }
+    elementMap.delete(elem)
+    componentReferenceMap.delete(elem)
+
+    const conditionalId = conditionalReferenceMap.get(elem)
+    if (conditionalId !== undefined && elem !== lastContent) { // we do this additional check because sometimes we delete nested nodes and those may be condtional elements
+      const cleanUp = conditionalMap.get(conditionalId)
+      if (cleanUp) cleanUp()
+    }
+  }
+
+  const onChange = () => {
+    let testValue = test()
+    let content = localCache.get(testValue)
+    if (!content) {
+      const lastCount = callCount
+      content = testValue ? contentIfTrue() : contentIfFalse()
+      if (callCount === lastCount) { // this means it was a direct html element or a component that got rendered
+        localCache.set(testValue, content)
+      }
+    }
+
+    if (content === lastContent) {
+      return
+    }
+    localCache.delete(!testValue)
+
+    //remove all dependencies that referenece this state
+    deps.forEach((dep) => {
+      if (dep instanceof VentaState) {
+        dep.deleteElement(lastContent)
+      }
+    })
+    // we also need to do the above for all nested components
+    handleNodeDeletion(lastContent)
+
+    if (lastContent instanceof Element) {
+      const children = Array.from(lastContent.children) //this is needed for reference as in the case order changes I cannot refference the current parent
+      children.forEach((node) => {
+        handleNodeDeletion(node as HTMLElement)
+      })
+    }
+    //we have to clean up the conditional unmounts
+    conditionalReferenceMap.delete(lastContent)
+    conditionalReferenceMap.set(content, id)
+
+    lastContent.replaceWith(content)
+    lastContent = content;
+  }
+
+  const cleanUp = () => {
+    deps.forEach(dep => {
+      if (!(dep instanceof VentaState)) return; // this is our filter as the compiler attaches all related variables
+      dep.getSideEffects().delete(onChange)
+    })
+    conditionalMap.delete(id)
+    conditionalReferenceMap.delete(lastContent)
+  }
 
   deps.forEach(dep => {
     if (!(dep instanceof VentaState)) return; // this is our filter as the compiler attaches all related variables
-    dep.addSideEffect(() => {
-      let testValue = test()
-      let content = localCache.get(testValue)
-      if (!content) {
-        const lastCount = callCount
-        content = testValue ? contentIfTrue() : contentIfFalse()
-        if (callCount === lastCount) { // this means it was a direct html element or a component that got rendered
-          localCache.set(testValue, content)
-        }
-      }
-
-      if (content === lastContent) {
-        return
-      }
-      localCache.delete(!testValue)
-
-      //remove all dependencies that referenece this state
-      deps.forEach((dep) => {
-        if (dep instanceof VentaState) {
-          dep.deleteElement(lastContent)
-        }
-      })
-      const componentId = componentReferenceMap.get(lastContent)
-      if (componentId !== undefined) {
-        handleComponentUnmount(componentId, lastContent)
-      }
-      elementMap.delete(lastContent)
-      lastContent.replaceWith(content)
-      lastContent = content;
-    })
+    dep.addSideEffect(onChange)
   })
   let testValue = test()
   const lastCount = callCount
@@ -184,12 +217,17 @@ export const registerConditional = (
     localCache.set(testValue, lastContent)
   }
 
+
+  conditionalReferenceMap.set(lastContent, id)
+  conditionalMap.set(id, cleanUp)
+
+  incrementConditionalId()
   return lastContent;
 };
 
-export const renderLoop = (func: () => Array<HTMLElement>, iterable: any, ...deps: any[]) => {
+export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: any, ...deps: any[]) => {
   let lastContent = func();
-  let initialContent: Text | HTMLElement[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
+  let initialContent: Text | (HTMLElement | Text)[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
   let parent: ParentNode;
   let parentListStartIndex: number;
 
@@ -210,7 +248,7 @@ export const renderLoop = (func: () => Array<HTMLElement>, iterable: any, ...dep
         //basically figure out where the anchor point it to add children
         if (Array.isArray(initialContent)) {
           parent = lastContent[0].parentNode!;
-          const childrenList = Array.from(parent.children);
+          const childrenList = Array.from(parent.childNodes);
           parentListStartIndex = childrenList.indexOf(lastContent[0]);
         } else {
           parent = initialContent.parentNode!;
@@ -220,13 +258,35 @@ export const renderLoop = (func: () => Array<HTMLElement>, iterable: any, ...dep
       }
 
       // Create maps for keys
-      lastContent.forEach((elem, i) => oldKeysMap.set(getKey(elem), i));
-      newContent.forEach((elem, i) => newKeysMap.set(getKey(elem), i));
+      lastContent.forEach((elem, i) => {
+        if (elem instanceof Element) {
+          oldKeysMap.set(getKey(elem), i)
+        }
+        else {
+          //text nodes are always replaced
+          const componentId = componentReferenceMap.get(elem)
+          if (componentId !== undefined) {
+            handleComponentUnmount(componentId, elem)
+          }
+        }
+
+      })
+      newContent.forEach((elem, i) => {
+        if (elem instanceof Element) {
+          newKeysMap.set(getKey(elem), i);
+        }
+      })
 
       // Remove old nodes
       oldKeysMap.forEach((oldIndex, key) => {
         if (!newKeysMap.has(key)) {
           const node = lastContent[oldIndex]
+
+          const componentId = componentReferenceMap.get(node)
+          if (componentId !== undefined) {
+            handleComponentUnmount(componentId, node)
+          }
+
           elementMap.delete(node)
           statefulDeps.forEach(state => {
             state.deleteElement(node)
@@ -239,6 +299,13 @@ export const renderLoop = (func: () => Array<HTMLElement>, iterable: any, ...dep
       let offset = 0;
       const children = Array.from(parent.children) //this is needed for reference as in the case order changes I cannot refference the current parent
       newContent.forEach((node, i) => {
+        if (!(node instanceof Element)) {
+          parent.insertBefore(node, parent.childNodes[parentListStartIndex + i]);
+          offset += 1
+          return;
+        }
+
+
         const key = getKey(node);
         const oldIndex = oldKeysMap.get(key);
 

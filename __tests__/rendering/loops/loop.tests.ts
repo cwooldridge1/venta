@@ -2,8 +2,8 @@
  * @jest-environment jsdom
  */
 import { VentaState, useState } from "../../../src"
-import { componentStateMap, elementMap } from "../../../src/state";
-import { renderLoop, renderVentaNode } from "../../../src/utils";
+import { componentReferenceMap, componentStateMap, elementMap } from "../../../src/state";
+import { registerConditional, renderLoop, renderVentaNode } from "../../../src/utils";
 
 const isLoopedRenderCorrect = ((parent: Element, arr: Array<any>, checkContent: boolean = true) => {
   if (!parent.children.length) return
@@ -220,4 +220,76 @@ describe('loop with with stateful child variables - dep check', () => {
     expect(count.getElements().size).toBe(arr.value.length)
     expect(count.getSideEffects().size).toBe(0)
   })
+})
+
+
+describe('looped renders with nested conditionals', () => {
+  let arr: VentaState, count: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
+  beforeAll(() => {
+    arr = useState([1, 2, 3])
+    count = useState(0)
+
+    const func = () => arr.value.map((item: number) =>
+      registerConditional(
+        () => count.value > 0 && item > 1,
+        () => renderVentaNode('div', { key: item }, item),
+        () => document.createTextNode('')
+        , count)
+    )
+
+    elements = renderLoop(func, arr) as HTMLElement[]
+
+    parent = document.createElement('div')
+    parent.append(...elements)
+    document.body.appendChild(parent)
+  })
+
+  it('should render the correct state initially', () => {
+    isLoopedRenderCorrect(parent, [])
+    expect(count.getSideEffects().size).toBe(3)
+    expect(componentReferenceMap.size).toBe(3)
+    expect(componentStateMap.size).toBe(3)
+  })
+
+
+  it('conditional change works and is minimal', () => {
+    count.setValue(1)
+    isLoopedRenderCorrect(parent, [2, 3])
+    wasMinimalRerender(parent, elements, 2)
+    expect(count.getSideEffects().size).toBe(3)
+    expect(componentReferenceMap.size).toBe(3)
+    expect(componentStateMap.size).toBe(3)
+    elements = Array.from(parent.children) as HTMLElement[]
+    elements.forEach(elem => {
+      const id = componentReferenceMap.get(elem) as number
+      expect(componentStateMap.get(id)).toBeTruthy()
+    })
+  })
+
+  it('should update the correct state when the array is changed', () => {
+    const newArr = [...arr.value]
+    newArr.splice(1, 0, arr.value.length + 1)
+    arr.setValue(newArr)
+    expect(count.getSideEffects().size).toBe(4)
+    // expect(componentReferenceMap.size).toBe(4)
+    // expect(componentStateMap.size).toBe(4)
+    // console.log(Array.from(parent.children))
+    // isLoopedRenderCorrect(parent, [4, 2, 3])
+    // wasMinimalRerender(parent, elements, 1)
+    // elements = Array.from(parent.children) as HTMLElement[]
+  })
+  //
+  // it('should update the correct when order changes but not content', () => {
+  //   const newArr = [...arr.value].sort()
+  //   arr.setValue(newArr)
+  //   isLoopedRenderCorrect(parent, arr.value)
+  //   wasMinimalRerender(parent, elements, 0)
+  // })
+  //
+  // it('insert at start', () => {
+  //   arr.value.splice(0, 0, 0)
+  //   arr.setValue(arr.value)
+  //   isLoopedRenderCorrect(parent, arr.value)
+  //   wasMinimalRerender(parent, elements, 1)
+  // })
 })

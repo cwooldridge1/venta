@@ -23,9 +23,13 @@ const Component = ({ children }: Props) => {
       console.log('dismount')
     }
   }, [])
-  return children
+  return renderVentaNode('div', {}, children)
 }
 
+
+const getSpanText = (element: HTMLElement) => {
+  return element.children.item(0)!.textContent
+}
 
 describe('conditional jsx render', () => {
   let count: VentaState, element: HTMLElement;
@@ -52,11 +56,12 @@ describe('conditional jsx render', () => {
 
 
   it('should render the correct conditional initially', () => {
+    componentId = getComponentId()
     expect(count.getSideEffects().size).toBe(1);
     expect(elementMap.has(element)).toBe(true);
 
-    element = document.body.querySelector('span')!;
-    expect(element.textContent).toBe('Count is 0');
+    element = document.body.querySelector('div')!;
+    expect(getSpanText(element)).toBe('Count is 0');
 
     const componentState = componentStateMap.get(componentId)!
     expect(componentState.state.length).toBe(1)
@@ -64,7 +69,7 @@ describe('conditional jsx render', () => {
 
     expect(elementMap.has(element)).toBe(true);
     expect(stateMap.size).toBe(2)
-    expect(elementMap.size).toBe(1);
+    expect(elementMap.size).toBe(2);
     expect(componentReferenceMap.get(element)).toBe(componentId)
   });
 
@@ -73,8 +78,8 @@ describe('conditional jsx render', () => {
 
     count.setValue(3);
 
-    element = document.body.querySelector('span')!;
-    expect(element.textContent).toBe('Count is Less than 5');
+    element = document.body.querySelector('div')!;
+    expect(getSpanText(element)).toBe('Count is Less than 5');
 
     expect(logSpy.mock.calls[0][0]).toBe('mount'); //technically a new mount happens before clean ups are called
     expect(logSpy.mock.calls[1][0]).toBe('dismount');
@@ -88,7 +93,8 @@ describe('conditional jsx render', () => {
 
     expect(elementMap.has(element)).toBe(true);
     expect(stateMap.size).toBe(2)
-    expect(elementMap.size).toBe(1);
+    console.log(elementMap)
+    expect(elementMap.size).toBe(2);
     expect(componentReferenceMap.get(element)).toBe(componentId)
   })
 
@@ -110,8 +116,8 @@ describe('conditional jsx render', () => {
 
     count.setValue(6);
 
-    element = document.body.querySelector('span')!;
-    expect(element.textContent).toBe('Count is Greater than 5');
+    element = document.body.querySelector('div')!;
+    expect(getSpanText(element)).toBe('Count is Greater than 5');
 
     expect(logSpy.mock.calls[0][0]).toBe('mount'); //technically a new mount happens before clean ups are called
     expect(logSpy.mock.calls[1][0]).toBe('dismount');
@@ -125,7 +131,7 @@ describe('conditional jsx render', () => {
 
     expect(elementMap.has(element)).toBe(true);
     expect(stateMap.size).toBe(2)
-    expect(elementMap.size).toBe(1);
+    expect(elementMap.size).toBe(2);
     expect(componentReferenceMap.get(element)).toBe(componentId)
   })
 
@@ -134,8 +140,8 @@ describe('conditional jsx render', () => {
 
     count.setValue(0);
 
-    element = document.body.querySelector('span')!;
-    expect(element.textContent).toBe('Count is 0');
+    element = document.body.querySelector('div')!;
+    expect(getSpanText(element)).toBe('Count is 0');
 
     expect(logSpy.mock.calls[0][0]).toBe('mount'); //technically a new mount happens before clean ups are called
     expect(logSpy.mock.calls[1][0]).toBe('dismount');
@@ -149,7 +155,7 @@ describe('conditional jsx render', () => {
 
     expect(elementMap.has(element)).toBe(true);
     expect(stateMap.size).toBe(2)
-    expect(elementMap.size).toBe(1);
+    expect(elementMap.size).toBe(2);
     expect(componentReferenceMap.get(element)).toBe(componentId)
   })
 

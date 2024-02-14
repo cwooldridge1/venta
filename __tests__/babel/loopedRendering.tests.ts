@@ -207,3 +207,36 @@ test('nested loop that uses state', () => {
   expect(normalizeCode(compileCode(code))).toBe(expectedCode)
 })
 
+test('conditional inside of loop', () => {
+  const code = `
+    function MyComponent() {
+      return (
+        <div>
+          {items.map((item, index) => (
+            count.value > 2 && <div key={index}>{item}</div>
+          ))}
+        </div>
+      );
+    }
+    `
+  const expectedCode = normalizeCode(`
+    "use strict";
+
+    function MyComponent() {
+      return renderVentaNode("div", null, renderLoop(function () {
+        return items.map(function (item, index) {
+          return registerConditional(function () {
+            return count.value > 2;
+          }, function () {
+            return renderVentaNode("div", {
+              key: index
+            }, item);
+          }, function () {
+            return document.createTextNode("");
+          }, count);
+        });
+      }, items));
+    }
+  `)
+  expect(normalizeCode(compileCode(code))).toBe(expectedCode)
+})

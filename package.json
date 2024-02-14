@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --mode production",
-    "test": "jest"
+    "test": "jest",
+    "dev": "lite-server index.html",
+    "debug": "node --inspect-brk node_modules/.bin/jest -i"
   },
   "keywords": [],
   "author": "",
