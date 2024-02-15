@@ -1,7 +1,7 @@
 import { stateMap, getComponentId, componentStateMap } from "../state";
 import { VentaState } from "../types";
 
-const useEffect = (callback: any, dependencies: VentaState[]) => {
+const useEffect = (callback: () => any, dependencies: VentaState[]) => {
   const unmountCallback = callback();
   componentStateMap.get(getComponentId())?.unmountCallbacks.push(unmountCallback)
   dependencies.forEach((dep) => {

@@ -27,7 +27,7 @@ describe('conditional jsx render with text nodes', () => {
   });
 
   it('should render the correct conditional initially', () => {
-    expect(count.getConditionalElements().size).toBe(1);
+    expect(count.getSideEffects().size).toBe(1);
     expect(count.getElements().size).toBe(0);
     expect(elementMap.has(element)).toBe(true);
 
@@ -37,7 +37,7 @@ describe('conditional jsx render with text nodes', () => {
   it('text node should be displayed properly', () => {
     count.setValue(0);
 
-    expect(count.getConditionalElements().size).toBe(1);
+    expect(count.getSideEffects().size).toBe(1);
     expect(count.getElements().size).toBe(1);
     expect(elementMap.has(element)).toBe(false);
     expect(elementMap.has(Array.from(count.getElements())[0])).toBe(true);
@@ -50,7 +50,7 @@ describe('conditional jsx render with text nodes', () => {
   it('text nodes can update properly', () => {
     count.setValue(1);
 
-    expect(count.getConditionalElements().size).toBe(1);
+    expect(count.getSideEffects().size).toBe(1);
     expect(count.getElements().size).toBe(1);
     expect(elementMap.has(element)).toBe(true);
     expect(element.textContent).toBe('1');
@@ -61,7 +61,7 @@ describe('conditional jsx render with text nodes', () => {
 
     expect(elementMap.has(element)).toBe(false);
 
-    expect(count.getConditionalElements().size).toBe(1);
+    expect(count.getSideEffects().size).toBe(1);
     expect(count.getElements().size).toBe(0);
   });
 });

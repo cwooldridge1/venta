@@ -1,5 +1,5 @@
 import { Props, VentaState } from "./types";
-import { renderConditional, registerConditional, renderVentaNode, render, renderTextNode } from "./utils/rendering";
+import { renderConditional, registerConditional, renderVentaNode, render, renderTextNode, renderLoop } from "./utils/rendering";
 import { useState, useEffect, useMemo } from './hooks';
 export * from './types';
 
@@ -35,6 +35,7 @@ declare global {
       ...deps: VentaState[]
     ) => HTMLElement | Text,
     renderTextNode: (state: VentaState | string) => Text
+    renderLoop: (func: () => HTMLElement[], dependency: any) => HTMLElement[]
   }
 }
 
@@ -43,4 +44,5 @@ declare global {
 window.renderVentaNode = renderVentaNode
 window.renderConditional = renderConditional
 window.registerConditional = registerConditional
-window.renderTextNode = renderTextNode 
+window.renderTextNode = renderTextNode
+window.renderLoop = renderLoop

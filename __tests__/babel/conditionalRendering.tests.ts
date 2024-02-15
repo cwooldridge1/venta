@@ -1,37 +1,4 @@
-/**
- * @jest-environment jsdom
- */
-import { renderVentaNode } from "../../src";
-
-// __tests__/plugin.test.js
-const babel = require("@babel/core");
-const plugin = require("../../babel/conditionalRendering.js");
-
-function transformCode(code: any) {
-  const result = babel.transform(code, {
-    filename: 'dummyFile.tsx',  // Or whatever name you want
-    presets: ["@babel/preset-env",
-      "@babel/preset-react",
-      "@babel/preset-typescript"
-
-    ],
-
-    plugins: [
-      [
-        "@babel/plugin-transform-react-jsx",
-        {
-          "pragma": 'renderVentaNode'
-        }
-      ],
-      plugin
-    ]
-  });
-  return result.code;
-}
-
-function normalizeCode(str: string) {
-  return str.replace(/\s/g, '')
-}
+import { normalizeCode, compileCode } from "../../testUtils/helpers";
 
 test("ternary render test", () => {
   const input = `
@@ -45,7 +12,7 @@ test("ternary render test", () => {
       );
     };
     `;
-  const code = normalizeCode(transformCode(input))
+  const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`\"usestrict\";var App = function App() {
       var count = useState(0);
       return renderVentaNode(Card, null, registerConditional(function () {
@@ -80,7 +47,7 @@ test("nested ternary ternary test", () => {
       );
     };
     `;
-  const code = normalizeCode(transformCode(input));
+  const code = normalizeCode(compileCode(input));
   const expectedCode = normalizeCode(`
     "use strict";
 
@@ -118,7 +85,7 @@ test("&& render", () => {
       );
     };
     `;
-  const code = normalizeCode(transformCode(input));
+  const code = normalizeCode(compileCode(input));
   const expectedCode = normalizeCode(`    
     "use strict";
     var App = function App() {
@@ -149,7 +116,7 @@ test("&& render with ternary", () => {
       );
     };
     `;
-  const code = normalizeCode(transformCode(input));
+  const code = normalizeCode(compileCode(input));
   const expectedCode = normalizeCode(`    
     "use strict";
     var App = function App() {
@@ -186,7 +153,7 @@ test("double conditional", () => {
       );
     };
     `;
-  const code = normalizeCode(transformCode(input));
+  const code = normalizeCode(compileCode(input));
   const expectedCode = normalizeCode(`
     "use strict";
     var App = function App() {
@@ -218,7 +185,7 @@ test("non-useState render should catch useMemo as state", () => {
       );
     };
     `;
-  const code = normalizeCode(transformCode(input));
+  const code = normalizeCode(compileCode(input));
   const expectedCode = normalizeCode(`      "use strict";
 
       var App = function App() {
@@ -247,7 +214,7 @@ test("non-jsx context ternary render test", () => {
       return  count.value >= 1 ? <Card>greater than 1</Card> : <Card>less than 1</Card>
     };
     `;
-  const code = normalizeCode(transformCode(input))
+  const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`
     "use strict";
 
@@ -273,7 +240,7 @@ test("non-jsx non-component context ternary render test", () => {
       return  count.value >= 1 ? <Card>greater than 1</Card> : <Card>less than 1</Card>
     };
     `;
-  const code = normalizeCode(transformCode(input))
+  const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`
       "use strict";
       var app = function app() {
@@ -291,7 +258,7 @@ test("non-jsx && render test", () => {
       return  count.value >= 1 && <Card>greater than 1</Card>
     };
     `;
-  const code = normalizeCode(transformCode(input))
+  const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`
       "use strict";
       var App = function App() {
@@ -317,7 +284,7 @@ test("no jsx && render test", () => {
       return  count.value >= 1 && 'greater than 1'
     };
     `;
-  const code = normalizeCode(transformCode(input))
+  const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`
     "use strict";
     var App = function App() {
@@ -344,7 +311,7 @@ test("no jsx ternary render test", () => {
       return  count.value >= 1 ? 'greater than 1' : count
     };
     `;
-  const code = normalizeCode(transformCode(input))
+  const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`
     "use strict";
     var App = function App() {
@@ -372,7 +339,7 @@ test("no jsx ternary render test", () => {
     };
     `;
 
-  const code = normalizeCode(transformCode(input))
+  const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`
     "use strict";
     var App = function App() {
@@ -398,7 +365,7 @@ test("no jsx ternary render test", () => {
     };
     `;
 
-  const code = normalizeCode(transformCode(input))
+  const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`
       "use strict";
       var App = function App() {
@@ -428,7 +395,7 @@ test("non jsx return value no conditions", () => {
     };
     `;
 
-  const code = normalizeCode(transformCode(input))
+  const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`
       "use strict";
       var Component = function Component(count) {
