@@ -21,7 +21,7 @@ const App = () => {
       <Button onClick={callback}>add item</Button>
       <Button onClick={callback}>Click Count</Button>
       <Button onClick={() => count.setValue(0)}>Reset {doubleCount}</Button>
-      {arr.value.map((item) => count.value > 1 && <div key={item}>{item}</div>)}
+      {arr.value.map((item) => count.value > 1 ? <div key={item}>{item}</div> : <span key={item} />)}
       {/* <Button onClick={() => count2.setValue(count2.value + 1)}> */}
       {/*   count 2 {count2} */}
       {/* </Button> */}

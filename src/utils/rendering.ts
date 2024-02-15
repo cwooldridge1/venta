@@ -133,6 +133,46 @@ const handleComponentUnmount = (componentId: number, element: HTMLElement | Text
   componentStateMap.delete(componentId)
 }
 
+const handleUnmountConditional = (element: HTMLElement | Text) => {
+  const conditionalId = conditionalReferenceMap.get(element)
+  if (!conditionalId) return
+  const cleanUp = conditionalMap.get(conditionalId)
+  if (cleanUp) cleanUp()
+  conditionalMap.delete(conditionalId)
+  conditionalReferenceMap.delete(element)
+}
+
+const handleUnmountElement = (element: HTMLElement | Text) => {
+  const componentId = componentReferenceMap.get(element)
+  if (componentId !== undefined) {
+    handleComponentUnmount(componentId, element)
+  }
+  handleUnmountConditional(element)
+
+  //all states that reference this element need to be removed
+  const stateRef = elementMap.get(element)
+  if (stateRef) {
+    for (const key in stateRef.attributeState) {
+      stateRef.attributeState[key].forEach(([_, state]) => {
+        state.deleteElement(element)
+      })
+    }
+    for (const key in stateRef.childState) {
+      stateRef.childState[key].forEach(([_, state]) => {
+        state.deleteElement(element)
+      })
+    }
+  }
+  elementMap.delete(element)
+  if (element instanceof HTMLElement) {
+    const children = Array.from(element.children)
+    children.forEach((node) => {
+      handleUnmountElement(node as HTMLElement)
+    })
+  }
+  element.remove()
+}
+
 export const registerConditional = (
   test: () => boolean,
   contentIfTrue: (() => HTMLElement | Text),
@@ -225,7 +265,14 @@ export const registerConditional = (
   return lastContent;
 };
 
-export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: any, ...deps: any[]) => {
+
+/*
+* render loop is used for rendering a list of elements. It will keep track of the elements and update them as needed
+* @param func: a function that returns an array of html elements
+* @param iterable: is the itterable that the func is based off of 
+* @deps are any other dependency that is used in the loop
+ */
+export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: VentaState | any[], ...deps: any[]) => {
   let lastContent = func();
   let initialContent: Text | (HTMLElement | Text)[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
   let parent: ParentNode;
@@ -245,11 +292,13 @@ export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: any,
       const newKeysMap = new Map<string, number>();
 
       if (!parent) {
-        //basically figure out where the anchor point it to add children
+        //basically figure out where the anchor point is to add children
         if (Array.isArray(initialContent)) {
           parent = lastContent[0].parentNode!;
           const childrenList = Array.from(parent.childNodes);
           parentListStartIndex = childrenList.indexOf(lastContent[0]);
+          //because the child could be some type of conditonal element we actually want to reset last content
+          lastContent = Array.from(parent.children).slice(parentListStartIndex, parentListStartIndex + lastContent.length)
         } else {
           parent = initialContent.parentNode!;
           const childrenList = Array.from(parent.childNodes);
@@ -281,22 +330,12 @@ export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: any,
       oldKeysMap.forEach((oldIndex, key) => {
         if (!newKeysMap.has(key)) {
           const node = lastContent[oldIndex]
-
-          const componentId = componentReferenceMap.get(node)
-          if (componentId !== undefined) {
-            handleComponentUnmount(componentId, node)
-          }
-
-          elementMap.delete(node)
-          statefulDeps.forEach(state => {
-            state.deleteElement(node)
-          })
-          node.remove();
+          handleUnmountElement(node)
         }
       });
 
       // Add or move new nodes
-      let offset = 0;
+      let offset = 0; // because we are adding and removing nodes here offset helps us determine the correct index
       const children = Array.from(parent.children) //this is needed for reference as in the case order changes I cannot refference the current parent
       newContent.forEach((node, i) => {
         if (!(node instanceof Element)) {
@@ -305,15 +344,12 @@ export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: any,
           return;
         }
 
-
+        // basically checking if this node already exists - because when the new content array essentailly recreates each node
         const key = getKey(node);
         const oldIndex = oldKeysMap.get(key);
-
+        //if it does exist this new node actually needs to be deleted
         if (oldIndex !== undefined) {
-          elementMap.delete(node)
-          statefulDeps.forEach(state => {
-            state.deleteElement(node) //new node wont get inserted because old one already exists so we delete
-          })
+          handleUnmountElement(node)
         }
 
         if (oldIndex === undefined) {

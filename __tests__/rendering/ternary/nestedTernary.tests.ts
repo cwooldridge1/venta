@@ -93,7 +93,6 @@ describe('conditional jsx render', () => {
 
     expect(elementMap.has(element)).toBe(true);
     expect(stateMap.size).toBe(2)
-    console.log(elementMap)
     expect(elementMap.size).toBe(2);
     expect(componentReferenceMap.get(element)).toBe(componentId)
   })
