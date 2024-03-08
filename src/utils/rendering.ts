@@ -39,17 +39,18 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
       const eventName = key.substring(2).toLowerCase();
       elem.addEventListener(eventName, value);
     } else {
-      if (typeof value === 'object' && value) {
+      if (value instanceof VentaState) {
         dependentStates.add(value)
-        elem.setAttribute(key, value.state);
-        if (stateRef.attributeState[value.id] === undefined) stateRef.attributeState[value.id] = []
-        stateRef.attributeState[value.id].push([key, value])
+        elem.setAttribute(key, value.value);
+        if (stateRef.attributeState[value.getId()] === undefined) stateRef.attributeState[value.getId()] = []
+        stateRef.attributeState[value.getId()].push([key, value])
       } else {
         elem.setAttribute(key, value);
       }
     }
   }
   const renderChild = (child: any, index: number) => {
+    if (child === null || child === undefined) return
     if (Array.isArray(child)) {
       child.forEach(renderChild)
       return
@@ -62,13 +63,13 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
       elem.appendChild(child);
       return;
     }
-    if (typeof child === 'object') {
-      const state = stateMap.get(child.id)
+    if (child instanceof VentaState) {
+      const state = stateMap.get(child.getId())
       if (!state) throw new Error('state not found')
       dependentStates.add(state)
       elem.appendChild(document.createTextNode(child.value));
-      if (stateRef.childState[child.id] === undefined) stateRef.childState[child.id] = []
-      stateRef.childState[child.id].push([index, child])
+      if (stateRef.childState[child.getId()] === undefined) stateRef.childState[child.getId()] = []
+      stateRef.childState[child.getId()].push([index, child])
     }
   }
 
@@ -277,8 +278,6 @@ export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: Vent
   let initialContent: Text | (HTMLElement | Text)[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
   let parent: ParentNode;
   let parentListStartIndex: number;
-
-  const statefulDeps: VentaState[] = deps.filter((dep: any) => dep instanceof VentaState)
 
   const getKey = (elem: HTMLElement) => {
     const key = elem.getAttribute('key')

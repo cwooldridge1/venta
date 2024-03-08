@@ -22,7 +22,7 @@ module.exports = function(babel) {
   }
   const createTextNode = (value) => {
     return t.callExpression(
-      t.identifier('renderTextNode'),
+      t.identifier('Venta.renderTextNode'),
       [value]
     );
   }
@@ -73,7 +73,7 @@ module.exports = function(babel) {
 
       const testFunc = t.arrowFunctionExpression([], test);
       return t.callExpression(
-        t.identifier("renderConditional"),
+        t.identifier("Venta.renderConditional"),
         [
           testFunc,
           t.arrowFunctionExpression([], newConsequent),
@@ -138,7 +138,7 @@ module.exports = function(babel) {
 
       path.replaceWith(
         t.callExpression(
-          t.identifier("registerConditional"),
+          t.identifier("Venta.registerConditional"),
           [
             testFunc,
             t.arrowFunctionExpression([], newConsequent),
@@ -185,7 +185,7 @@ module.exports = function(babel) {
 
       path.replaceWith(
         t.callExpression(
-          t.identifier("registerConditional"),
+          t.identifier("Venta.registerConditional"),
           [
             testFunc,
             t.arrowFunctionExpression([], newConsequent),
@@ -271,7 +271,7 @@ module.exports = function(babel) {
     })
     path.replaceWith(
       t.callExpression(
-        t.identifier("renderLoop"),
+        t.identifier("Venta.renderLoop"),
         [
           t.arrowFunctionExpression(
             [],
@@ -294,7 +294,7 @@ module.exports = function(babel) {
             if (!isComponentContext(path)) return
             if (returnValue && shouldBeTextNode(returnValue.type)) {
               path.node.argument = t.callExpression(
-                t.identifier('renderTextNode'),
+                t.identifier('Venta.renderTextNode'),
                 [returnValue]
               );
             } else {
