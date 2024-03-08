@@ -317,7 +317,6 @@ export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: Vent
             handleComponentUnmount(componentId, elem)
           }
         }
-
       })
       newContent.forEach((elem, i) => {
         if (elem instanceof Element) {
@@ -333,34 +332,28 @@ export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: Vent
         }
       });
 
-      // Add or move new nodes
-      let offset = 0; // because we are adding and removing nodes here offset helps us determine the correct index
-      const children = Array.from(parent.children) //this is needed for reference as in the case order changes I cannot refference the current parent
+      // with the new content just go through and see if anything is resuable
       newContent.forEach((node, i) => {
-        if (!(node instanceof Element)) {
-          parent.insertBefore(node, parent.childNodes[parentListStartIndex + i]);
-          offset += 1
-          return;
+        if (node instanceof Element) {
+          const key = getKey(node);
+          const oldIndex = oldKeysMap.get(key);
+          if (oldIndex !== undefined) {
+            newContent[i] = lastContent[oldIndex]
+            handleUnmountElement(node)
+          }
         }
+      })
 
-        // basically checking if this node already exists - because when the new content array essentailly recreates each node
-        const key = getKey(node);
-        const oldIndex = oldKeysMap.get(key);
-        //if it does exist this new node actually needs to be deleted
-        if (oldIndex !== undefined) {
-          handleUnmountElement(node)
-        }
+      // now remove all the old nodes and insert the new ones
+      lastContent.forEach((node) => {
+        node.remove()
+      })
 
-        if (oldIndex === undefined) {
-          // Insert new node
+      newContent.forEach((node, i) => {
+        if (node instanceof Element) {
           parent.insertBefore(node, parent.childNodes[parentListStartIndex + i]);
-          offset += 1
         }
-        else if (oldIndex !== i - offset) {
-          // Move existing node
-          parent.insertBefore(children[oldIndex], parent.childNodes[parentListStartIndex + i]);
-        }
-      });
+      })
 
       lastContent = newContent;
     });

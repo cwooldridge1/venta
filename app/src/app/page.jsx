@@ -4,7 +4,7 @@ import Layout from './layout.jsx'
 
 function Home() {
   const inputState = Venta.useState('')
-  const listState = Venta.useState(['hello'])
+  const listState = Venta.useState([])
 
   const handleAddToList = () => {
     listState.setValue([...listState.value, inputState.value])
@@ -23,10 +23,13 @@ function Home() {
         <Button onClick={handleAddToList}>Add To List</Button>
 
         <div style="margin-top: 20px;">
-          {listState.value.map((todo, index) => (
+          {listState.value.length === 0 && <p>No todos yet</p>}
+          {listState.value.map((todo) => (
             <div key={todo} style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #333; margin-top: 10px;">
               <p>{todo}</p>
-              <Button onClick={() => listState.setValue(listState.value.filter((_, i) => i !== index))}>Remove</Button>
+              <Button onClick={() => {
+                listState.setValue(listState.value.filter((node) => node !== todo))
+              }}>Remove</Button>
             </div>
           ))
           }

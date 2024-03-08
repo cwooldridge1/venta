@@ -76,8 +76,16 @@ describe('looped renders work with state and set state calls', () => {
     isLoopedRenderCorrect(parent, arr.value)
     wasMinimalRerender(parent, elements, 1)
   })
-})
 
+  it('should handle removing elements', () => {
+    const newArr = [...arr.value]
+    newArr.splice(0, 1)
+    arr.setValue(newArr)
+    isLoopedRenderCorrect(parent, newArr)
+    wasMinimalRerender(parent, elements, 0)
+  }
+  )
+})
 
 describe('test for when initial content is empty', () => {
   let arr: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
@@ -306,3 +314,5 @@ describe('looped renders with nested conditionals', () => {
     wasMinimalRerender(parent, elements, 1)
   })
 })
+
+
