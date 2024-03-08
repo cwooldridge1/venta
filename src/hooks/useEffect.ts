@@ -5,7 +5,7 @@ const useEffect = (callback: () => any, dependencies: VentaState[]) => {
   const unmountCallback = callback();
   componentStateMap.get(getComponentId())?.unmountCallbacks.push(unmountCallback)
   dependencies.forEach((dep) => {
-    const state = stateMap.get(dep.id)
+    const state = stateMap.get(dep.getId())
     if (!state) throw new Error('dependencies must be of type VentaState')
     state.addSideEffect(callback)
   })

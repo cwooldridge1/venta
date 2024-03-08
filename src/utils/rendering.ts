@@ -297,7 +297,7 @@ export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: Vent
           const childrenList = Array.from(parent.childNodes);
           parentListStartIndex = childrenList.indexOf(lastContent[0]);
           //because the child could be some type of conditonal element we actually want to reset last content
-          lastContent = Array.from(parent.children).slice(parentListStartIndex, parentListStartIndex + lastContent.length)
+          lastContent = Array.from(parent.children).slice(parentListStartIndex, parentListStartIndex + lastContent.length) as (HTMLElement | Text)[]
         } else {
           parent = initialContent.parentNode!;
           const childrenList = Array.from(parent.childNodes);

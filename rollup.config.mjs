@@ -39,7 +39,6 @@ const findRoutes = (dir = baseDir, prefix = '') => {
       entries[key] = fullPath;
     }
   });
-  console.log(entries);
   return entries;
 };
 
@@ -53,15 +52,12 @@ Object.keys(entries).forEach(key => {
 });
 
 
-export default {
+const mainConfig = {
   input: inputOptions,
   output: [
     {
       dir: 'dist',
       format: 'es',
-      // file: 'bundle.js',
-      // name: '[name]', // This might need to be adjusted based on your specific needs
-      // entryFileNames: '[name]bundle.js',
       name: '[name]',
       sourcemap: true,
     },
@@ -80,6 +76,7 @@ export default {
     html({
       // This is a basic example
       template: ({ files }) => {
+
         // const scripts = files.js.map(({ fileName }) => `<script src="/${fileName}"></script>`).join('\n');
         return `
 <!DOCTYPE html>
@@ -87,35 +84,10 @@ export default {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <script src="/ventabundle.js"></script> -->
-    <script type="module">
-      const handleLocation = async () => {
-        const path = window.location.pathname;
-        // Dynamically import the module based on the current path
-        console.log('trying');
-        const module = await import('./'+path+'.js');
-        console.log('module', module);
-        // Assuming the module exports a component or function that can be rendered
-        const component = module.default; // or whatever the exported component is named
-        console.log('component', component);
-        const root = document.getElementById("root");
-        root.innerHTML = '';
-        if (component) {
-          root.appendChild(component());
-        }
-      };
-
-      window.onpopstate = handleLocation;
-      window.addEventListener('venta-link', function() {
-        handleLocation();
-      });
-
-      handleLocation();
-    </script>
     <title>Your Application</title>
 </head>
 <body id='root'>
-
+    <script type='module' src="routing.js"></script>
 </body>
 </html>
 `;
@@ -127,3 +99,69 @@ export default {
   // You might need to include external dependencies, depending on your project
   external: [],
 };
+
+
+const extraScriptConfig = {
+  input: './src/scripts/routing.ts',
+  output: {
+    file: 'dist/routing.js',
+    format: 'iife' // this means it will be a self-executing function
+  },
+  plugins: [
+    resolve(),
+    commonjs(),
+    typescript(),
+    babel({
+      babelHelpers: 'bundled',
+      presets: ['@babel/preset-env']
+    }),
+    inlineScript(),
+  ],
+};
+
+
+
+function inlineScript() {
+  return {
+    name: 'inline-script',
+    generateBundle(outputOptions, bundle) {
+      // Ensure we have a directory to work with, handle both dir and file output options
+      let baseDir = outputOptions.dir;
+      if (!baseDir && outputOptions.file) {
+        baseDir = path.dirname(outputOptions.file);
+      }
+
+      // Exit if we still don't have a valid directory
+      if (!baseDir) {
+        console.error('InlineScript plugin error: Output directory is undefined.');
+        return;
+      }
+
+      // Generate the inline script content
+      const routingFileKey = Object.keys(bundle).find(key => bundle[key].fileName === 'routing.js');
+      if (!routingFileKey) {
+        console.log('InlineScript plugin: No routing.js file found in the bundle.');
+        return;
+      }
+      const routingFile = bundle[routingFileKey];
+      const inlineScriptTag = `<script type="module">${routingFile.code}</script>`;
+
+      // Define the HTML file path
+      const htmlFilePath = path.join(baseDir, 'index.html');
+      if (fs.existsSync(htmlFilePath)) {
+        // Modify the HTML file to include the inline script
+        let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
+        htmlContent = htmlContent.replace('<script type=\'module\' src="routing.js"></script>', inlineScriptTag);
+        fs.writeFileSync(htmlFilePath, htmlContent);
+
+        // Optionally, remove the now-inlined script from the bundle
+        delete bundle[routingFileKey];
+      } else {
+        console.error(`InlineScript plugin: HTML file (${htmlFilePath}) does not exist.`);
+      }
+    }
+  };
+}
+
+
+export default [mainConfig, extraScriptConfig];
