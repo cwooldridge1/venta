@@ -1,4 +1,3 @@
-import { Props, VentaState } from "./types";
 import { renderConditional, registerConditional, renderVentaNode, render, renderTextNode, renderLoop } from "./utils/rendering";
 import { useState, useEffect, useMemo } from './hooks';
 export * from './types';
@@ -14,35 +13,8 @@ const Venta = {
   renderConditional,
   registerConditional,
   renderVentaNode,
+  renderTextNode,
+  renderLoop,
 };
 
 export default Venta;
-
-//this is a hack to make jsx work with typescript
-declare global {
-  interface Window {
-    renderVentaNode: (type: any, props: Props, ...children: any[]) => HTMLElement;
-    renderConditional: (
-      test: () => boolean,
-      contentIfTrue: (() => HTMLElement | Text),
-      contentIfFalse: (() => HTMLElement | Text),
-      id: number
-    ) => HTMLElement | Text
-    registerConditional: (
-      test: () => boolean,
-      contentIfTrue: (() => HTMLElement),
-      contentIfFalse: (() => HTMLElement),
-      ...deps: VentaState[]
-    ) => HTMLElement | Text,
-    renderTextNode: (state: VentaState | string) => Text
-    renderLoop: (func: () => HTMLElement[], dependency: any) => HTMLElement[]
-  }
-}
-
-
-// so babel can reference these functions
-window.renderVentaNode = renderVentaNode
-window.renderConditional = renderConditional
-window.registerConditional = registerConditional
-window.renderTextNode = renderTextNode
-window.renderLoop = renderLoop

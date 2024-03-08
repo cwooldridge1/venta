@@ -15,12 +15,12 @@ test("ternary render test", () => {
   const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`\"usestrict\";var App = function App() {
       var count = useState(0);
-      return renderVentaNode(Card, null, registerConditional(function () {
+      return Venta.renderVentaNode(Card, null, Venta.registerConditional(function () {
         return count.value >= 1;
       }, function () {
-        return renderVentaNode(Card, null, "greater than 1");
+        return Venta.renderVentaNode(Card, null, "greater than 1");
       }, function () {
-        return renderVentaNode(Card, null, "less than 1");
+        return Venta.renderVentaNode(Card, null, "less than 1");
       }, count));
     };`)
   expect(code).toBe(expectedCode)
@@ -53,18 +53,18 @@ test("nested ternary ternary test", () => {
 
     var App = function App() {
       var count = useState(0);
-      return renderVentaNode(Card, null, registerConditional(function () {
+      return Venta.renderVentaNode(Card, null, Venta.registerConditional(function () {
         return count.value >= 1;
       }, function () {
-        return renderConditional(function () {
+        return Venta.renderConditional(function () {
           return count.value >= 3;
         }, function () {
-          return renderVentaNode(Card, null, "greater than 3");
+          return Venta.renderVentaNode(Card, null, "greater than 3");
         }, function () {
-          return renderVentaNode(Card, null, "Not greater than 3");
+          return Venta.renderVentaNode(Card, null, "Not greater than 3");
         }, 0);
       }, function () {
-        return renderVentaNode(Card, null, "less than 1");
+        return Venta.renderVentaNode(Card, null, "less than 1");
       }, count, count));
     };
 `)
@@ -90,10 +90,10 @@ test("&& render", () => {
     "use strict";
     var App = function App() {
       var count = useState(0);
-      return renderVentaNode(Card, null, registerConditional(function () {
+      return Venta.renderVentaNode(Card, null, Venta.registerConditional(function () {
         return count.value >= 1;
       }, function () {
-        return renderVentaNode(Card, null, "greater than 0");
+        return Venta.renderVentaNode(Card, null, "greater than 0");
       }, function () {
         return document.createTextNode("");
       }, count));
@@ -121,15 +121,15 @@ test("&& render with ternary", () => {
     "use strict";
     var App = function App() {
       var count = useState(0);
-      return renderVentaNode(Card, null, registerConditional(function () {
+      return Venta.renderVentaNode(Card, null, Venta.registerConditional(function () {
         return count.value >= 1;
       }, function () {
-        return renderConditional(function () {
+        return Venta.renderConditional(function () {
           return count.value >= 3;
         }, function () {
-          return renderVentaNode(Card, null, "greater than 3");
+          return Venta.renderVentaNode(Card, null, "greater than 3");
         }, function () {
-          return renderVentaNode(Card, null, "less than 3");
+          return Venta.renderVentaNode(Card, null, "less than 3");
         }, 1);
       }, function () {
         return document.createTextNode("");
@@ -158,10 +158,10 @@ test("double conditional", () => {
     "use strict";
     var App = function App() {
       var count = useState(0);
-      return renderVentaNode(Card, null, registerConditional(function () {
+      return Venta.renderVentaNode(Card, null, Venta.registerConditional(function () {
         return count.value >= 3 || count.value === 1;
       }, function () {
-        return renderVentaNode(Card, null, "greater than 0");
+        return Venta.renderVentaNode(Card, null, "greater than 0");
       }, function () {
         return document.createTextNode("");
       }, count, count));
@@ -193,10 +193,10 @@ test("non-useState render should catch useMemo as state", () => {
         var doubleCount = useMemo(function () {
           return count.value * 2;
         }, [count]);
-        return renderVentaNode(Card, null, registerConditional(function () {
+        return Venta.renderVentaNode(Card, null, Venta.registerConditional(function () {
           return doubleCount.value >= 2;
         }, function () {
-          return renderVentaNode("span", null, "gt2");
+          return Venta.renderVentaNode("span", null, "gt2");
         }, function () {
           return document.createTextNode("");
         }, doubleCount));
@@ -220,12 +220,12 @@ test("non-jsx context ternary render test", () => {
 
     var App = function App() {
       var count = useState(0);
-      return registerConditional(function () {
+      return Venta.registerConditional(function () {
         return count.value >= 1;
       }, function () {
-        return renderVentaNode(Card, null, "greater than 1");
+        return Venta.renderVentaNode(Card, null, "greater than 1");
       }, function () {
-        return renderVentaNode(Card, null, "less than 1");
+        return Venta.renderVentaNode(Card, null, "less than 1");
       }, count);
     };
    `)
@@ -245,7 +245,7 @@ test("non-jsx non-component context ternary render test", () => {
       "use strict";
       var app = function app() {
         var count = useState(0);
-        return count.value >= 1 ? renderVentaNode(Card, null, "greater than 1") : renderVentaNode(Card, null, "less than 1");
+        return count.value >= 1 ? Venta.renderVentaNode(Card, null, "greater than 1") : Venta.renderVentaNode(Card, null, "less than 1");
       };
    `)
   expect(code).toBe(expectedCode)
@@ -263,10 +263,10 @@ test("non-jsx && render test", () => {
       "use strict";
       var App = function App() {
         var count = useState(0);
-        return registerConditional(function () {
+        return Venta.registerConditional(function () {
           return count.value >= 1;
         }, function () {
-          return renderVentaNode(Card, null, "greater than 1");
+          return Venta.renderVentaNode(Card, null, "greater than 1");
         }, function () {
           return document.createTextNode("");
         }, count);
@@ -289,10 +289,10 @@ test("no jsx && render test", () => {
     "use strict";
     var App = function App() {
       var count = useState(0);
-      return registerConditional(function () {
+      return Venta.registerConditional(function () {
         return count.value >= 1;
       }, function () {
-        return renderTextNode('greater than 1');
+        return Venta.renderTextNode('greater than 1');
       }, function () {
         return document.createTextNode("");
       }, count);
@@ -316,12 +316,12 @@ test("no jsx ternary render test", () => {
     "use strict";
     var App = function App() {
       var count = useState(0);
-      return registerConditional(function () {
+      return Venta.registerConditional(function () {
         return count.value >= 1;
       }, function () {
-        return renderTextNode('greater than 1');
+        return Venta.renderTextNode('greater than 1');
       }, function () {
-        return renderTextNode(count);
+        return Venta.renderTextNode(count);
       }, count);
     };
 
@@ -345,12 +345,12 @@ test("no jsx ternary render test", () => {
     var App = function App() {
       var count = useState(0);
       var val = 2;
-      return registerConditional(function () {
+      return Venta.registerConditional(function () {
         return count.value >= 1;
       }, function () {
-        return renderTextNode(val);
+        return Venta.renderTextNode(val);
       }, function () {
-        return renderTextNode(count);
+        return Venta.renderTextNode(count);
       }, count);
     };
   `)
@@ -370,12 +370,12 @@ test("no jsx ternary render test", () => {
       "use strict";
       var App = function App() {
         var count = useState(0);
-        return registerConditional(function () {
+        return Venta.registerConditional(function () {
           return count.value >= 1;
         }, function () {
-          return renderTextNode(4);
+          return Venta.renderTextNode(4);
         }, function () {
-          return renderTextNode(count);
+          return Venta.renderTextNode(count);
         }, count);
       };
   `)
@@ -399,17 +399,17 @@ test("non jsx return value no conditions", () => {
   const expectedCode = normalizeCode(`
       "use strict";
       var Component = function Component(count) {
-        return registerConditional(function () {
+        return Venta.registerConditional(function () {
           return count.value >= 1;
         }, function () {
-          return renderTextNode(4);
+          return Venta.renderTextNode(4);
         }, function () {
-          return renderTextNode(count);
+          return Venta.renderTextNode(count);
         }, count);
       };
       var App = function App() {
         var count = useState(0);
-        return renderVentaNode(Component, {
+        return Venta.renderVentaNode(Component, {
           count: count
         });
       };
