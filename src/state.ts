@@ -48,6 +48,9 @@ export class VentaState {
     if (elem instanceof Element) {
       attributeState[stateIndex]?.forEach(([key, value]) => {
         elem.setAttribute(key, value.value)
+        if ((elem.tagName === 'INPUT' || elem.tagName === 'TEXTAREA' || elem.tagName === 'SELECT') && key.toLowerCase() === 'value') {
+          (elem as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value = value.value;
+        }
       })
       childState[stateIndex]?.forEach(([index, value]) => {
         elem.childNodes[index].textContent = value.value

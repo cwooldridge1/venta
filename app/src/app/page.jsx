@@ -17,7 +17,9 @@ function Home() {
         <h1>
           Todos
         </h1>
-        <input type="text" value={inputState} key={inputState} onChange={(e) => inputState.setValue(e.target.value)} />
+        <input type="text" value={inputState} onInput={(e) => {
+          inputState.setValue(e.target.value)
+        }} />
         <Button onClick={handleAddToList}>Add To List</Button>
 
         <div style="margin-top: 20px;">
