@@ -1,5 +1,5 @@
-import Venta from '../../../src/index.ts'
-import Navbar from './_components/navbar.jsx'
+import Venta from '../../../../src/index.tsx';
+import Navbar from './navbar.jsx'
 
 
 export default function Layout({ children }) {

@@ -121,7 +121,7 @@ export const renderConditional = (
 };
 
 
-const handleComponentUnmount = (componentId: number, element: HTMLElement | Text) => {
+export const handleComponentUnmount = (componentId: number, element: HTMLElement | Text) => {
   const { state, unmountCallbacks } = componentStateMap.get(componentId)!
   state.forEach(state => state.destroy())
   unmountCallbacks.forEach(callback => callback())
