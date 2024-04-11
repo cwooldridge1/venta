@@ -22,6 +22,13 @@ export const renderTextNode = (value: VentaState | string) => {
   return node
 }
 
+export const createAnchor = (meta: string) => {
+  const anchor = document.createComment(meta)
+  const stateRef: VentaNode = { element: anchor, attributeState: {}, childState: {} }
+  elementMap.set(anchor, stateRef)
+  return anchor
+}
+
 export const renderVentaNode = (type: any, props: Props, ...children: any[]) => {
   if (typeof type === 'function') {
     incrementComponentId()
@@ -275,7 +282,7 @@ export const registerConditional = (
  */
 export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: VentaState | any[], ...deps: any[]) => {
   let lastContent = func();
-  let initialContent: Text | (HTMLElement | Text)[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
+  let initialContent: Comment | Text | (HTMLElement | Text)[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
   let parent: ParentNode;
   let parentListStartIndex: number;
 
@@ -358,6 +365,6 @@ export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: Vent
       lastContent = newContent;
     });
   }
-  initialContent = lastContent.length ? lastContent : document.createTextNode('');
+  initialContent = lastContent.length ? lastContent : createAnchor('');
   return initialContent;
 };
