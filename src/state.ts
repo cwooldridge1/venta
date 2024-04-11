@@ -115,6 +115,6 @@ export class VentaMemoState extends VentaState {
 export const componentReferenceMap = new Map<Element | Text, number>(); // this is an inverse map tool essentially to help find the associated id with a component
 export const componentStateMap = new Map<number, { state: VentaState[], unmountCallbacks: Function[] }>(); // key is the component id and the value is all state and unmount callbacks that are defined in a component
 export const stateMap = new Map<number, VentaState>(); // all state is stored here, the key is the id and the value is the state
-export const elementMap = new Map<Element | Text, VentaNode>(); // element mao store what elements have what dependencies to help know exactly what needs to be updated in an element
+export const elementMap = new Map<Element | Text | Comment, VentaNode>(); // element mao store what elements have what dependencies to help know exactly what needs to be updated in an element
 export const conditionalMap = new Map<number, () => void>(); // conditonals are a special type of component and need to be kept track of mainly when used inside of things like looks to make sure they are cleaned up properly
 export const conditionalReferenceMap = new Map<Element | Text, number>(); // this is an inverse map tool essentially to help find the associated id with a conditional

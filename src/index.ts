@@ -1,4 +1,4 @@
-import { renderConditional, registerConditional, renderVentaNode, render, renderTextNode, renderLoop } from "./utils/rendering";
+import { renderConditional, registerConditional, renderVentaNode, render, renderTextNode, renderLoop, createAnchor } from "./utils/rendering";
 import { useState, useEffect, useMemo } from './hooks';
 export * from './types';
 
@@ -15,6 +15,7 @@ const Venta = {
   renderVentaNode,
   renderTextNode,
   renderLoop,
+  createAnchor
 };
 
 export default Venta;

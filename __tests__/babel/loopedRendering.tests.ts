@@ -17,9 +17,9 @@ test('works with list', () => {
     "use strict";
     function MyComponent() {
       var items = [1, 2, 3];
-      return Venta.renderVentaNode("div", null, Venta.renderLoop(function () {
+      return renderVentaNode("div", null, Venta.renderLoop(function () {
         return items.map(function (item, index) {
-          return Venta.renderVentaNode("div", {
+          return renderVentaNode("div", {
             key: index
           }, item);
         });
@@ -48,9 +48,9 @@ test('works with stateful list', () => {
     "use strict";
     function MyComponent() {
       var items = useState([1, 2, 3]);
-      return Venta.renderVentaNode("div", null, Venta.renderLoop(function () {
+      return renderVentaNode("div", null, Venta.renderLoop(function () {
         return items.values.map(function (item, index) {
-          return Venta.renderVentaNode("div", {
+          return renderVentaNode("div", {
             key: index
           }, item);
         });
@@ -74,7 +74,7 @@ test('works with list not in jsx context', () => {
       var arr = useState([1, 2, 3]);
       return Venta.renderLoop(function () {
         return arr.values.map(function (item, index) {
-          return Venta.renderVentaNode("div", {
+          return renderVentaNode("div", {
             key: index
           }, item);
         });
@@ -107,13 +107,13 @@ test('nested loop', () => {
 
     function MyComponent() {
       var items = useState([1, 2, 3]);
-      return Venta.renderVentaNode("div", null, Venta.renderLoop(function () {
+      return renderVentaNode("div", null, Venta.renderLoop(function () {
         return items.values.map(function (item, index) {
-          return Venta.renderVentaNode("div", {
+          return renderVentaNode("div", {
             key: index
           }, Venta.renderLoop(function () {
             return item.map(function (val, index) {
-              return Venta.renderVentaNode("div", {
+              return renderVentaNode("div", {
                 key: val
               }, val);
             });
@@ -150,9 +150,9 @@ test('loop with external identifier', () => {
     function MyComponent() {
       var items = useState([1, 2, 3]);
       var val = 2;
-      return Venta.renderVentaNode("div", null, Venta.renderLoop(function () {
+      return renderVentaNode("div", null, Venta.renderLoop(function () {
         return items.values.map(function (item, index) {
-          return Venta.renderVentaNode("div", {
+          return renderVentaNode("div", {
             key: index
           }, val);
         });
@@ -189,13 +189,13 @@ test('nested loop that uses state', () => {
     function MyComponent() {
       var items = useState([1, 2, 3]);
       var state = useState(2);
-      return Venta.renderVentaNode("div", null, Venta.renderLoop(function () {
+      return renderVentaNode("div", null, Venta.renderLoop(function () {
         return items.values.map(function (item, index) {
-          return Venta.renderVentaNode("div", {
+          return renderVentaNode("div", {
             key: index
           }, Venta.renderLoop(function () {
             return item.map(function (val, index) {
-              return Venta.renderVentaNode("div", {
+              return renderVentaNode("div", {
                 key: val
               }, state.value);
             });
@@ -223,16 +223,16 @@ test('conditional inside of loop', () => {
     "use strict";
 
     function MyComponent() {
-      return Venta.renderVentaNode("div", null, Venta.renderLoop(function () {
+      return renderVentaNode("div", null, Venta.renderLoop(function () {
         return items.map(function (item, index) {
           return Venta.registerConditional(function () {
             return count.value > 2;
           }, function () {
-            return Venta.renderVentaNode("div", {
+            return renderVentaNode("div", {
               key: index
             }, item);
           }, function () {
-            return document.createTextNode("");
+            return Venta.createAnchor("");
           }, count);
         });
       }, items));

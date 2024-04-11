@@ -171,10 +171,7 @@ module.exports = function(babel) {
         t.blockStatement([
           t.returnStatement(
             t.callExpression(
-              t.memberExpression(
-                t.identifier('document'),
-                t.identifier('createTextNode')
-              ),
+              t.identifier('Venta.createAnchor'),
               [
                 t.stringLiteral('') // The text content for the text node
               ]
@@ -294,7 +291,7 @@ module.exports = function(babel) {
             if (!isComponentContext(path)) return
             if (returnValue && shouldBeTextNode(returnValue.type)) {
               path.node.argument = t.callExpression(
-                t.identifier('Venta.renderTextNode'),
+                t.identifier('Venta.createAnchor'),
                 [returnValue]
               );
             } else {
