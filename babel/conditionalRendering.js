@@ -171,14 +171,7 @@ module.exports = function(babel) {
         t.blockStatement([
           t.returnStatement(
             t.callExpression(
-              //t.memberExpression(
-              //path.node.argument = t.callExpression(
               t.identifier('Venta.createAnchor'),
-              //[returnValue]
-              //),
-              //   t.identifier('document'),
-              //   t.identifier('createTextNode')
-              // ),
               [
                 t.stringLiteral('') // The text content for the text node
               ]
