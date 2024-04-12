@@ -19,15 +19,15 @@ export const incrementConditionalId = () => {
 
 
 
-export class VentaState {
+export class VentaState<T> {
   private static currentStateId: number = 0;
   protected id: number;
   protected sideEffects: Set<Function>;
-  protected elements: Set<Element | Text>;
-  value: any;
+  protected elements: Set<NodeTypes>;
+  value: T;
 
   constructor(
-    value: any,
+    value: T,
     sideEffects: Set<Function> = new Set(),
     elements: Set<Element | Text> = new Set(),
   ) {
@@ -40,7 +40,7 @@ export class VentaState {
     stateMap.set(this.id, this)
   }
 
-  protected updateNode(elem: Element | Text, stateIndex: number) {
+  protected updateNode(elem: NodeTypes, stateIndex: number) {
     const elementState = elementMap.get(elem)
     if (!elementState) throw new Error('element state not found')
     const { attributeState, childState } = elementState
@@ -70,11 +70,11 @@ export class VentaState {
     return this.elements;
   }
 
-  addElement(element: Element | Text) {
+  addElement(element: NodeTypes) {
     this.elements.add(element)
   }
 
-  deleteElement(element: Element | Text) {
+  deleteElement(element: NodeTypes) {
     this.elements.delete(element)
   }
 
@@ -93,10 +93,10 @@ export class VentaState {
 
 }
 
-export class VentaMemoState extends VentaState {
+export class VentaMemoState<T> extends VentaState<T> {
   private callback: () => any
   constructor(
-    value: any,
+    value: T,
     callback: () => any,
     sideEffects: Set<Function> = new Set(),
     elements: Set<Element | Text> = new Set(),
@@ -105,16 +105,18 @@ export class VentaMemoState extends VentaState {
     this.callback = callback;
   }
 
-  setValue(_: any): void {
+  setValue(_: T): void {
     this.value = this.callback();
     this.sideEffects.forEach((sideEffect) => sideEffect());
     this.elements.forEach((node) => this.updateNode(node, this.id));
   }
 }
 
-export const componentReferenceMap = new Map<Element | Text, number>(); // this is an inverse map tool essentially to help find the associated id with a component
-export const componentStateMap = new Map<number, { state: VentaState[], unmountCallbacks: Function[] }>(); // key is the component id and the value is all state and unmount callbacks that are defined in a component
-export const stateMap = new Map<number, VentaState>(); // all state is stored here, the key is the id and the value is the state
-export const elementMap = new Map<Element | Text | Comment, VentaNode>(); // element mao store what elements have what dependencies to help know exactly what needs to be updated in an element
+export type NodeTypes = Element | Text | Comment;
+
+export const componentReferenceMap = new Map<NodeTypes, number>(); // this is an inverse map tool essentially to help find the associated id with a component
+export const componentStateMap = new Map<number, { state: VentaState<unknown>[], unmountCallbacks: Function[] }>(); // key is the component id and the value is all state and unmount callbacks that are defined in a component
+export const stateMap = new Map<number, VentaState<unknown>>(); // all state is stored here, the key is the id and the value is the state
+export const elementMap = new Map<NodeTypes, VentaNode>(); // element mao store what elements have what dependencies to help know exactly what needs to be updated in an element
 export const conditionalMap = new Map<number, () => void>(); // conditonals are a special type of component and need to be kept track of mainly when used inside of things like looks to make sure they are cleaned up properly
-export const conditionalReferenceMap = new Map<Element | Text, number>(); // this is an inverse map tool essentially to help find the associated id with a conditional
+export const conditionalReferenceMap = new Map<NodeTypes, number>(); // this is an inverse map tool essentially to help find the associated id with a conditional

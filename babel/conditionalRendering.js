@@ -1,6 +1,7 @@
 module.exports = function(babel) {
   const { types: t } = babel;
   let conditionalId = 0;
+  const visited = new Set();
 
   const shouldBeTextNode = (type) => {
     const nonTextTypes = [
@@ -40,7 +41,9 @@ module.exports = function(babel) {
         referencedIdentifiers.add(t.identifier(path.node.name));
       },
     });
-    return referencedIdentifiers;
+    // this is actually needed because the of how babel references these identifiers
+    const nonDupes = Array.from(referencedIdentifiers).filter((item, index, self) => item.name !== 'undefined' && self.findIndex(t => t.name === item.name) === index)
+    return new Set(nonDupes);
   }
 
 
@@ -150,19 +153,63 @@ module.exports = function(babel) {
     }
   }
 
+
+
   const registerLogicalExpression = (path) => {
     if (shouldBeTextNode(path.node.right.type)) {
       path.node.right = createTextNode(path.node.right)
     }
-    const { left, right, operator } = path.node;
+
+    let currentPath = path;
+    while (currentPath.node.right.type === 'LogicalExpression') {
+      currentPath = currentPath.get('right');
+    }
+
+    const { left, operator, right } = currentPath.node;
+
+    let newAlternate = t.arrowFunctionExpression(
+      [],
+      t.blockStatement([
+        t.returnStatement(
+          t.callExpression(
+            t.identifier('Venta.createAnchor'),
+            [
+              t.stringLiteral('') // The text content for the text node
+            ]
+          )
+        )
+      ])
+    );
+
     if (operator === '||') return
-    if (path.findParent((parentPath) => parentPath.isConditionalExpression())) {
+    if (currentPath.findParent((parentPath) => parentPath.isConditionalExpression())) {
       return;
     }
-    const referencedIdentifiers = getReferenceIdentifiers(path.get('left'));
+    if (operator === '??') {
+      newAlternate = t.arrowFunctionExpression(
+        [],
+        t.blockStatement([
+          t.returnStatement(
+            t.callExpression(
+              left,
+              []
+            )
+          )
+        ])
+      );
+    }
+
+    const referencedIdentifiers = getReferenceIdentifiers(currentPath.get('left'));
 
     if (referencedIdentifiers.size) {
-      const testFunc = t.arrowFunctionExpression([], left);
+      const testFunc = operator !== '??' ?
+        t.arrowFunctionExpression([], left) :
+        t.arrowFunctionExpression([], t.logicalExpression('||',
+          t.binaryExpression('===', left, t.nullLiteral()),
+          t.binaryExpression('===', left, t.identifier('undefined'))
+        ));
+
+
       //you can still have a ternary afer so we have to have this
       const newConsequent = wrapInRenderConditional(right, referencedIdentifiers);
       //false case we just add a empty text node as we need an anchor still but this does not have any dom effect and it not even visible
@@ -192,6 +239,7 @@ module.exports = function(babel) {
         )
       );
     }
+    path.skip();
   }
   const isJSXContext = (path) => path.findParent((parentPath) => parentPath.isJSXElement())
 
