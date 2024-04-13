@@ -28,6 +28,12 @@ module.exports = function(babel) {
     );
   }
 
+
+  const dropDuplicateIdentifiers = (identifiers) => {
+    const nonDupes = Array.from(identifiers).filter((item, index, self) => item.name !== 'undefined' && self.findIndex(t => t.name === item.name) === index)
+    return new Set(nonDupes);
+  }
+
   const getReferenceIdentifiers = (path) => {
 
     const referencedIdentifiers = new Set();
@@ -42,9 +48,23 @@ module.exports = function(babel) {
       },
     });
     // this is actually needed because the of how babel references these identifiers
-    const nonDupes = Array.from(referencedIdentifiers).filter((item, index, self) => item.name !== 'undefined' && self.findIndex(t => t.name === item.name) === index)
-    return new Set(nonDupes);
+    return dropDuplicateIdentifiers(referencedIdentifiers)
   }
+
+  function getReferenceIdentifiersFromNode(node, identifiers) {
+    if (t.isIdentifier(node)) {
+      identifiers.push(t.identifier(node.name));
+    }
+    else if (t.isMemberExpression(node)) {
+      getReferenceIdentifiersFromNode(node.object, identifiers);
+    } else if (t.isLogicalExpression(node)) {
+      getReferenceIdentifiersFromNode(node.left, identifiers);
+      getReferenceIdentifiersFromNode(node.right, identifiers);
+    } else if (t.isCallExpression(node)) {
+      node.arguments.forEach(arg => getReferenceIdentifiersFromNode(arg, identifiers));
+    }
+  }
+
 
 
   const wrapInRenderConditional = (expression, referencedIdentifiers) => {
@@ -119,7 +139,6 @@ module.exports = function(babel) {
     return true;
   }
 
-
   const registerConditional = (path) => {
 
     if (shouldBeTextNode(path.node.consequent.type)) {
@@ -154,6 +173,67 @@ module.exports = function(babel) {
   }
 
 
+  const getNullishCoalescing = (path) => {
+    //basically to make this easy we just want to find the last nullish coalescing operator and put put it all in a function
+    if (path.node.type === "LogicalExpression" && path.node.operator === '??') {
+
+      // Collect all parts of ?? expressions
+      let parts = [];
+      let current = path.node;
+
+
+      const identifiers = [];
+      while (t.isLogicalExpression(current) && current.operator === '??') {
+        getReferenceIdentifiersFromNode(current.right, identifiers);
+        getReferenceIdentifiersFromNode(current.left, identifiers);
+        parts.push(current.right);
+        current = current.left;
+      }
+      parts.push(current); // Push the last left-most expression
+      parts.reverse(); // Reverse to maintain original order
+
+
+
+
+
+      //now we have to make a new express that ?? all of the indentifiers
+      function nullishCoalescingNodes(nodes) {
+        if (nodes.length === 0) {
+          return t.identifier('undefined');
+        }
+
+        if (nodes.length === 1) {
+          return nodes[0];
+        }
+
+        const [first, ...rest] = nodes;
+        if (t.isNode(first)) {
+          return t.logicalExpression('??', first, nullishCoalescingNodes(rest));
+        } else {
+          return nullishCoalescingNodes(rest);
+        }
+      }
+      const chain = nullishCoalescingNodes(parts)
+
+
+      const funcExpression = t.arrowFunctionExpression(
+        [],
+        t.blockStatement([
+          t.returnStatement(
+            chain
+          )
+        ])
+      );
+
+
+      const identifierNodes = dropDuplicateIdentifiers(identifiers);
+
+      return { funcExpression, identifierNodes };
+    }
+    return { funcExpression: () => { }, identifierNodes: [] };
+  }
+
+
 
   const registerLogicalExpression = (path) => {
     if (shouldBeTextNode(path.node.right.type)) {
@@ -161,57 +241,40 @@ module.exports = function(babel) {
     }
 
     let currentPath = path;
-    while (currentPath.node.right.type === 'LogicalExpression') {
+    while (currentPath.node.right.type === 'LogicalExpression' && currentPath.node.right.operator !== '??') {
       currentPath = currentPath.get('right');
     }
 
     const { left, operator, right } = currentPath.node;
 
-    let newAlternate = t.arrowFunctionExpression(
-      [],
-      t.blockStatement([
-        t.returnStatement(
-          t.callExpression(
-            t.identifier('Venta.createAnchor'),
-            [
-              t.stringLiteral('') // The text content for the text node
-            ]
-          )
-        )
-      ])
-    );
+
+    let referencedIdentifiers = getReferenceIdentifiers(currentPath.get('left'));
+    let newConsequent = null;
 
     if (operator === '||') return
     if (currentPath.findParent((parentPath) => parentPath.isConditionalExpression())) {
       return;
     }
     if (operator === '??') {
-      newAlternate = t.arrowFunctionExpression(
-        [],
-        t.blockStatement([
-          t.returnStatement(
-            t.callExpression(
-              left,
-              []
-            )
-          )
-        ])
-      );
+      const { funcExpression, identifierNodes } = getNullishCoalescing(currentPath);
+      referencedIdentifiers = dropDuplicateIdentifiers([...referencedIdentifiers, ...identifierNodes]);
+      newConsequent = funcExpression;
+    }
+    else {
+      newConsequent = t.arrowFunctionExpression([],
+        wrapInRenderConditional(right, referencedIdentifiers));
     }
 
-    const referencedIdentifiers = getReferenceIdentifiers(currentPath.get('left'));
 
     if (referencedIdentifiers.size) {
       const testFunc = operator !== '??' ?
         t.arrowFunctionExpression([], left) :
-        t.arrowFunctionExpression([], t.logicalExpression('||',
-          t.binaryExpression('===', left, t.nullLiteral()),
-          t.binaryExpression('===', left, t.identifier('undefined'))
-        ));
+        t.arrowFunctionExpression([],
+          t.booleanLiteral(true)
+        );
 
 
       //you can still have a ternary afer so we have to have this
-      const newConsequent = wrapInRenderConditional(right, referencedIdentifiers);
       //false case we just add a empty text node as we need an anchor still but this does not have any dom effect and it not even visible
       const newAlternate = t.arrowFunctionExpression(
         [],
@@ -232,7 +295,7 @@ module.exports = function(babel) {
           t.identifier("Venta.registerConditional"),
           [
             testFunc,
-            t.arrowFunctionExpression([], newConsequent),
+            newConsequent,
             newAlternate,
             ...Array.from(referencedIdentifiers)
           ],

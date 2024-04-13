@@ -457,23 +457,28 @@ test("?? render test", () => {
       return  count.value ?? 'greater than 1'
     };
     `;
+
   const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`
-    "use strict";
-    var App = function App() {
-      var count = useState(0);
-      return Venta.registerConditional(function () {
-        return count.value === null || count.value === undefined;
-      }, function () {
-        return Venta.renderTextNode('greater than 1');
-      }, function () {
-        return Venta.createAnchor("");
-      }, count);
-    };
+      "use strict";
 
+      var App = function App() {
+        var count = useState(0);
+        return Venta.registerConditional(function () {
+          return true;
+        }, function () {
+            var _count$value;
+            return (_count$value = count.value) !== null && _count$value !== void 0 ? _count$value : Venta.renderTextNode('greater than 1');
+        }, function () {
+          return Venta.createAnchor("");
+        }, count);
+      };
 `)
+
+
   expect(code).toBe(expectedCode)
 });
+
 
 
 
@@ -485,21 +490,42 @@ test("multiple ?? render test", () => {
       return count.value ?? count2.value ?? 'no value'
     };
     `;
+
   const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(`
-    "use strict";
-    var App = function App() {
-      var count = useState(0);
-      return Venta.registerConditional(function () {
-        return count.value === null || count.value === undefined;
-      }, function () {
-        return Venta.renderTextNode('greater than 1');
-      }, function () {
-        return Venta.createAnchor("");
-      }, count);
-    };
+      "use strict";
 
+      var App = function App() {
+        var count = useState(0);
+        var count2 = useState(0);
+        return Venta.registerConditional(function () {
+          return true;
+        }, function () {
+            var _count$value, _count2$value;
+            return (_count$value = count.value) !== null && _count$value !== void 0 ? _count$value : (_count2$value = count2.value) !== null && _count2$value !== void 0 ? _count2$value : Venta.renderTextNode('no value');
+        }, function () {
+          return Venta.createAnchor("");
+        }, count, count2);
+      };
 `)
+
+
   expect(code).toBe(expectedCode)
 });
 
+
+test('?? with function call', () => {
+
+})
+
+test("&& with ??", () => {
+
+})
+
+test('ternary with ??', () => {
+
+})
+
+test('?? with nested ternary', () => {
+
+})

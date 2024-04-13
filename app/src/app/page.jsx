@@ -3,7 +3,7 @@ import { Button } from './_components/button.jsx'
 import Layout from './_components/layout.jsx'
 
 function Home() {
-  const inputState = Venta.useState(null)
+  const inputState = Venta.useState(undefined)
   const listState = Venta.useState([])
 
   const handleAddToList = () => {
@@ -30,7 +30,7 @@ function Home() {
           inputState.setValue(e.target.value)
         }} />
         <Button onClick={handleAddToList}>Add To List</Button>
-        {inputState ?? <p>waiting for input</p>}
+        {inputState.value ?? <p>waiting for input</p>}
 
         <div style="margin-top: 20px;">
           {todoCount.value === 0 ? <p>No todos yet</p> : <p>You have {todoCount} todos</p>}
