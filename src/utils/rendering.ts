@@ -21,6 +21,43 @@ export const renderTextNode = (value: VentaState<any> | string) => {
 
   return node
 }
+/* 
+ * The purpose of this function is used for rendering text nodes where the displayed value is not direcrtly 
+ * a state object. for example `state.value` would be say a string but `state` itself is a state object.
+ * This function is used to render the text node and then add the state object to the list of dependencies
+ * */
+export const renderFineTunedResponsiveNode = (root: any, accessPaths: string[]) => {
+  let lastState: VentaState<any> | undefined;
+  let node;
+
+  if (root instanceof VentaState) {
+    lastState = root;
+  }
+
+  let lastValue = root;
+  accessPaths.forEach((path) => {
+    lastValue = lastValue[path];
+    if (lastValue instanceof VentaState) {
+      lastState = lastValue;
+    }
+  });
+
+  if (lastState) {
+    node = document.createTextNode(lastValue)
+    lastState.addElement(node)
+    const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+    stateRef.childState[lastState.getId()] = []
+    stateRef.childState[lastState.getId()].push([0, lastState])
+    elementMap.set(node, stateRef)
+  }
+  else {
+    node = document.createTextNode(lastValue)
+    const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+    elementMap.set(node, stateRef)
+  }
+
+  return node;
+}
 
 export const createAnchor = (meta: string) => {
   const anchor: NodeTypes = document.createComment(meta)

@@ -10,7 +10,6 @@ module.exports = function(babel) {
       'ConditionalExpression',
       'BinaryExpression',
       'CallExpression',
-      'MemberExpression',
       'LogicalExpression',
       'UnaryExpression',
       'ArrowFunctionExpression',
@@ -28,6 +27,31 @@ module.exports = function(babel) {
     );
   }
 
+  const createFineTunedResponsiveNode = (root, accessPaths) => {
+    const accessPathNodes = accessPaths.map(path => t.stringLiteral(path));
+    return t.callExpression(
+      t.identifier('Venta.renderFineTunedResponsiveNode'),
+      [root, t.arrayExpression(accessPathNodes)]
+    );
+  }
+
+
+  function getRootAndAccessPaths(node) {
+    let current = node;
+    let accessPaths = [];
+
+    // Traverse up the MemberExpression chain
+    while (current.type === "MemberExpression") {
+      // Handle both dot and bracket notation
+      const key = current.property.type === "Identifier" ? current.property.name : current.property.value;
+      accessPaths.unshift(key); // Prepend to maintain correct order
+      current = current.object;
+    }
+    return {
+      root: t.identifier(current.name),
+      accessPaths
+    };
+  }
 
   const dropDuplicateIdentifiers = (identifiers) => {
     const nonDupes = Array.from(identifiers).filter((item, index, self) => item.name !== 'undefined' && self.findIndex(t => t.name === item.name) === index)
@@ -51,19 +75,17 @@ module.exports = function(babel) {
     return dropDuplicateIdentifiers(referencedIdentifiers)
   }
 
-  function getReferenceIdentifiersFromNode(node, identifiers) {
-    if (t.isIdentifier(node)) {
-      identifiers.push(t.identifier(node.name));
+  const getLeftMostNode = (node) => {
+    let current = node;
+    while (t.isLogicalExpression(current)) {
+      current = current.left;
     }
-    else if (t.isMemberExpression(node)) {
-      getReferenceIdentifiersFromNode(node.object, identifiers);
-    } else if (t.isLogicalExpression(node)) {
-      getReferenceIdentifiersFromNode(node.left, identifiers);
-      getReferenceIdentifiersFromNode(node.right, identifiers);
-    } else if (t.isCallExpression(node)) {
-      node.arguments.forEach(arg => getReferenceIdentifiersFromNode(arg, identifiers));
-    }
+    return current;
   }
+
+
+
+
 
 
 
@@ -105,7 +127,6 @@ module.exports = function(babel) {
         ],
       );
     }
-
     if (shouldBeTextNode(expression.type)) {
       expression = createTextNode(expression)
     }
@@ -173,66 +194,41 @@ module.exports = function(babel) {
   }
 
 
-  const getNullishCoalescing = (path) => {
-    //basically to make this easy we just want to find the last nullish coalescing operator and put put it all in a function
-    if (path.node.type === "LogicalExpression" && path.node.operator === '??') {
+  const createNullishCoalescingFunction = (variables) => {
+    if (variables.length === 1) {
+      if (shouldBeTextNode(variables[0].type)) {
+        const { root, accessPaths } = getRootAndAccessPaths(variables[0]);
 
-      // Collect all parts of ?? expressions
-      let parts = [];
-      let current = path.node;
-
-
-      const identifiers = [];
-      while (t.isLogicalExpression(current) && current.operator === '??') {
-        getReferenceIdentifiersFromNode(current.right, identifiers);
-        getReferenceIdentifiersFromNode(current.left, identifiers);
-        parts.push(current.right);
-        current = current.left;
+        return createFineTunedResponsiveNode(root, accessPaths)
       }
-      parts.push(current); // Push the last left-most expression
-      parts.reverse(); // Reverse to maintain original order
-
-
-
-
-
-      //now we have to make a new express that ?? all of the indentifiers
-      function nullishCoalescingNodes(nodes) {
-        if (nodes.length === 0) {
-          return t.identifier('undefined');
-        }
-
-        if (nodes.length === 1) {
-          return nodes[0];
-        }
-
-        const [first, ...rest] = nodes;
-        if (t.isNode(first)) {
-          return t.logicalExpression('??', first, nullishCoalescingNodes(rest));
-        } else {
-          return nullishCoalescingNodes(rest);
-        }
-      }
-      const chain = nullishCoalescingNodes(parts)
-
-
-      const funcExpression = t.arrowFunctionExpression(
-        [],
-        t.blockStatement([
-          t.returnStatement(
-            chain
-          )
-        ])
-      );
-
-
-      const identifierNodes = dropDuplicateIdentifiers(identifiers);
-
-      return { funcExpression, identifierNodes };
+      return variables[0]
     }
-    return { funcExpression: () => { }, identifierNodes: [] };
-  }
 
+    const left = variables.splice(0, 1)[0];
+
+    const testFunc =
+      t.arrowFunctionExpression([], t.logicalExpression('&&',
+        t.binaryExpression('!==', left, t.nullLiteral()),
+        t.binaryExpression('!==', left, t.identifier('undefined'))
+      ));
+
+    let leftFunc = left;
+    if (shouldBeTextNode(left.type)) {
+      const { root, accessPaths } = getRootAndAccessPaths(left);
+
+      leftFunc = createFineTunedResponsiveNode(root, accessPaths)
+    }
+
+    return t.callExpression(
+      t.identifier("Venta.renderConditional"),
+      [
+        testFunc,
+        t.arrowFunctionExpression([], leftFunc),
+        t.arrowFunctionExpression([], createNullishCoalescingFunction(variables)),
+        t.numericLiteral(conditionalId++)
+      ],
+    );
+  }
 
 
   const registerLogicalExpression = (path) => {
@@ -247,18 +243,43 @@ module.exports = function(babel) {
 
     const { left, operator, right } = currentPath.node;
 
-
     let referencedIdentifiers = getReferenceIdentifiers(currentPath.get('left'));
     let newConsequent = null;
+
+    let newAlternate = t.arrowFunctionExpression(
+      [],
+      t.blockStatement([
+        t.returnStatement(
+          t.callExpression(
+            t.identifier('Venta.createAnchor'),
+            [
+              t.stringLiteral('') // The text content for the text node
+            ]
+          )
+        )
+      ])
+    );
 
     if (operator === '||') return
     if (currentPath.findParent((parentPath) => parentPath.isConditionalExpression())) {
       return;
     }
     if (operator === '??') {
-      const { funcExpression, identifierNodes } = getNullishCoalescing(currentPath);
-      referencedIdentifiers = dropDuplicateIdentifiers([...referencedIdentifiers, ...identifierNodes]);
-      newConsequent = funcExpression;
+      //we want to extract all the identifiers from the left side of the expression
+      const variables = [];
+      function handleExpression(expression) {
+        if (t.isLogicalExpression(expression) && expression.operator === '??') {
+          handleExpression(expression.left);
+          handleExpression(expression.right);
+        } else {
+          variables.push(expression);
+        }
+      }
+      // console.log(left)
+      handleExpression(left);
+      variables.push(right);
+
+      newConsequent = t.arrowFunctionExpression([], createNullishCoalescingFunction(variables))
     }
     else {
       newConsequent = t.arrowFunctionExpression([],
@@ -269,26 +290,11 @@ module.exports = function(babel) {
     if (referencedIdentifiers.size) {
       const testFunc = operator !== '??' ?
         t.arrowFunctionExpression([], left) :
-        t.arrowFunctionExpression([],
-          t.booleanLiteral(true)
-        );
+        t.arrowFunctionExpression([], t.booleanLiteral(true))
 
 
       //you can still have a ternary afer so we have to have this
       //false case we just add a empty text node as we need an anchor still but this does not have any dom effect and it not even visible
-      const newAlternate = t.arrowFunctionExpression(
-        [],
-        t.blockStatement([
-          t.returnStatement(
-            t.callExpression(
-              t.identifier('Venta.createAnchor'),
-              [
-                t.stringLiteral('') // The text content for the text node
-              ]
-            )
-          )
-        ])
-      );
 
       path.replaceWith(
         t.callExpression(
@@ -435,6 +441,7 @@ module.exports = function(babel) {
               }
             })
             path.traverse({
+
               ConditionalExpression(innerPath) {
                 registerConditional(innerPath)
               },
