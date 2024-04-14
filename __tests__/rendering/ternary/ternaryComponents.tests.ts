@@ -31,7 +31,7 @@ const getSpanText = (element: HTMLElement) => {
 
 
 describe('conditional jsx render', () => {
-  let count: VentaState, element: HTMLElement;
+  let count: VentaState<number>, element: HTMLElement;
   let componentId = getComponentId()
 
   beforeAll(() => {

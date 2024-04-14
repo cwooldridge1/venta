@@ -13,7 +13,7 @@ import { jest } from '@jest/globals';
 
 
 describe('conditional jsx render', () => {
-  let count: VentaState, element: HTMLElement;
+  let count: VentaState<number>, element: HTMLElement;
 
   beforeAll(() => {
     count = useState(0);

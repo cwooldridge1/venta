@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import {
+  NodeTypes,
   elementMap,
 } from '../../../src/state';
 import {
@@ -13,7 +14,7 @@ import { jest } from '@jest/globals';
 
 
 describe('conditional jsx render with text nodes', () => {
-  let count: VentaState, element: Text | HTMLElement;
+  let count: VentaState<number>, element: NodeTypes;
 
   beforeAll(() => {
     count = useState(3);

@@ -26,7 +26,7 @@ describe('Venta functions', () => {
       const trueTernaryContent = () => renderVentaNode('span', {}, 'Count is Greater than 2');
       const falseTernaryContent = () => renderVentaNode('span', {}, 'Count is Less than 2');
       const ternary = () => renderConditional(() => count.value > 2, trueTernaryContent, falseTernaryContent, 1);
-      const falseContent = () => document.createTextNode('') as any
+      const falseContent = () => document.createComment('') as any
 
       element = registerConditional(test, ternary, falseContent, count) as HTMLElement
       document.body.appendChild(element);

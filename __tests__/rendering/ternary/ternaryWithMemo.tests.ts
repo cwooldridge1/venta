@@ -12,7 +12,7 @@ import { useMemo, useState, VentaState } from '../../../src';
 
 
 describe('conditional jsx render', () => {
-  let count: VentaState, c: VentaState, element: HTMLElement;
+  let count: VentaState<number>, c: VentaState<number>, element: HTMLElement;
 
   beforeAll(() => {
     c = useState(0);

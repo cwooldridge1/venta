@@ -22,7 +22,7 @@ describe('Venta functions', () => {
       const test = () => count.value > 2;
 
       const trueContent = () => renderVentaNode('span', {}, 'Count is Greater than 2');
-      const falseContent = () => document.createTextNode('') as any
+      const falseContent = () => document.createComment('') as any
 
       element = registerConditional(test, trueContent, falseContent, count);
       document.body.appendChild(element);
