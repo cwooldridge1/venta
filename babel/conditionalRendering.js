@@ -1,10 +1,6 @@
-const { current } = require("@reduxjs/toolkit");
-const traverse = require('@babel/traverse').default;
-
 module.exports = function(babel) {
   const { types: t } = babel;
   let conditionalId = 0;
-  const visited = new Set();
 
   const shouldBeTextNode = (type) => {
     const nonTextTypes = [
@@ -77,19 +73,6 @@ module.exports = function(babel) {
     // this is actually needed because the of how babel references these identifiers
     return dropDuplicateIdentifiers(referencedIdentifiers)
   }
-
-  const getLeftMostNode = (node) => {
-    let current = node;
-    while (t.isLogicalExpression(current)) {
-      current = current.left;
-    }
-    return current;
-  }
-
-
-
-
-
 
 
   const wrapInRenderConditional = (expression, referencedIdentifiers) => {
@@ -292,10 +275,6 @@ module.exports = function(babel) {
       path.node.right = createTextNode(path.node.right)
     }
     let currentPath = path;
-    while (currentPath.node.type === 'LogicalExpression' && currentPath.node.operator !== '??') {
-      currentPath = currentPath.get('right');
-    }
-
 
     const { left, operator, right } = currentPath.node;
 
