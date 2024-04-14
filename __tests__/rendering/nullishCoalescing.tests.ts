@@ -20,7 +20,6 @@ describe('Venta functions', () => {
       userName = useState<string | null>(null);
 
       const test = () => userName.value === undefined || userName.value === null;
-      console.log('test', test())
 
       const trueContent = () => renderVentaNode('span', {}, "Guest");
       const falseContent = () => renderVentaNode('span', {}, userName);
