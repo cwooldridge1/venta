@@ -316,7 +316,7 @@ module.exports = function(babel) {
 
 
   function getVariablesFromLogicalExpression(expression, variables) {
-    if (t.isLogicalExpression(expression) && expression.operator !== '&&') {
+    if (t.isLogicalExpression(expression)) {
       getVariablesFromLogicalExpression(expression.left, variables);
       getVariablesFromLogicalExpression(expression.right, variables)
     } else {
