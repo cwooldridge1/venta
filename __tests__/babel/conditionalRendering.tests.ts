@@ -683,3 +683,41 @@ test('ternary with ??', () => {
   expect(code).toBe(expectedCode)
 })
 
+
+test("|| render test", () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      const count2 = useState(0);
+      return  count.value || count2.value || 'no value'
+    };
+    `;
+  const code = normalizeCode(compileCode(input))
+  const expectedCode = normalizeCode(`
+      "use strict";
+
+      var App = function App() {
+        var count = useState(0);
+        var count2 = useState(0);
+        return Venta.registerConditional(function () {
+          return true;
+        }, function () {
+          return Venta.renderConditional(function () {
+            return count.value;
+          }, function () {
+            return Venta.renderFineTunedResponsiveNode(count, ["value"]);
+          }, function () {
+            return Venta.renderConditional(function () {
+              return count2.value;
+            }, function () {
+              return Venta.renderFineTunedResponsiveNode(count2, ["value"]);
+            }, function () {
+              return Venta.renderTextNode('no value');
+            }, 12);
+          }, 13);
+        }, function () {
+          return Venta.createAnchor("");
+        }, count, count2);
+      };
+`)
+})

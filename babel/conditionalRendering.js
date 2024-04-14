@@ -270,6 +270,62 @@ module.exports = function(babel) {
   }
 
 
+  const createOrFunction = (variables) => {
+    if (variables.length === 1) {
+      if ((t.isLogicalExpression(variables[0]) && variables[0].operator === '&&')) {
+        return createLogicalAndExpression(variables[0])
+      }
+      if (t.isConditionalExpression(variables[0])) {
+        return wrapInRenderConditional(variables[0], new Set())
+      }
+      if (shouldBeTextNode(variables[0].type)) {
+        const { root, accessPaths } = getRootAndAccessPaths(variables[0]);
+
+        return createFineTunedResponsiveNode(root, accessPaths)
+      }
+      return variables[0]
+    }
+
+    const left = variables.splice(0, 1)[0];
+
+    const testFunc = t.arrowFunctionExpression([], left);
+
+    let leftFunc = left;
+    if (shouldBeTextNode(left.type)) {
+      const { root, accessPaths } = getRootAndAccessPaths(left);
+
+      leftFunc = createFineTunedResponsiveNode(root, accessPaths)
+    }
+    else if ((t.isLogicalExpression(variables[0]) && variables[0].operator === '&&')) {
+      leftFunc = createLogicalAndExpression(variables[0])
+    }
+    else if (t.isConditionalExpression(variables[0])) {
+      leftFunc = wrapInRenderConditional(variables[0], new Set())
+    }
+
+    return t.callExpression(
+      t.identifier("Venta.renderConditional"),
+      [
+        testFunc,
+        t.arrowFunctionExpression([], leftFunc),
+        t.arrowFunctionExpression([], createOrFunction(variables)),
+        t.numericLiteral(conditionalId++)
+      ],
+    );
+  }
+
+
+  function getVariablesFromLogicalExpression(expression, variables) {
+    if (t.isLogicalExpression(expression)) {
+      getVariablesFromLogicalExpression(expression.left, variables);
+      getVariablesFromLogicalExpression(expression.right, variables)
+    } else {
+      variables.push(expression);
+    }
+    return variables;
+  }
+
+
   const registerLogicalExpression = (path) => {
     if (shouldBeTextNode(path.node.right.type)) {
       path.node.right = createTextNode(path.node.right)
@@ -293,23 +349,20 @@ module.exports = function(babel) {
       ])
     );
 
-    if (operator === '||') return
     if (path.findParent((parentPath) => parentPath.isConditionalExpression())) {
       return;
     }
-    if (operator === '??') {
-      //we want to extract all the identifiers from the left side of the expression
-      const variables = [];
-      function handleExpression(expression) {
-        if (t.isLogicalExpression(expression) && expression.operator === '??') {
-          handleExpression(expression.left);
-          handleExpression(expression.right);
-        } else {
-          variables.push(expression);
-        }
-      }
 
-      handleExpression(left);
+    if (operator === '||') {
+      const variables = [];
+      getVariablesFromLogicalExpression(left, variables);
+      variables.push(right);
+
+      newConsequent = t.arrowFunctionExpression([], createOrFunction(variables))
+    }
+    else if (operator === '??') {
+      const variables = [];
+      getVariablesFromLogicalExpression(left, variables);
       variables.push(right);
 
       newConsequent = t.arrowFunctionExpression([], createNullishCoalescingFunction(variables))
@@ -321,7 +374,7 @@ module.exports = function(babel) {
 
 
     if (referencedIdentifiers.size) {
-      const testFunc = operator !== '??' ?
+      const testFunc = operator === '&&' ?
         t.arrowFunctionExpression([], left) :
         t.arrowFunctionExpression([], t.booleanLiteral(true))
 
