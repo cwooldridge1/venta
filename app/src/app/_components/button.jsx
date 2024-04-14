@@ -1,4 +1,3 @@
-import Venta from '../../../../src/index.tsx';
 
 export const Button = ({ children, ...rest }) => {
   return (

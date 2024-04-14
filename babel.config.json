@@ -8,7 +8,7 @@
     [
       "@babel/plugin-transform-react-jsx",
       {
-        "pragma": "Venta.renderVentaNode"
+        "pragma": "VentaInternal.renderVentaNode"
       }
     ],
     "./babel/conditionalRendering.js"

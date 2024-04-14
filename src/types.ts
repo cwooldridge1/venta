@@ -4,6 +4,9 @@ export { VentaState } from './state'
 export type Props = {
   [key: string]: any;
 };
+
+export type NodeTypes = Element | Text | Comment;
+
 export interface VentaNode {
   element: HTMLElement | Text | Comment;
   attributeState: Record<number, Array<[string, VentaState<any>]>>; //used to know exactly what attributes to update
