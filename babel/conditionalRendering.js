@@ -1,3 +1,6 @@
+const { current } = require("@reduxjs/toolkit");
+const traverse = require('@babel/traverse').default;
+
 module.exports = function(babel) {
   const { types: t } = babel;
   let conditionalId = 0;
@@ -193,9 +196,56 @@ module.exports = function(babel) {
     }
   }
 
+  const createLogicalAndExpression = (node) => {
+    if (shouldBeTextNode(node.right.type)) {
+      node.right = createTextNode(node.right)
+    }
+
+    const { left, right } = node;
+
+    // Perform the traversal
+    let referencedIdentifiers = new Set();
+
+    const testFunc = t.arrowFunctionExpression([], left)
+
+    const alternate = t.arrowFunctionExpression(
+      [],
+      t.blockStatement([
+        t.returnStatement(
+          t.callExpression(
+            t.identifier('Venta.createAnchor'),
+            [
+              t.stringLiteral('') // The text content for the text node
+            ]
+          )
+        )
+      ])
+    );
+
+
+    const consequent = t.arrowFunctionExpression([],
+      wrapInRenderConditional(right, referencedIdentifiers));
+
+    return t.callExpression(
+      t.identifier("Venta.renderConditional"),
+      [
+        testFunc,
+        consequent,
+        alternate,
+        ...Array.from(referencedIdentifiers)
+      ],
+    )
+  }
+
 
   const createNullishCoalescingFunction = (variables) => {
     if (variables.length === 1) {
+      if ((t.isLogicalExpression(variables[0]) && variables[0].operator === '&&')) {
+        return createLogicalAndExpression(variables[0])
+      }
+      if (t.isConditionalExpression(variables[0])) {
+        return wrapInRenderConditional(variables[0], new Set())
+      }
       if (shouldBeTextNode(variables[0].type)) {
         const { root, accessPaths } = getRootAndAccessPaths(variables[0]);
 
@@ -218,6 +268,12 @@ module.exports = function(babel) {
 
       leftFunc = createFineTunedResponsiveNode(root, accessPaths)
     }
+    else if ((t.isLogicalExpression(variables[0]) && variables[0].operator === '&&')) {
+      leftFunc = createLogicalAndExpression(variables[0])
+    }
+    else if (t.isConditionalExpression(variables[0])) {
+      leftFunc = wrapInRenderConditional(variables[0], new Set())
+    }
 
     return t.callExpression(
       t.identifier("Venta.renderConditional"),
@@ -235,11 +291,11 @@ module.exports = function(babel) {
     if (shouldBeTextNode(path.node.right.type)) {
       path.node.right = createTextNode(path.node.right)
     }
-
     let currentPath = path;
-    while (currentPath.node.right.type === 'LogicalExpression' && currentPath.node.right.operator !== '??') {
+    while (currentPath.node.type === 'LogicalExpression' && currentPath.node.operator !== '??') {
       currentPath = currentPath.get('right');
     }
+
 
     const { left, operator, right } = currentPath.node;
 
@@ -275,7 +331,7 @@ module.exports = function(babel) {
           variables.push(expression);
         }
       }
-      // console.log(left)
+
       handleExpression(left);
       variables.push(right);
 

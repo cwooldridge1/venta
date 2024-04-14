@@ -29,6 +29,8 @@ function Home() {
         <input type="text" value={inputState} onInput={(e) => {
           inputState.setValue(e.target.value)
         }} />
+
+        {inputState.value ?? (listState.value.length > 1 ? 'length greater than 1' : 'count is less than 2')}
         <Button onClick={handleAddToList}>Add To List</Button>
         <Button onClick={() => inputState.setValue(null)}>Set NUll</Button>
         {inputState.value ?? <p>waiting for input</p>}
