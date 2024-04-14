@@ -2,7 +2,7 @@ import {
   VentaState,
 } from '../state';
 
-const useState = (initialValue: any) => {
+const useState = <T>(initialValue: T) => {
   const state = new VentaState(initialValue);
   return state;
 };

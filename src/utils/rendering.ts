@@ -1,8 +1,8 @@
-import { conditionalMap, conditionalReferenceMap, elementMap, getConditionalId, incrementConditionalId, stateMap } from "../state"
+import { NodeTypes, conditionalMap, conditionalReferenceMap, elementMap, getConditionalId, incrementConditionalId, stateMap } from "../state"
 import { Props, VentaNode, VentaState } from "../types"
 import { componentReferenceMap, getComponentId, incrementComponentId, componentStateMap } from "../state"
 
-export const renderTextNode = (value: VentaState | string) => {
+export const renderTextNode = (value: VentaState<any> | string) => {
   let node;
 
   if (value instanceof VentaState) {
@@ -21,9 +21,46 @@ export const renderTextNode = (value: VentaState | string) => {
 
   return node
 }
+/* 
+ * The purpose of this function is used for rendering text nodes where the displayed value is not direcrtly 
+ * a state object. for example `state.value` would be say a string but `state` itself is a state object.
+ * This function is used to render the text node and then add the state object to the list of dependencies
+ * */
+export const renderFineTunedResponsiveNode = (root: any, accessPaths: string[]) => {
+  let lastState: VentaState<any> | undefined;
+  let node;
+
+  if (root instanceof VentaState) {
+    lastState = root;
+  }
+
+  let lastValue = root;
+  accessPaths.forEach((path) => {
+    lastValue = lastValue[path];
+    if (lastValue instanceof VentaState) {
+      lastState = lastValue;
+    }
+  });
+
+  if (lastState) {
+    node = document.createTextNode(lastValue)
+    lastState.addElement(node)
+    const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+    stateRef.childState[lastState.getId()] = []
+    stateRef.childState[lastState.getId()].push([0, lastState])
+    elementMap.set(node, stateRef)
+  }
+  else {
+    node = document.createTextNode(lastValue)
+    const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+    elementMap.set(node, stateRef)
+  }
+
+  return node;
+}
 
 export const createAnchor = (meta: string) => {
-  const anchor = document.createComment(meta)
+  const anchor: NodeTypes = document.createComment(meta)
   const stateRef: VentaNode = { element: anchor, attributeState: {}, childState: {} }
   elementMap.set(anchor, stateRef)
   return anchor
@@ -39,7 +76,7 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
   }
   const elem = document.createElement(type);
   const stateRef: VentaNode = { element: elem, attributeState: {}, childState: {} }
-  const dependentStates = new Set<VentaState>();
+  const dependentStates = new Set<VentaState<any>>();
 
   for (let [key, value] of Object.entries(props || {})) {
     if (key.startsWith('on')) {
@@ -95,8 +132,8 @@ export const render = (component: any, props: Props, parent: HTMLElement) => {
 
 
 
-const cache = new Map<string, HTMLElement | Text>();
-const inverseCache = new Map<HTMLElement | Text, string>();
+const cache = new Map<string, NodeTypes>();
+const inverseCache = new Map<NodeTypes, string>();
 
 let callCount = 0;
 /*
@@ -108,7 +145,7 @@ export const renderConditional = (
   contentIfTrue: (() => HTMLElement | Text),
   contentIfFalse: (() => HTMLElement | Text),
   id: number
-): HTMLElement | Text => {
+): NodeTypes => {
   const testValue = test();
   const key = `${id}-${testValue}`
 
@@ -128,7 +165,7 @@ export const renderConditional = (
 };
 
 
-export const handleComponentUnmount = (componentId: number, element: HTMLElement | Text) => {
+export const handleComponentUnmount = (componentId: number, element: NodeTypes) => {
   const { state, unmountCallbacks } = componentStateMap.get(componentId)!
   state.forEach(state => state.destroy())
   unmountCallbacks.forEach(callback => callback())
@@ -182,16 +219,16 @@ const handleUnmountElement = (element: HTMLElement | Text) => {
 }
 
 export const registerConditional = (
-  test: () => boolean,
-  contentIfTrue: (() => HTMLElement | Text),
-  contentIfFalse: (() => HTMLElement | Text),
-  ...deps: Array<VentaState | any>
-): HTMLElement | Text => {
+  test: () => any,
+  contentIfTrue: (() => NodeTypes),
+  contentIfFalse: (() => NodeTypes),
+  ...deps: Array<VentaState<any> | any>
+): NodeTypes => {
   const id = getConditionalId();
-  let lastContent: HTMLElement | Text;
-  let localCache = new Map<boolean, HTMLElement | Text>();
+  let lastContent: NodeTypes;
+  let localCache = new Map<boolean, NodeTypes>();
 
-  const handleNodeDeletion = (elem: HTMLElement | Text) => {
+  const handleNodeDeletion = (elem: NodeTypes) => {
     const componentId = componentReferenceMap.get(elem)
     if (componentId !== undefined) {
       handleComponentUnmount(componentId, elem)
@@ -280,7 +317,7 @@ export const registerConditional = (
 * @param iterable: is the itterable that the func is based off of 
 * @deps are any other dependency that is used in the loop
  */
-export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: VentaState | any[], ...deps: any[]) => {
+export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: VentaState<any> | any[], ...deps: any[]) => {
   let lastContent = func();
   let initialContent: Comment | Text | (HTMLElement | Text)[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
   let parent: ParentNode;

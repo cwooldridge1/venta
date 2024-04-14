@@ -86,7 +86,7 @@ test("&& render", () => {
     };
     `;
   const code = normalizeCode(compileCode(input));
-  const expectedCode = normalizeCode(`    
+  const expectedCode = normalizeCode(`
     "use strict";
     var App = function App() {
       var count = useState(0);
@@ -94,6 +94,37 @@ test("&& render", () => {
         return count.value >= 1;
       }, function () {
         return renderVentaNode(Card, null, "greater than 0");
+      }, function () {
+        return Venta.createAnchor("");
+      }, count));
+    };
+`)
+  expect(code).toBe(expectedCode)
+});
+
+
+
+test("double && render", () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+
+      return (
+        <Card>
+          {count.value >= 1 && count.value <6 && <Card>greater than 0 and less than 6</Card>}
+        </Card>
+      );
+    };
+    `;
+  const code = normalizeCode(compileCode(input));
+  const expectedCode = normalizeCode(`
+    "use strict";
+    var App = function App() {
+      var count = useState(0);
+      return renderVentaNode(Card, null, Venta.registerConditional(function () {
+        return count.value >= 1 && count.value < 6;
+      }, function () {
+        return renderVentaNode(Card, null, "greater than 0 and less than 6");
       }, function () {
         return Venta.createAnchor("");
       }, count));
@@ -117,7 +148,7 @@ test("&& render with ternary", () => {
     };
     `;
   const code = normalizeCode(compileCode(input));
-  const expectedCode = normalizeCode(`    
+  const expectedCode = normalizeCode(`
     "use strict";
     var App = function App() {
       var count = useState(0);
@@ -164,7 +195,7 @@ test("double conditional", () => {
         return renderVentaNode(Card, null, "greater than 0");
       }, function () {
         return Venta.createAnchor("");
-      }, count, count));
+      }, count));
     };
 `)
   expect(code).toBe(expectedCode)
@@ -281,7 +312,7 @@ test("no jsx && render test", () => {
   const input = `
     const App = () => {
       const count = useState(0);
-      return  count.value >= 1 && 'greater than 1'
+      return count.value >= 1 && 'greater than 1'
     };
     `;
   const code = normalizeCode(compileCode(input))
@@ -416,4 +447,239 @@ test("non jsx return value no conditions", () => {
   `)
   expect(code).toBe(expectedCode)
 });
+
+
+
+test("?? render test", () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      return  count.value ?? 'greater than 1'
+    };
+    `;
+  const code = normalizeCode(compileCode(input))
+  const expectedCode = normalizeCode(`
+    "use strict";
+
+    var App = function App() {
+      var count = useState(0);
+      return Venta.registerConditional(function () {
+        return true;
+      },function(){return Venta.renderConditional(function () {
+        return count.value !== null && count.value !== undefined;
+      }, function () {
+        return Venta.renderFineTunedResponsiveNode(count, ["value"]);
+      }, function () {
+        return Venta.renderTextNode('greater than 1');
+      }, 2);}, function () {
+        return Venta.createAnchor("");
+      }, count);
+    };
+`)
+
+
+  expect(code).toBe(expectedCode)
+});
+
+
+
+
+test("multiple ?? render test", () => {
+  const input = `
+     const App = () => {
+       const count = useState(0);
+       const count2 = useState(0);
+       return count.value ?? count2.value ?? 'no value'
+     };
+     `;
+
+  const code = normalizeCode(compileCode(input))
+  const expectedCode = normalizeCode(`
+    "use strict";
+
+    var App = function App() {
+      var count = useState(0);
+      var count2 = useState(0);
+      return Venta.registerConditional(function () {
+        return true;
+      }, function(){return Venta.renderConditional(function () {
+        return count.value !== null && count.value !== undefined;
+      }, function () {
+        return Venta.renderFineTunedResponsiveNode(count, ["value"]);
+      }, function () {
+        return Venta.renderConditional(function () {
+          return count2.value !== null && count2.value !== undefined;
+        }, function () {
+          return Venta.renderFineTunedResponsiveNode(count2, ["value"]);
+        }, function () {
+          return Venta.renderTextNode('no value');
+        }, 3);
+      }, 4);}, function () {
+        return Venta.createAnchor("");
+      }, count, count2);
+    };
+ `)
+
+
+  expect(code).toBe(expectedCode)
+});
+
+test('tripple ??', () => {
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      const count2 = useState(0);
+      const count3 = useState(0);
+      return count.value ?? count2.value ?? count3.value ?? 'no value'
+    };
+    `;
+  const code = normalizeCode(compileCode(input))
+  const expectedCode = normalizeCode(`
+    "use strict";
+
+    var App = function App() {
+      var count = useState(0);
+      var count2 = useState(0);
+      var count3 = useState(0);
+      return Venta.registerConditional(function () {
+        return true;
+      }, function(){return Venta.renderConditional(function () {
+        return count.value !== null && count.value !== undefined;
+      }, function () {
+        return Venta.renderFineTunedResponsiveNode(count, ["value"]);
+      }, function () {
+        return Venta.renderConditional(function () {
+          return count2.value !== null && count2.value !== undefined;
+        }, function () {
+          return Venta.renderFineTunedResponsiveNode(count2, ["value"]);
+        }, function () {
+          return Venta.renderConditional(function () {
+            return count3.value !== null && count3.value !== undefined;
+          }, function () {
+            return Venta.renderFineTunedResponsiveNode(count3, ["value"]);
+          }, function () {
+            return Venta.renderTextNode('no value');
+          }, 5);
+        }, 6);
+      }, 7);}, function () {
+        return Venta.createAnchor("");
+      }, count, count2, count3);
+    };
+`)
+  expect(code).toBe(expectedCode)
+})
+
+
+test('?? with function call', () => {
+
+  const input = `
+    const App = () => {
+    const getVal = () => 'no value'
+      return getVal() ?? 'no value'
+    };
+    `;
+  const code = normalizeCode(compileCode(input))
+  const expectedCode = normalizeCode(`
+
+    "use strict";
+
+    var App = function App() {
+      var getVal = function getVal() {
+        return 'no value';
+      };
+      return Venta.registerConditional(function () {
+        return true;
+      }, function () {
+        return Venta.renderConditional(function () {
+          return getVal() !== null && getVal() !== undefined;
+        }, function () {
+          return getVal();
+        }, function () {
+          return Venta.renderTextNode('no value');
+        }, 8);
+      }, function () {
+        return Venta.createAnchor("");
+      }, getVal);
+    };
+  `)
+  expect(code).toBe(expectedCode)
+
+})
+
+test("?? with &&", () => {
+
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      return count.value ?? (count.value > 2 && 'count greater than 2')
+    };
+    `;
+  const code = normalizeCode(compileCode(input))
+  const expectedCode = normalizeCode(`
+    "use strict";
+
+    var App = function App() {
+      var count = useState(0);
+      return Venta.registerConditional(function () {
+        return true;
+      }, function () {
+        return Venta.renderConditional(function () {
+          return count.value !== null && count.value !== undefined;
+        }, function () {
+          return Venta.renderFineTunedResponsiveNode(count, ["value"]);
+        }, function () {
+          return Venta.renderConditional(function () {
+            return count.value > 2;
+          }, function () {
+            return Venta.renderTextNode('count greater than 2');
+          }, function () {
+            return Venta.createAnchor("");
+          });
+        }, 9);
+      }, function () {
+        return Venta.createAnchor("");
+      }, count);
+    };
+`)
+  expect(code).toBe(expectedCode)
+})
+
+
+test('ternary with ??', () => {
+
+  const input = `
+    const App = () => {
+      const count = useState(0);
+      return count.value ?? (count.value > 2 ? 'count greater than 2' : 'count less than 2')
+    };
+    `;
+  const code = normalizeCode(compileCode(input))
+  const expectedCode = normalizeCode(`
+    "use strict";
+
+    var App = function App() {
+      var count = useState(0);
+      return Venta.registerConditional(function () {
+        return true;
+      }, function () {
+        return Venta.renderConditional(function () {
+          return count.value !== null && count.value !== undefined;
+        }, function () {
+          return Venta.renderFineTunedResponsiveNode(count, ["value"]);
+        }, function () {
+          return Venta.renderConditional(function () {
+            return count.value > 2;
+          }, function () {
+            return Venta.renderTextNode('count greater than 2');
+          }, function () {
+            return Venta.renderTextNode('count less than 2');
+          }, 10);
+        }, 11);
+      }, function () {
+        return Venta.createAnchor("");
+      }, count);
+    };
+  `)
+  expect(code).toBe(expectedCode)
+})
 

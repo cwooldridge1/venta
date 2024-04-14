@@ -9,7 +9,6 @@ module.exports = function(babel) {
       'ConditionalExpression',
       'BinaryExpression',
       'CallExpression',
-      'MemberExpression',
       'LogicalExpression',
       'UnaryExpression',
       'ArrowFunctionExpression',
@@ -27,6 +26,37 @@ module.exports = function(babel) {
     );
   }
 
+  const createFineTunedResponsiveNode = (root, accessPaths) => {
+    const accessPathNodes = accessPaths.map(path => t.stringLiteral(path));
+    return t.callExpression(
+      t.identifier('Venta.renderFineTunedResponsiveNode'),
+      [root, t.arrayExpression(accessPathNodes)]
+    );
+  }
+
+
+  function getRootAndAccessPaths(node) {
+    let current = node;
+    let accessPaths = [];
+
+    // Traverse up the MemberExpression chain
+    while (current.type === "MemberExpression") {
+      // Handle both dot and bracket notation
+      const key = current.property.type === "Identifier" ? current.property.name : current.property.value;
+      accessPaths.unshift(key); // Prepend to maintain correct order
+      current = current.object;
+    }
+    return {
+      root: t.identifier(current.name),
+      accessPaths
+    };
+  }
+
+  const dropDuplicateIdentifiers = (identifiers) => {
+    const nonDupes = Array.from(identifiers).filter((item, index, self) => item.name !== 'undefined' && self.findIndex(t => t.name === item.name) === index)
+    return new Set(nonDupes);
+  }
+
   const getReferenceIdentifiers = (path) => {
 
     const referencedIdentifiers = new Set();
@@ -40,7 +70,8 @@ module.exports = function(babel) {
         referencedIdentifiers.add(t.identifier(path.node.name));
       },
     });
-    return referencedIdentifiers;
+    // this is actually needed because the of how babel references these identifiers
+    return dropDuplicateIdentifiers(referencedIdentifiers)
   }
 
 
@@ -82,7 +113,6 @@ module.exports = function(babel) {
         ],
       );
     }
-
     if (shouldBeTextNode(expression.type)) {
       expression = createTextNode(expression)
     }
@@ -115,7 +145,6 @@ module.exports = function(babel) {
     }
     return true;
   }
-
 
   const registerConditional = (path) => {
 
@@ -150,48 +179,169 @@ module.exports = function(babel) {
     }
   }
 
+  const createLogicalAndExpression = (node) => {
+    if (shouldBeTextNode(node.right.type)) {
+      node.right = createTextNode(node.right)
+    }
+
+    const { left, right } = node;
+
+    // Perform the traversal
+    let referencedIdentifiers = new Set();
+
+    const testFunc = t.arrowFunctionExpression([], left)
+
+    const alternate = t.arrowFunctionExpression(
+      [],
+      t.blockStatement([
+        t.returnStatement(
+          t.callExpression(
+            t.identifier('Venta.createAnchor'),
+            [
+              t.stringLiteral('') // The text content for the text node
+            ]
+          )
+        )
+      ])
+    );
+
+
+    const consequent = t.arrowFunctionExpression([],
+      wrapInRenderConditional(right, referencedIdentifiers));
+
+    return t.callExpression(
+      t.identifier("Venta.renderConditional"),
+      [
+        testFunc,
+        consequent,
+        alternate,
+        ...Array.from(referencedIdentifiers)
+      ],
+    )
+  }
+
+
+  const createNullishCoalescingFunction = (variables) => {
+    if (variables.length === 1) {
+      if ((t.isLogicalExpression(variables[0]) && variables[0].operator === '&&')) {
+        return createLogicalAndExpression(variables[0])
+      }
+      if (t.isConditionalExpression(variables[0])) {
+        return wrapInRenderConditional(variables[0], new Set())
+      }
+      if (shouldBeTextNode(variables[0].type)) {
+        const { root, accessPaths } = getRootAndAccessPaths(variables[0]);
+
+        return createFineTunedResponsiveNode(root, accessPaths)
+      }
+      return variables[0]
+    }
+
+    const left = variables.splice(0, 1)[0];
+
+    const testFunc =
+      t.arrowFunctionExpression([], t.logicalExpression('&&',
+        t.binaryExpression('!==', left, t.nullLiteral()),
+        t.binaryExpression('!==', left, t.identifier('undefined'))
+      ));
+
+    let leftFunc = left;
+    if (shouldBeTextNode(left.type)) {
+      const { root, accessPaths } = getRootAndAccessPaths(left);
+
+      leftFunc = createFineTunedResponsiveNode(root, accessPaths)
+    }
+    else if ((t.isLogicalExpression(variables[0]) && variables[0].operator === '&&')) {
+      leftFunc = createLogicalAndExpression(variables[0])
+    }
+    else if (t.isConditionalExpression(variables[0])) {
+      leftFunc = wrapInRenderConditional(variables[0], new Set())
+    }
+
+    return t.callExpression(
+      t.identifier("Venta.renderConditional"),
+      [
+        testFunc,
+        t.arrowFunctionExpression([], leftFunc),
+        t.arrowFunctionExpression([], createNullishCoalescingFunction(variables)),
+        t.numericLiteral(conditionalId++)
+      ],
+    );
+  }
+
+
   const registerLogicalExpression = (path) => {
     if (shouldBeTextNode(path.node.right.type)) {
       path.node.right = createTextNode(path.node.right)
     }
-    const { left, right, operator } = path.node;
+    const { left, operator, right } = path.node;
+
+    let referencedIdentifiers = getReferenceIdentifiers(path.get('left'));
+    let newConsequent = null;
+
+    let newAlternate = t.arrowFunctionExpression(
+      [],
+      t.blockStatement([
+        t.returnStatement(
+          t.callExpression(
+            t.identifier('Venta.createAnchor'),
+            [
+              t.stringLiteral('') // The text content for the text node
+            ]
+          )
+        )
+      ])
+    );
+
     if (operator === '||') return
     if (path.findParent((parentPath) => parentPath.isConditionalExpression())) {
       return;
     }
-    const referencedIdentifiers = getReferenceIdentifiers(path.get('left'));
+    if (operator === '??') {
+      //we want to extract all the identifiers from the left side of the expression
+      const variables = [];
+      function handleExpression(expression) {
+        if (t.isLogicalExpression(expression) && expression.operator === '??') {
+          handleExpression(expression.left);
+          handleExpression(expression.right);
+        } else {
+          variables.push(expression);
+        }
+      }
+
+      handleExpression(left);
+      variables.push(right);
+
+      newConsequent = t.arrowFunctionExpression([], createNullishCoalescingFunction(variables))
+    }
+    else {
+      newConsequent = t.arrowFunctionExpression([],
+        wrapInRenderConditional(right, referencedIdentifiers));
+    }
+
 
     if (referencedIdentifiers.size) {
-      const testFunc = t.arrowFunctionExpression([], left);
+      const testFunc = operator !== '??' ?
+        t.arrowFunctionExpression([], left) :
+        t.arrowFunctionExpression([], t.booleanLiteral(true))
+
+
       //you can still have a ternary afer so we have to have this
-      const newConsequent = wrapInRenderConditional(right, referencedIdentifiers);
       //false case we just add a empty text node as we need an anchor still but this does not have any dom effect and it not even visible
-      const newAlternate = t.arrowFunctionExpression(
-        [],
-        t.blockStatement([
-          t.returnStatement(
-            t.callExpression(
-              t.identifier('Venta.createAnchor'),
-              [
-                t.stringLiteral('') // The text content for the text node
-              ]
-            )
-          )
-        ])
-      );
 
       path.replaceWith(
         t.callExpression(
           t.identifier("Venta.registerConditional"),
           [
             testFunc,
-            t.arrowFunctionExpression([], newConsequent),
+            newConsequent,
             newAlternate,
             ...Array.from(referencedIdentifiers)
           ],
         )
       );
     }
+    path.skip();
   }
   const isJSXContext = (path) => path.findParent((parentPath) => parentPath.isJSXElement())
 
@@ -324,6 +474,7 @@ module.exports = function(babel) {
               }
             })
             path.traverse({
+
               ConditionalExpression(innerPath) {
                 registerConditional(innerPath)
               },

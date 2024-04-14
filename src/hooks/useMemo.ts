@@ -3,7 +3,7 @@ import {
   VentaState,
 } from '../state';
 
-const useMemo = (callback: () => any, dependencies: VentaState[]) => {
+const useMemo = (callback: () => any, dependencies: VentaState<any>[]) => {
 
   const state = new VentaMemoState(callback(), callback)
 
