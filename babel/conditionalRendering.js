@@ -274,11 +274,9 @@ module.exports = function(babel) {
     if (shouldBeTextNode(path.node.right.type)) {
       path.node.right = createTextNode(path.node.right)
     }
-    let currentPath = path;
+    const { left, operator, right } = path.node;
 
-    const { left, operator, right } = currentPath.node;
-
-    let referencedIdentifiers = getReferenceIdentifiers(currentPath.get('left'));
+    let referencedIdentifiers = getReferenceIdentifiers(path.get('left'));
     let newConsequent = null;
 
     let newAlternate = t.arrowFunctionExpression(
@@ -296,7 +294,7 @@ module.exports = function(babel) {
     );
 
     if (operator === '||') return
-    if (currentPath.findParent((parentPath) => parentPath.isConditionalExpression())) {
+    if (path.findParent((parentPath) => parentPath.isConditionalExpression())) {
       return;
     }
     if (operator === '??') {
