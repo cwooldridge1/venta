@@ -1,7 +1,7 @@
 import { type Props, type VentaNode, type NodeTypes } from "../types"
 import { VentaAppState, VentaState } from '../state'
 const
-  { componentReferenceMap, incrementConditionalId, elementMap, stateMap, getConditionalId, conditionalReferenceMap, conditionalMap, getComponentId, incrementComponentId, componentStateMap } = VentaAppState//getSharedState().VentaAppState
+  { componentReferenceMap, incrementConditionalId, elementMap, stateMap, getConditionalId, conditionalReferenceMap, conditionalMap, getComponentId, incrementComponentId, componentStateMap } = VentaAppState
 
 export const renderTextNode = (value: typeof VentaState<any> | string) => {
   let node;
@@ -171,6 +171,7 @@ const handleComponentUnmount = (componentId: number, element: NodeTypes) => {
     cache.delete(cacheKey)
   }
   componentStateMap.delete(componentId)
+  componentReferenceMap.delete(element)
 }
 
 const handleUnmountConditional = (element: NodeTypes) => {
@@ -203,13 +204,14 @@ export const handleUnmountElement = (element: NodeTypes, remove: boolean = true)
       })
     }
   }
-  elementMap.delete(element)
   if (element instanceof HTMLElement) {
     const children = Array.from(element.children)
     children.forEach((node) => {
       handleUnmountElement(node as HTMLElement)
     })
   }
+
+  elementMap.delete(element)
   if (remove) {
     element.remove()
   }

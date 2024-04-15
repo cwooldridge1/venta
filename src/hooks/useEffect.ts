@@ -11,7 +11,6 @@ const useEffect = (callback: () => any, dependencies: VentaState<any>[]) => {
     if (!state) throw new Error('dependencies must be of type VentaState')
     state.addSideEffect(callback)
   })
-  console.log(componentStateMap)
 }
 
 export default useEffect
