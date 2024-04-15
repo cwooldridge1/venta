@@ -1,4 +1,3 @@
-import Venta from '../../../../src/index.tsx';
 import { Link } from '../../../../lib/routing/index.jsx';
 
 function Navbar() {

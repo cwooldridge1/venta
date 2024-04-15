@@ -1,19 +1,19 @@
-import Venta from '../../../src/index.ts'
+import { useState, useEffect, useMemo } from '../../../src/index.ts'
 import { Button } from './_components/button.jsx'
 import Layout from './_components/layout.jsx'
 
 function Home() {
-  const inputState = Venta.useState(null)
-  const listState = Venta.useState([])
+  const inputState = useState(null)
+  const listState = useState([])
 
   const handleAddToList = () => {
     listState.setValue([...listState.value, inputState.value])
     inputState.setValue('')
   }
 
-  const todoCount = Venta.useMemo(() => listState.value.length, [listState])
+  const todoCount = useMemo(() => listState.value.length, [listState])
 
-  Venta.useEffect(() => {
+  useEffect(() => {
     console.log('Component mounted')
     return () => {
       console.log('Component unmounted')

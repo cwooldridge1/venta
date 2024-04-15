@@ -1,4 +1,3 @@
-import Venta from '../../../../src/index.tsx';
 import Navbar from './navbar.jsx'
 
 

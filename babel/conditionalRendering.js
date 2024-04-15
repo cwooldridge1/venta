@@ -21,7 +21,7 @@ module.exports = function(babel) {
   }
   const createTextNode = (value) => {
     return t.callExpression(
-      t.identifier('Venta.renderTextNode'),
+      t.identifier('VentaInternal.renderTextNode'),
       [value]
     );
   }
@@ -29,7 +29,7 @@ module.exports = function(babel) {
   const createFineTunedResponsiveNode = (root, accessPaths) => {
     const accessPathNodes = accessPaths.map(path => t.stringLiteral(path));
     return t.callExpression(
-      t.identifier('Venta.renderFineTunedResponsiveNode'),
+      t.identifier('VentaInternal.renderFineTunedResponsiveNode'),
       [root, t.arrayExpression(accessPathNodes)]
     );
   }
@@ -104,7 +104,7 @@ module.exports = function(babel) {
 
       const testFunc = t.arrowFunctionExpression([], test);
       return t.callExpression(
-        t.identifier("Venta.renderConditional"),
+        t.identifier("VentaInternal.renderConditional"),
         [
           testFunc,
           t.arrowFunctionExpression([], newConsequent),
@@ -167,7 +167,7 @@ module.exports = function(babel) {
 
       path.replaceWith(
         t.callExpression(
-          t.identifier("Venta.registerConditional"),
+          t.identifier("VentaInternal.registerConditional"),
           [
             testFunc,
             t.arrowFunctionExpression([], newConsequent),
@@ -196,7 +196,7 @@ module.exports = function(babel) {
       t.blockStatement([
         t.returnStatement(
           t.callExpression(
-            t.identifier('Venta.createAnchor'),
+            t.identifier('VentaInternal.createAnchor'),
             [
               t.stringLiteral('') // The text content for the text node
             ]
@@ -210,7 +210,7 @@ module.exports = function(babel) {
       wrapInRenderConditional(right, referencedIdentifiers));
 
     return t.callExpression(
-      t.identifier("Venta.renderConditional"),
+      t.identifier("VentaInternal.renderConditional"),
       [
         testFunc,
         consequent,
@@ -259,7 +259,7 @@ module.exports = function(babel) {
     }
 
     return t.callExpression(
-      t.identifier("Venta.renderConditional"),
+      t.identifier("VentaInternal.renderConditional"),
       [
         testFunc,
         t.arrowFunctionExpression([], leftFunc),
@@ -304,7 +304,7 @@ module.exports = function(babel) {
     }
 
     return t.callExpression(
-      t.identifier("Venta.renderConditional"),
+      t.identifier("VentaInternal.renderConditional"),
       [
         testFunc,
         t.arrowFunctionExpression([], leftFunc),
@@ -340,7 +340,7 @@ module.exports = function(babel) {
       t.blockStatement([
         t.returnStatement(
           t.callExpression(
-            t.identifier('Venta.createAnchor'),
+            t.identifier('VentaInternal.createAnchor'),
             [
               t.stringLiteral('') // The text content for the text node
             ]
@@ -384,7 +384,7 @@ module.exports = function(babel) {
 
       path.replaceWith(
         t.callExpression(
-          t.identifier("Venta.registerConditional"),
+          t.identifier("VentaInternal.registerConditional"),
           [
             testFunc,
             newConsequent,
@@ -471,7 +471,7 @@ module.exports = function(babel) {
     })
     path.replaceWith(
       t.callExpression(
-        t.identifier("Venta.renderLoop"),
+        t.identifier("VentaInternal.renderLoop"),
         [
           t.arrowFunctionExpression(
             [],
@@ -494,7 +494,7 @@ module.exports = function(babel) {
             if (!isComponentContext(path)) return
             if (returnValue && shouldBeTextNode(returnValue.type)) {
               path.node.argument = t.callExpression(
-                t.identifier('Venta.createAnchor'),
+                t.identifier('VentaInternal.createAnchor'),
                 [returnValue]
               );
             } else {

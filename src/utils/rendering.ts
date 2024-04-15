@@ -1,8 +1,9 @@
-import { NodeTypes, conditionalMap, conditionalReferenceMap, elementMap, getConditionalId, incrementConditionalId, stateMap } from "../state"
-import { Props, VentaNode, VentaState } from "../types"
-import { componentReferenceMap, getComponentId, incrementComponentId, componentStateMap } from "../state"
+import { type Props, type VentaNode, type NodeTypes } from "../types"
+import { VentaAppState, VentaState } from '../state'
+const
+  { componentReferenceMap, incrementConditionalId, elementMap, stateMap, getConditionalId, conditionalReferenceMap, conditionalMap, getComponentId, incrementComponentId, componentStateMap } = VentaAppState
 
-export const renderTextNode = (value: VentaState<any> | string) => {
+export const renderTextNode = (value: typeof VentaState<any> | string) => {
   let node;
 
   if (value instanceof VentaState) {
@@ -14,7 +15,7 @@ export const renderTextNode = (value: VentaState<any> | string) => {
     elementMap.set(node, stateRef)
   }
   else {
-    node = document.createTextNode(value)
+    node = document.createTextNode(value as string)
     const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
     elementMap.set(node, stateRef)
   }
@@ -69,9 +70,10 @@ export const createAnchor = (meta: string) => {
 export const renderVentaNode = (type: any, props: Props, ...children: any[]) => {
   if (typeof type === 'function') {
     incrementComponentId()
-    componentStateMap.set(getComponentId(), { state: [], unmountCallbacks: [] })
+    const componentId = getComponentId()
+    componentStateMap.set(componentId, { state: [], unmountCallbacks: [] })
     const component = type({ ...props, children: children.length > 1 ? children : !children.length ? null : children[0] })
-    componentReferenceMap.set(component, getComponentId())
+    componentReferenceMap.set(component, componentId)
     return component
   }
   const elem = document.createElement(type);
@@ -125,13 +127,6 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
 }
 
 
-export const render = (component: any, props: Props, parent: HTMLElement) => {
-  parent.innerHTML = '';
-  parent.appendChild(component(props));
-}
-
-
-
 const cache = new Map<string, NodeTypes>();
 const inverseCache = new Map<NodeTypes, string>();
 
@@ -165,7 +160,7 @@ export const renderConditional = (
 };
 
 
-export const handleComponentUnmount = (componentId: number, element: NodeTypes) => {
+const handleComponentUnmount = (componentId: number, element: NodeTypes) => {
   const { state, unmountCallbacks } = componentStateMap.get(componentId)!
   state.forEach(state => state.destroy())
   unmountCallbacks.forEach(callback => callback())
@@ -176,9 +171,10 @@ export const handleComponentUnmount = (componentId: number, element: NodeTypes) 
     cache.delete(cacheKey)
   }
   componentStateMap.delete(componentId)
+  componentReferenceMap.delete(element)
 }
 
-const handleUnmountConditional = (element: HTMLElement | Text) => {
+const handleUnmountConditional = (element: NodeTypes) => {
   const conditionalId = conditionalReferenceMap.get(element)
   if (!conditionalId) return
   const cleanUp = conditionalMap.get(conditionalId)
@@ -187,7 +183,7 @@ const handleUnmountConditional = (element: HTMLElement | Text) => {
   conditionalReferenceMap.delete(element)
 }
 
-const handleUnmountElement = (element: HTMLElement | Text) => {
+export const handleUnmountElement = (element: NodeTypes, remove: boolean = true) => {
   const componentId = componentReferenceMap.get(element)
   if (componentId !== undefined) {
     handleComponentUnmount(componentId, element)
@@ -208,14 +204,17 @@ const handleUnmountElement = (element: HTMLElement | Text) => {
       })
     }
   }
-  elementMap.delete(element)
   if (element instanceof HTMLElement) {
     const children = Array.from(element.children)
     children.forEach((node) => {
       handleUnmountElement(node as HTMLElement)
     })
   }
-  element.remove()
+
+  elementMap.delete(element)
+  if (remove) {
+    element.remove()
+  }
 }
 
 export const registerConditional = (
