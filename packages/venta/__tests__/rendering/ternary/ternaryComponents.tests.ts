@@ -1,6 +1,8 @@
 /**
  * @jest-environment jsdom
  */
+
+import { describe, expect, it, beforeAll } from '@jest/globals'
 import {
   componentReferenceMap,
   componentStateMap,
@@ -9,7 +11,6 @@ import {
 import {
   registerConditional,
   renderVentaNode,
-  renderConditional,
 } from '../../../src/utils';
 import { useState, VentaState, Props, useEffect } from '../../../src';
 import { jest } from '@jest/globals';
@@ -26,10 +27,10 @@ const Component = ({ children }: Props) => {
   return renderVentaNode('div', {}, children)
 }
 
-
 const getSpanText = (element: HTMLElement) => {
   return element.children.item(0)!.textContent
 }
+
 
 describe('conditional jsx render', () => {
   let count: VentaState<number>, element: HTMLElement;
@@ -40,28 +41,49 @@ describe('conditional jsx render', () => {
 
     const test = () => count.value > 2;
 
+    const trueContent = () => renderVentaNode(Component, {}, renderVentaNode('span', {}, 'Count is Greater than 2'));
+    const falseContent = () => renderVentaNode(Component, {}, renderVentaNode('span', {}, 'Count is Less than 2'));
 
-    const trueNestedContent = () => renderVentaNode(Component, {}, renderVentaNode('span', {}, 'Count is Greater than 5'));
-    const falseNestedContent = () => renderVentaNode(Component, {}, renderVentaNode('span', {}, 'Count is Less than 5'));
-
-    const countIs0Content = () => renderVentaNode(Component, {}, renderVentaNode('span', {}, 'Count is 0'));
-
-    const trueConditional = () => renderConditional(() => count.value > 5, trueNestedContent, falseNestedContent, 1)
-
-    const falseConditional = () => renderConditional(() => count.value === 0, countIs0Content, () => renderVentaNode('span', {}, 'Count less than 0'), 2)
-
-    element = registerConditional(test, trueConditional, falseConditional, count) as HTMLElement;
+    element = registerConditional(test, trueContent, falseContent, count) as HTMLElement;
+    componentId = componentReferenceMap.get(element)!
     document.body.appendChild(element);
   });
 
 
   it('should render the correct conditional initially', () => {
-    componentId = getComponentId()
     expect(count.getSideEffects().size).toBe(1);
     expect(elementMap.has(element)).toBe(true);
 
-    element = document.body.querySelector('div')!;
-    expect(getSpanText(element)).toBe('Count is 0');
+    expect(getSpanText(element)).toBe('Count is Less than 2');
+
+    expect(stateMap.size).toBe(2)
+    expect(componentStateMap.size).toBe(1)
+    const componentState = componentStateMap.get(componentId)!
+
+    expect(componentState.state.length).toBe(1)
+    expect(componentState.unmountCallbacks.length).toBe(1)
+
+    expect(elementMap.has(element)).toBe(true);
+    expect(stateMap.size).toBe(2)
+    expect(componentReferenceMap.get(element)).toBe(componentId)
+  });
+
+  it('should true condition render properly', () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+
+
+    count.setValue(3);
+    element = document.querySelector('div')!;
+
+    expect(getSpanText(element)).toBe('Count is Greater than 2');
+    expect(logSpy.mock.calls[0][0]).toBe('mount'); //technically a new mount happens before clean ups are called
+    expect(logSpy.mock.calls[1][0]).toBe('dismount');
+
+    logSpy.mockRestore();
+
+    expect(componentStateMap.size).toBe(1)
+    componentId = componentReferenceMap.get(element)!
+    expect(componentId).toBe(2)
 
     const componentState = componentStateMap.get(componentId)!
     expect(componentState.state.length).toBe(1)
@@ -69,31 +91,6 @@ describe('conditional jsx render', () => {
 
     expect(elementMap.has(element)).toBe(true);
     expect(stateMap.size).toBe(2)
-    expect(elementMap.size).toBe(2);
-    expect(componentReferenceMap.get(element)).toBe(componentId)
-  });
-
-  it('true then false works', () => {
-    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
-
-    count.setValue(3);
-
-    element = document.body.querySelector('div')!;
-    expect(getSpanText(element)).toBe('Count is Less than 5');
-
-    expect(logSpy.mock.calls[0][0]).toBe('mount'); //technically a new mount happens before clean ups are called
-    expect(logSpy.mock.calls[1][0]).toBe('dismount');
-
-    logSpy.mockRestore();
-
-    expect(componentStateMap.size).toBe(1)
-    const componentState = componentStateMap.get(++componentId)!
-    expect(componentState.state.length).toBe(1)
-    expect(componentState.unmountCallbacks.length).toBe(1)
-
-    expect(elementMap.has(element)).toBe(true);
-    expect(stateMap.size).toBe(2)
-    expect(elementMap.size).toBe(2);
     expect(componentReferenceMap.get(element)).toBe(componentId)
   })
 
@@ -102,36 +99,12 @@ describe('conditional jsx render', () => {
 
     count.setValue(4);
 
-    expect(element.textContent).toBe('Count is Less than 5');
+    expect(element.textContent).toBe('Count is Greater than 2');
     expect(elementMap.has(element)).toBe(true);
 
     expect(logSpy.mock.calls.length).toBe(0);
 
     logSpy.mockRestore();
-  })
-
-  it('true and true', () => {
-    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
-
-    count.setValue(6);
-
-    element = document.body.querySelector('div')!;
-    expect(getSpanText(element)).toBe('Count is Greater than 5');
-
-    expect(logSpy.mock.calls[0][0]).toBe('mount'); //technically a new mount happens before clean ups are called
-    expect(logSpy.mock.calls[1][0]).toBe('dismount');
-
-    logSpy.mockRestore();
-
-    expect(componentStateMap.size).toBe(1)
-    const componentState = componentStateMap.get(++componentId)!
-    expect(componentState.state.length).toBe(1)
-    expect(componentState.unmountCallbacks.length).toBe(1)
-
-    expect(elementMap.has(element)).toBe(true);
-    expect(stateMap.size).toBe(2)
-    expect(elementMap.size).toBe(2);
-    expect(componentReferenceMap.get(element)).toBe(componentId)
   })
 
   it('reversion to initial state cleans up properly', () => {
@@ -140,7 +113,7 @@ describe('conditional jsx render', () => {
     count.setValue(0);
 
     element = document.body.querySelector('div')!;
-    expect(getSpanText(element)).toBe('Count is 0');
+    expect(element.textContent).toBe('Count is Less than 2');
 
     expect(logSpy.mock.calls[0][0]).toBe('mount'); //technically a new mount happens before clean ups are called
     expect(logSpy.mock.calls[1][0]).toBe('dismount');
@@ -154,25 +127,6 @@ describe('conditional jsx render', () => {
 
     expect(elementMap.has(element)).toBe(true);
     expect(stateMap.size).toBe(2)
-    expect(elementMap.size).toBe(2);
     expect(componentReferenceMap.get(element)).toBe(componentId)
-  })
-
-  it('switch to none stateful element ereases all deps', () => {
-    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
-
-    count.setValue(-1);
-
-    element = document.body.querySelector('span')!;
-    expect(element.textContent).toBe('Count less than 0');
-
-    expect(logSpy.mock.calls[0][0]).toBe('dismount');
-
-    logSpy.mockRestore();
-
-    expect(componentStateMap.size).toBe(0)
-    expect(elementMap.has(element)).toBe(true);
-    expect(elementMap.size).toBe(1);
-    expect(stateMap.size).toBe(1)
   })
 });

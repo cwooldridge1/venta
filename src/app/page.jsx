@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'venta/src/hooks'
+import { useState, useEffect, useMemo } from 'venta'
 import { Button } from './_components/button.jsx'
 import Layout from './_components/layout.jsx'
 

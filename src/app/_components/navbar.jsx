@@ -1,4 +1,4 @@
-import { Link } from 'venta/src/index';
+import { Link } from 'venta';
 
 function Navbar() {
 

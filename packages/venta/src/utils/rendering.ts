@@ -3,7 +3,7 @@ import { VentaAppState, VentaState } from '../state'
 const
   { componentReferenceMap, incrementConditionalId, elementMap, stateMap, getConditionalId, conditionalReferenceMap, conditionalMap, getComponentId, incrementComponentId, componentStateMap } = VentaAppState
 
-export const renderTextNode = (value: typeof VentaState<any> | string) => {
+export const renderTextNode = (value: VentaState<any> | string) => {
   let node;
 
   if (value instanceof VentaState) {
@@ -316,9 +316,9 @@ export const registerConditional = (
 * @param iterable: is the itterable that the func is based off of 
 * @deps are any other dependency that is used in the loop
  */
-export const renderLoop = (func: () => Array<HTMLElement | Text>, iterable: VentaState<any> | any[], ...deps: any[]) => {
+export const renderLoop = (func: () => Array<NodeTypes>, iterable: VentaState<any> | any[], ...deps: any[]) => {
   let lastContent = func();
-  let initialContent: Comment | Text | (HTMLElement | Text)[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
+  let initialContent: NodeTypes | NodeTypes[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
   let parent: ParentNode;
   let parentListStartIndex: number;
 

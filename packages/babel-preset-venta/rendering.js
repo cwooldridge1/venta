@@ -490,19 +490,19 @@ module.exports = function(babel) {
   return {
     name: "venta-babel",
     visitor: {
+      CallExpression(path) {
+        //for some reason the react jsx babel plugin is not listening to pragma so we have to do this
+        if (
+          t.isMemberExpression(path.node.callee) &&
+          t.isIdentifier(path.node.callee.object, { name: "React" }) &&
+          t.isIdentifier(path.node.callee.property, { name: "createElement" })
+        ) {
+          path.node.callee.object.name = "VentaInternal";
+          path.node.callee.property.name = "renderVentaNode";
+        }
+      },
       Function(path) {
         path.traverse({
-          CallExpression(path) {
-            //for some reason the react jsx babel plugin is not listening to pragma so we have to do this
-            if (
-              t.isMemberExpression(path.node.callee) &&
-              t.isIdentifier(path.node.callee.object, { name: "React" }) &&
-              t.isIdentifier(path.node.callee.property, { name: "createElement" })
-            ) {
-              path.node.callee.object.name = "VentaInternal";
-              path.node.callee.property.name = "renderVentaNode";
-            }
-          },
           ReturnStatement(path) {
             const returnValue = path.node.argument;
             if (!isComponentContext(path)) return

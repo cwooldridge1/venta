@@ -5,7 +5,7 @@ export type Props = {
   [key: string]: any;
 };
 
-export type NodeTypes = Element | Text | Comment;
+export type NodeTypes = HTMLElement | Text | Comment;
 
 export interface VentaNode {
   element: HTMLElement | Text | Comment;

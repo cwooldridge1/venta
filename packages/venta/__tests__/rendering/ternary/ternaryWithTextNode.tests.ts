@@ -1,16 +1,16 @@
 /**
  * @jest-environment jsdom
  */
+
+import { describe, expect, it, beforeAll } from '@jest/globals'
 import {
-  NodeTypes,
   elementMap,
 } from '../../../src/state';
 import {
   registerConditional,
   renderTextNode,
 } from '../../../src/utils';
-import { useState, VentaState } from '../../../src';
-import { jest } from '@jest/globals';
+import { NodeTypes, useState, VentaState } from '../../../src';
 
 
 describe('conditional jsx render with text nodes', () => {

@@ -1,6 +1,8 @@
 /**
  * @jest-environment jsdom
  */
+
+import { describe, expect, it, beforeAll } from '@jest/globals'
 import { VentaState, useState } from "../../../src"
 import { componentReferenceMap, componentStateMap, conditionalMap, conditionalReferenceMap, elementMap } from "../../../src/state";
 import { registerConditional, renderLoop, renderVentaNode } from "../../../src/utils";
@@ -30,7 +32,7 @@ const wasMinimalRerender = (parent: Element, oldContent: Element[], expectNewEle
 
 }
 describe('looped renders work with state and set state calls', () => {
-  let arr: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
+  let arr: VentaState<number[]>, elements: Array<HTMLElement>, parent: HTMLElement;
   beforeAll(() => {
     arr = useState([1, 2, 3])
     const func = () => arr.value.map((item: number) => renderVentaNode('div', { key: item }, item))
@@ -88,7 +90,7 @@ describe('looped renders work with state and set state calls', () => {
 })
 
 describe('test for when initial content is empty', () => {
-  let arr: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
+  let arr: VentaState<number[]>, elements: Array<HTMLElement>, parent: HTMLElement;
   beforeAll(() => {
     arr = useState([])
     const func = () => arr.value.map((item: number) => renderVentaNode('div', { key: item }, item))
@@ -131,7 +133,7 @@ describe('test for when dep is not state', () => {
 
 
 describe('test for when initial content is empty', () => {
-  let arr: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
+  let arr: VentaState<number[]>, elements: Array<HTMLElement>, parent: HTMLElement;
   beforeAll(() => {
     arr = useState([])
     const func = () => arr.value.map((item: number) => renderVentaNode('div', { key: item }, item))
@@ -156,7 +158,7 @@ describe('test for when initial content is empty', () => {
 
 
 describe('nested loops', () => {
-  let arr: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
+  let arr: VentaState<number[][]>, elements: Array<HTMLElement>, parent: HTMLElement;
   beforeAll(() => {
     arr = useState([[1, 2], [3, 4]])
     const func = () => arr.value.map((item: number[], index: number) =>
@@ -192,7 +194,7 @@ describe('nested loops', () => {
 
 
 describe('loop with with stateful child variables - dep check', () => {
-  let arr: VentaState, count: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
+  let arr: VentaState<number[]>, count: VentaState<number>, elements: Array<HTMLElement>, parent: HTMLElement;
   beforeAll(() => {
     arr = useState([1, 2, 3])
     count = useState(0)
@@ -232,7 +234,7 @@ describe('loop with with stateful child variables - dep check', () => {
 
 
 describe('looped renders with nested conditionals', () => {
-  let arr: VentaState, count: VentaState, elements: Array<HTMLElement>, parent: HTMLElement;
+  let arr: VentaState<number[]>, count: VentaState<number>, elements: Array<HTMLElement>, parent: HTMLElement;
   const checkLoopRenderElements = (expectedArr: number[]) => {
     // this check that each div element has the correct content and there is the correct amount
     const children = Array.from(parent.children).filter(elem => elem.tagName === 'DIV')

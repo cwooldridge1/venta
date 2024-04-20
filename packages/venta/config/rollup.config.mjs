@@ -67,7 +67,9 @@ const mainConfig = {
   plugins: [
     resolve(), // Resolve node modules
     commonjs(), // Convert CommonJS modules to ES6
-    typescript(), // Handle TypeScript files
+    typescript({
+      tsconfig: `${parentDir}/tsconfig.json`  // Ensure it's pointing to the correct tsconfig file
+    }),
     babel({
       babelHelpers: 'bundled',
       presets: [babelPresetVenta],
@@ -107,7 +109,9 @@ const coreScript = {
   plugins: [
     resolve(),
     commonjs(),
-    typescript(),
+    typescript({
+      tsconfig: `${parentDir}/tsconfig.json`  // Ensure it's pointing to the correct tsconfig file
+    }),
     babel({
       babelHelpers: 'bundled',
       presets: [babelPresetVenta],

@@ -10,7 +10,6 @@ async function startVite() {
   try {
     const promisses = rollupConfigs.map(async (rollupConfig) => {
       return await build(defineConfig({
-        plugins: [],
         build: {
           rollupOptions: rollupConfig,
         }

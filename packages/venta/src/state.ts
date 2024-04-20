@@ -29,7 +29,7 @@ export class VentaState<T> {
   constructor(
     value: T,
     sideEffects: Set<Function> = new Set(),
-    elements: Set<Element | Text> = new Set(),
+    elements: Set<NodeTypes> = new Set(),
   ) {
     this.id = VentaState.currentStateId++;
     this.value = value;
@@ -99,7 +99,7 @@ export class VentaMemoState<T> extends VentaState<T> {
     value: T,
     callback: () => any,
     sideEffects: Set<Function> = new Set(),
-    elements: Set<Element | Text> = new Set(),
+    elements: Set<NodeTypes> = new Set(),
   ) {
     super(value, sideEffects, elements)
     this.callback = callback;
@@ -113,12 +113,12 @@ export class VentaMemoState<T> extends VentaState<T> {
 }
 
 
-const componentReferenceMap = new Map<NodeTypes, number>(); // this is an inverse map tool essentially to help find the associated id with a component
-const componentStateMap = new Map<number, { state: VentaState<unknown>[], unmountCallbacks: Function[] }>(); // key is the component id and the value is all state and unmount callbacks that are defined in a component
-const stateMap = new Map<number, VentaState<unknown>>(); // all state is stored here, the key is the id and the value is the state
-const elementMap = new Map<NodeTypes, VentaNode>(); // element mao store what elements have what dependencies to help know exactly what needs to be updated in an element
-const conditionalMap = new Map<number, () => void>(); // conditonals are a special type of component and need to be kept track of mainly when used inside of things like looks to make sure they are cleaned up properly
-const conditionalReferenceMap = new Map<NodeTypes, number>(); // this is an inverse map tool essentially to help find the associated id with a conditional
+export const componentReferenceMap = new Map<NodeTypes, number>(); // this is an inverse map tool essentially to help find the associated id with a component
+export const componentStateMap = new Map<number, { state: VentaState<unknown>[], unmountCallbacks: Function[] }>(); // key is the component id and the value is all state and unmount callbacks that are defined in a component
+export const stateMap = new Map<number, VentaState<unknown>>(); // all state is stored here, the key is the id and the value is the state
+export const elementMap = new Map<NodeTypes, VentaNode>(); // element mao store what elements have what dependencies to help know exactly what needs to be updated in an element
+export const conditionalMap = new Map<number, () => void>(); // conditonals are a special type of component and need to be kept track of mainly when used inside of things like looks to make sure they are cleaned up properly
+export const conditionalReferenceMap = new Map<NodeTypes, number>(); // this is an inverse map tool essentially to help find the associated id with a conditional
 
 
 

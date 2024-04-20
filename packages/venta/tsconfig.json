@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES5",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "outDir": "./dist",
+    "module": "esnext",
+    "target": "esnext",
     "rootDir": "./src",
+    "baseUrl": "./",
     "strict": true,
-    "jsx": "react",
-    "jsxFactory": "VentaInternal.renderVentaNode",
-    "jsxFragmentFactory": "Venta.Fragment"
+    "jsx": "preserve",
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types.d.ts"
+    ],
+    "jsxFactory": "VentaInternal.renderVentaNode"
   }
 }

@@ -1,6 +1,8 @@
 /**
  * @jest-environment jsdom
  */
+
+import { describe, expect, it, beforeAll } from '@jest/globals'
 import {
   elementMap,
 } from '../../../src/state';
@@ -9,10 +11,9 @@ import {
   renderVentaNode,
 } from '../../../src/utils';
 import { useState, VentaState } from '../../../src';
-import { jest } from '@jest/globals';
 
 
-describe('conditional jsx render', () => {
+describe('test clean up of state html dependencies', () => {
   let count: VentaState<number>, element: HTMLElement;
 
   beforeAll(() => {
@@ -20,35 +21,35 @@ describe('conditional jsx render', () => {
 
     const test = () => count.value > 2;
 
-    const trueContent = () => renderVentaNode('span', {}, 'Count is Greater than 2');
-    const falseContent = () => renderVentaNode('span', {}, 'Count is Less than 2');
+    const trueContent = () => renderVentaNode('span', {}, count);
+    const falseContent = () => renderVentaNode('span', {}, 'less than 2');
 
     element = registerConditional(test, trueContent, falseContent, count) as HTMLElement;
     document.body.appendChild(element);
   });
 
   it('should render the correct conditional initially', () => {
-    expect(count.getSideEffects().size).toBe(1);
-    expect(elementMap.has(element)).toBe(true);
+    expect(count.getElements().size).toBe(0);
 
     element = document.body.querySelector('span')!;
-    expect(element.textContent).toBe('Count is Less than 2');
+    expect(element.textContent).toBe('less than 2');
   });
 
   it('should update to "greater than 2" when count is set to 3', () => {
     count.setValue(3);
 
+    expect(count.getElements().size).toBe(1);
     element = document.body.querySelector('span')!;
     expect(elementMap.has(element)).toBe(true);
-    expect(element.textContent).toBe('Count is Greater than 2');
+    expect(element.textContent).toBe('3');
   });
 
   it('should update back to "less than 2" when count is set to 1', () => {
     count.setValue(1);
 
+    expect(count.getElements().size).toBe(0);
+
     element = document.body.querySelector('span')!;
-    expect(elementMap.has(element)).toBe(true);
-    expect(element.textContent).toBe('Count is Less than 2');
-    expect(elementMap.size).toBe(1);
+    expect(element.textContent).toBe('less than 2');
   });
 });

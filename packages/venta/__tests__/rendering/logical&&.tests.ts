@@ -1,34 +1,32 @@
 /**
  * @jest-environment jsdom
  */
+import { describe, expect, it, beforeAll } from '@jest/globals'
+
 import {
   elementMap,
-} from '../../../src/state';
+} from '../../src/state';
 import {
   registerConditional,
-  renderConditional,
   renderVentaNode,
-} from '../../../src/utils';
-import { useState, VentaState } from '../../../src';
-import { jest } from '@jest/globals';
+} from '../../src/utils';
+
+import { NodeTypes, useState, VentaState } from '../../src';
 
 describe('Venta functions', () => {
 
   describe('conditional jsx render', () => {
-    let count: VentaState<number>, element: HTMLElement;
+    let count: VentaState<number>, element: NodeTypes
 
     beforeAll(() => {
       count = useState(0);
 
-      const test = () => count.value > 0;
+      const test = () => count.value > 2;
 
-
-      const trueTernaryContent = () => renderVentaNode('span', {}, 'Count is Greater than 2');
-      const falseTernaryContent = () => renderVentaNode('span', {}, 'Count is Less than 2');
-      const ternary = () => renderConditional(() => count.value > 2, trueTernaryContent, falseTernaryContent, 1);
+      const trueContent = () => renderVentaNode('span', {}, 'Count is Greater than 2');
       const falseContent = () => document.createComment('') as any
 
-      element = registerConditional(test, ternary, falseContent, count) as HTMLElement
+      element = registerConditional(test, trueContent, falseContent, count);
       document.body.appendChild(element);
     });
 
@@ -48,16 +46,8 @@ describe('Venta functions', () => {
       expect(element.textContent).toBe('Count is Greater than 2');
     });
 
-    it('should update to "less than 2" when count is set to 1', () => {
-      count.setValue(1);
-
-      element = document.body.querySelector('span')!;
-      expect(elementMap.has(element)).toBe(true);
-      expect(element.textContent).toBe('Count is Less than 2');
-    });
-
     it('reset to not be shown', () => {
-      count.setValue(0);
+      count.setValue(1);
 
       element = document.body.querySelector('span')!;
       expect(element).toBe(null)

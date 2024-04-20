@@ -1,7 +1,7 @@
 import type { VentaState } from '../types'
 import { getSharedState } from '../utils/enviroment-helpers';
 
-const useEffect = (callback: () => any, dependencies: VentaState<any>[]) => {
+const useEffect = (callback: () => () => any | void, dependencies: VentaState<any>[]) => {
   const { componentStateMap, getComponentId, stateMap } = getSharedState().VentaAppState
   const unmountCallback = callback();
 
