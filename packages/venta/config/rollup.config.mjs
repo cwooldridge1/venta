@@ -68,7 +68,7 @@ const mainConfig = {
     resolve(), // Resolve node modules
     commonjs(), // Convert CommonJS modules to ES6
     typescript({
-      tsconfig: `${parentDir}/tsconfig.json`  // Ensure it's pointing to the correct tsconfig file
+      tsconfig: `${parentDir}/tsconfig.json`
     }),
     babel({
       babelHelpers: 'bundled',
@@ -94,7 +94,6 @@ const mainConfig = {
       minify: true,
     }),
   ],
-  // You might need to include external dependencies, depending on your project
   external: [],
 
 };
@@ -110,56 +109,15 @@ const coreScript = {
     resolve(),
     commonjs(),
     typescript({
-      tsconfig: `${parentDir}/tsconfig.json`  // Ensure it's pointing to the correct tsconfig file
+      tsconfig: `${parentDir}/tsconfig.json`
     }),
     babel({
       babelHelpers: 'bundled',
       presets: [babelPresetVenta],
     }),
-    inlineScript(),
     terser()
   ],
 };
-
-
-
-function inlineScript() {
-  return {
-    name: 'inline-script',
-    generateBundle(outputOptions, bundle) {
-      let baseDir = outputOptions.dir;
-      if (!baseDir && outputOptions.file) {
-        baseDir = path.dirname(outputOptions.file);
-      }
-
-      if (!baseDir) {
-        console.error('InlineScript plugin error: Output directory is undefined.');
-        return;
-      }
-
-      const routingFileKey = Object.keys(bundle).find(key => bundle[key].fileName === 'routing.js');
-      if (!routingFileKey) {
-        console.log('InlineScript plugin: No routing.js file found in the bundle.');
-        return;
-      }
-      const routingFile = bundle[routingFileKey];
-      const inlineScriptTag = `<script type="module">${routingFile.code}</script>`;
-
-      const htmlFilePath = path.join(baseDir, 'index.html');
-      if (fs.existsSync(htmlFilePath)) {
-        // Modify the HTML file to include the inline script
-        let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
-        htmlContent = htmlContent.replace('<script type=\'module\' src="routing.js"></script>', inlineScriptTag);
-        fs.writeFileSync(htmlFilePath, htmlContent);
-
-        // Optionally, remove the now-inlined script from the bundle
-        delete bundle[routingFileKey];
-      } else {
-        console.error(`InlineScript plugin: HTML file (${htmlFilePath}) does not exist.`);
-      }
-    }
-  };
-}
 
 
 export default [mainConfig, coreScript]
