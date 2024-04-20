@@ -1,17 +1,18 @@
-import { NodeTypes } from "../types";
-import { VentaAppState } from "../state";
+import { NodeTypes } from "./src/types";
+import { VentaAppState } from "./src/state";
 window.VentaAppState = VentaAppState;
-import { VentaInternal } from "../internal";
+import { VentaInternal } from "./src/internal";
 window.VentaInternal = VentaInternal;
 
 let lastElement: NodeTypes | undefined = undefined;
 
 export const handleLocation = async () => {
+  console.log('handling location')
   const path = window.location.pathname;
-  const module = await import(`./${path}.js`);
-  const component = module.default; // or whatever the exported component is named
+  const module = await import(`./${path}.js` /* @vite-ignore */);
+
+  const component = module.default;
   const root = document.getElementById("root")!;
-  //now we need to clear the root element and append the new component
   if (lastElement) {
     VentaInternal.handleUnmountElement(lastElement, false)
   }

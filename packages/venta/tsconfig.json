@@ -5,6 +5,9 @@
     "moduleResolution": "node",
     "outDir": "./dist",
     "rootDir": "./src",
-    "strict": true
+    "strict": true,
+    "jsx": "react",
+    "jsxFactory": "VentaInternal.renderVentaNode",
+    "jsxFragmentFactory": "Venta.Fragment"
   }
 }

@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from '../../../src/index.ts'
+import { useState, useEffect, useMemo } from 'venta/src/hooks'
 import { Button } from './_components/button.jsx'
 import Layout from './_components/layout.jsx'
 
-function Home() {
+export function Home() {
   const inputState = useState(null)
   const listState = useState([])
 
@@ -51,6 +51,5 @@ function Home() {
     </Layout>
   )
 }
-
 
 export default Home 

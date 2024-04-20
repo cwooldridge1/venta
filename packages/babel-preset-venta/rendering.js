@@ -1,3 +1,6 @@
+/*
+*  WARNING: THIS CODE MAY BE HARD TO READ AND UNDERSTAND
+* */
 module.exports = function(babel) {
   const { types: t } = babel;
   let conditionalId = 0;
@@ -485,10 +488,21 @@ module.exports = function(babel) {
   }
 
   return {
-    name: "transform-jsx-conditional",
+    name: "venta-babel",
     visitor: {
       Function(path) {
         path.traverse({
+          CallExpression(path) {
+            //for some reason the react jsx babel plugin is not listening to pragma so we have to do this
+            if (
+              t.isMemberExpression(path.node.callee) &&
+              t.isIdentifier(path.node.callee.object, { name: "React" }) &&
+              t.isIdentifier(path.node.callee.property, { name: "createElement" })
+            ) {
+              path.node.callee.object.name = "VentaInternal";
+              path.node.callee.property.name = "renderVentaNode";
+            }
+          },
           ReturnStatement(path) {
             const returnValue = path.node.argument;
             if (!isComponentContext(path)) return

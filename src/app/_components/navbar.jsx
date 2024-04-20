@@ -1,4 +1,4 @@
-import { Link } from '../../../../lib/routing/index.jsx';
+import { Link } from 'venta/src/index';
 
 function Navbar() {
 

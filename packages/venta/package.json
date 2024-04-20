@@ -1,5 +1,6 @@
 {
   "name": "venta-scripts",
+  "type": "module",
   "version": "0.0.1",
   "description": "development scripts for Venta.",
   "repository": {
@@ -20,7 +21,7 @@
     "scripts"
   ],
   "bin": {
-    "venta-scripts": "./bin/venta-scripts.js"
+    "venta": "./bin/venta.cjs"
   },
   "browserslist": {
     "production": [
@@ -35,12 +36,15 @@
     ]
   },
   "devDependencies": {
-    "@babel/core": "^7.24.4",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-html": "^1.0.3",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
+    "babel-preset-venta": "file:../babel-preset-venta",
     "rollup-plugin-terser": "^7.0.2"
+  },
+  "dependencies": {
+    "vite": "^5.2.8"
   }
 }

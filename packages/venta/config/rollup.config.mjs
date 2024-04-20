@@ -1,20 +1,23 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
-import { babel, getBabelOutputPlugin } from '@rollup/plugin-babel';
+import { babel } from '@rollup/plugin-babel';
 import html from '@rollup/plugin-html';
 import path from 'path';
 import fs from 'fs';
-import { terser } from 'rollup-plugin-terser';
-
-
 import { fileURLToPath } from 'url';
+import { terser } from 'rollup-plugin-terser';
+import babelPresetVenta from 'babel-preset-venta';
 
+
+
+
+const buildPath = process.env.BUILD_PATH || 'src';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const parentDir = path.join(__dirname, '..');
 
-const baseDir = path.resolve(__dirname, 'app/src/app');
-
+const baseDir = path.resolve(process.cwd(), buildPath + '/app');
 
 const findRoutes = (dir = baseDir, prefix = '') => {
   let entries = {};
@@ -55,26 +58,22 @@ const mainConfig = {
   input: inputOptions,
   output: [
     {
-      dir: 'dist',
+      dir: './dist',
       format: 'es',
-      name: '[name]',
-      sourcemap: true,
+      entryFileNames: '[name].js',
     },
   ],
+  preserveEntrySignatures: 'allow-extension', // if this is not here then the default exports of the pages are lost -- https://rollupjs.org/configuration-options/#preserveentrysignatures
   plugins: [
     resolve(), // Resolve node modules
     commonjs(), // Convert CommonJS modules to ES6
     typescript(), // Handle TypeScript files
     babel({
       babelHelpers: 'bundled',
-    }),
-    getBabelOutputPlugin({
-      presets: ['@babel/preset-env', '@babel/preset-react']
+      presets: [babelPresetVenta],
     }),
     html({
-      template: ({ files }) => {
-
-        // const scripts = files.js.map(({ fileName }) => `<script src="/${fileName}"></script>`).join('\n');
+      template: () => {
         return `
 <!DOCTYPE html>
 <html lang="en">
@@ -84,7 +83,7 @@ const mainConfig = {
     <title>Your Application</title>
 </head>
 <body id='root'>
-    <script type='module' src="core.js"></script>
+  <script type='module' src='core.js'></script>
 </body>
 </html>
 `;
@@ -95,15 +94,15 @@ const mainConfig = {
   ],
   // You might need to include external dependencies, depending on your project
   external: [],
+
 };
 
-
 const coreScript = {
-  input: './src/scripts/core.ts',
+  input: `${parentDir}/routing.ts`,
   output: {
-    file: 'dist/core.js',
+    dir: './dist',
+    entryFileNames: 'core.js',
     format: 'iife', // this means it will be a self-executing function
-    sourcemap: true
   },
   plugins: [
     resolve(),
@@ -111,7 +110,7 @@ const coreScript = {
     typescript(),
     babel({
       babelHelpers: 'bundled',
-      presets: ['@babel/preset-env']
+      presets: [babelPresetVenta],
     }),
     inlineScript(),
     terser()
@@ -159,4 +158,4 @@ function inlineScript() {
 }
 
 
-export default [coreScript, mainConfig];
+export default [mainConfig, coreScript]
