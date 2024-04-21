@@ -1,19 +1,23 @@
-import { NodeTypes } from "./src/types";
-import { VentaAppState } from "./src/state";
+/// <reference types="vite/client" />
+import { NodeTypes } from "./types";
+import { VentaAppState } from "./state";
 window.VentaAppState = VentaAppState;
-import { VentaInternal } from "./src/internal";
+import { VentaInternal } from "./internal";
 window.VentaInternal = VentaInternal;
 
 let lastElement: NodeTypes | undefined = undefined;
 
-const modules = import.meta.glob('../../src/app/**/page.jsx',
-  { import: 'default' }
-) // this is generated at compile time
+
+const modules = import.meta.glob('/**/page.{jsx,tsx,ts,js}',
+  {
+    import: 'default'
+  }
+) // this is generated at compile time - the / defaults to an alias see https://vitejs.dev/guide/features#glob-import-caveats
 
 
 const getRoutes = () => {
   return Object.fromEntries(Object.entries(modules).map(([key, value]) => {
-    const baseRoute = key.replace('../../src/app/', '')
+    const baseRoute = key.replace('/src/app/', '')
     const routeParts = baseRoute.split('/')
     routeParts.pop()
     const route = routeParts.join('')

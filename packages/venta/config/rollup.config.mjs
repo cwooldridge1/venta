@@ -20,7 +20,7 @@ const baseDir = path.resolve(process.cwd(), buildPath + '/app');
 
 
 const coreScript = {
-  input: `${parentDir}/routing.ts`,
+  input: `${parentDir}/src/routing.ts`,
   output: {
     dir: './dist',
     entryFileNames: 'core.js',
