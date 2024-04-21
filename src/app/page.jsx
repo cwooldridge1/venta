@@ -24,19 +24,19 @@ export function Home() {
     <Layout>
       <div>
         <h1>
-          Todos
+          Todosssss
         </h1>
         <input type="text" value={inputState} onInput={(e) => {
           inputState.setValue(e.target.value)
         }} />
 
         {inputState.value ?? (listState.value.length > 1 ? 'length greater than 1' : 'count is less than 2')}
-        <Button onClick={handleAddToList}>Add To List</Button>
+        <Button onClick={handleAddToList}>Add To Listttt</Button>
         <Button onClick={() => inputState.setValue(null)}>Set NUll</Button>
-        {inputState.value ?? <p>waiting for input</p>}
+        {inputState.value ?? <p>waiting for inputttttttttt</p>}
 
         <div style="margin-top: 20px;">
-          {todoCount.value === 0 ? <p>No todos yet</p> : <p>You have {todoCount} todos</p>}
+          {todoCount.value === 0 ? <p>No todos yetttt</p> : <p>You have {todoCount} todos</p>}
           {listState.value.map((todo) => (
             <div key={todo} style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #333; margin-top: 10px;">
               <p>{todo}</p>

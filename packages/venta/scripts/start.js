@@ -13,30 +13,44 @@ const baseDir = path.resolve(process.cwd(), 'src/app');
 
 async function startVite() {
   try {
-    await build(defineConfig({
+    const buildConfig = defineConfig({
       resolve: {
         alias: {
           '@': baseDir,
         }
       },
+      mode: 'development',
+      appType: 'spa',
+      build: {
+        rollupOptions: rollupConfig,
+        emptyOutDir: false,
+        minify: 'terser',
+        watch: { // https://vitejs.dev/config/server-options.html#server-watch
+          include: path.join(process.cwd(), '**/*'),
+          awaitWriteFinish: {
+            stabilityThreshold: 100,
+            pollInterval: 100
+          }
+        },
+      },
       esbuild: {
         jsxFactory: 'VentaInternal.renderVentaNode',
       },
-      build: {
-        rollupOptions: rollupConfig,
-      },
-    }));
+    })
+    await build(buildConfig);
 
-    const server = await createServer(defineConfig({
-      plugins: [],
+    const serverConfig = defineConfig({
       root: './dist',
       server: {
         port: DEFAULT_PORT,
         strictPort: false,
         host: HOST,
         open: false
-      },
-    }));
+      }
+    }
+    );
+
+    const server = await createServer(serverConfig);
 
     await server.listen();
     server.printUrls();
