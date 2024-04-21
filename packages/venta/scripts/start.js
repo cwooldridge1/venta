@@ -1,21 +1,25 @@
 #!/usr/bin/env node
 import { createServer, build } from 'vite';
 import { defineConfig } from 'vite';
-import rollupConfigs from '../config/rollup.config.mjs';
+import rollupConfig from '../config/rollup.config.mjs';
+import { warn } from 'console';
+import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 
 const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 async function startVite() {
   try {
-    const promisses = rollupConfigs.map(async (rollupConfig) => {
-      return await build(defineConfig({
-        build: {
-          rollupOptions: rollupConfig,
-        }
-      }));
-    })
-    await Promise.all(promisses);
+    await build(defineConfig({
+      plugins: [
+        dynamicImportVars({
+          errorWhenNoFilesFound: true
+        })
+      ],
+      build: {
+        rollupOptions: rollupConfig,
+      },
+    }));
 
     const server = await createServer(defineConfig({
       plugins: [],

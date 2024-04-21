@@ -11,7 +11,6 @@ import babelPresetVenta from 'babel-preset-venta';
 
 
 
-
 const buildPath = process.env.BUILD_PATH || 'src';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,54 +18,18 @@ const parentDir = path.join(__dirname, '..');
 
 const baseDir = path.resolve(process.cwd(), buildPath + '/app');
 
-const findRoutes = (dir = baseDir, prefix = '') => {
-  let entries = {};
-  fs.readdirSync(dir).forEach(file => {
-    const fullPath = path.join(dir, file);
-    if (fs.statSync(fullPath).isDirectory()) {
-      // Append the directory name to the prefix for the next level of recursion
-      const subEntries = findRoutes(fullPath, prefix + file + '/');
-      entries = { ...entries, ...subEntries };
-    } else if (file.startsWith("page") && /\.(js|jsx|ts|tsx)$/.test(file)) {
-      // Determine the entry name, removing 'page' if it's the file name, to represent the directory route
-      let name = path.basename(file, path.extname(file));
-      // If the file is named 'page', use the directory name as the route
-      if (name === 'page') {
-        name = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
-      } else {
-        name = prefix + name; // Use file name for non-'page' files
-      }
 
-      const key = '/' + name.replace(/^\//, '');
-      entries[key] = fullPath;
-    }
-  });
-  return entries;
-};
-
-const entries = findRoutes();
-
-// Generate input options for Rollup
-const inputOptions = {};
-Object.keys(entries).forEach(key => {
-  const entryKey = key.startsWith('/') ? key.slice(1) : key; // Remove leading slash
-  inputOptions[entryKey] = entries[key];
-});
-
-
-const mainConfig = {
-  input: inputOptions,
-  output: [
-    {
-      dir: './dist',
-      format: 'es',
-      entryFileNames: '[name].js',
-    },
-  ],
-  preserveEntrySignatures: 'allow-extension', // if this is not here then the default exports of the pages are lost -- https://rollupjs.org/configuration-options/#preserveentrysignatures
+const coreScript = {
+  input: `${parentDir}/routing.ts`,
+  output: {
+    dir: './dist',
+    entryFileNames: 'core.js',
+    format: 'iife', // this means it will be a self-executing function
+  },
+  logLevel: 'error',
   plugins: [
-    resolve(), // Resolve node modules
-    commonjs(), // Convert CommonJS modules to ES6
+    resolve(),
+    commonjs(),
     typescript({
       tsconfig: `${parentDir}/tsconfig.json`
     }),
@@ -74,6 +37,7 @@ const mainConfig = {
       babelHelpers: 'bundled',
       presets: [babelPresetVenta],
     }),
+    terser(),
     html({
       template: () => {
         return `
@@ -91,33 +55,10 @@ const mainConfig = {
 `;
       },
       fileName: 'index.html',
-      minify: true,
     }),
   ],
-  external: [],
 
 };
 
-const coreScript = {
-  input: `${parentDir}/routing.ts`,
-  output: {
-    dir: './dist',
-    entryFileNames: 'core.js',
-    format: 'iife', // this means it will be a self-executing function
-  },
-  plugins: [
-    resolve(),
-    commonjs(),
-    typescript({
-      tsconfig: `${parentDir}/tsconfig.json`
-    }),
-    babel({
-      babelHelpers: 'bundled',
-      presets: [babelPresetVenta],
-    }),
-    terser()
-  ],
-};
 
-
-export default [mainConfig, coreScript]
+export default coreScript
