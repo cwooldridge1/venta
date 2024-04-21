@@ -4,19 +4,14 @@ import typescript from '@rollup/plugin-typescript';
 import { babel } from '@rollup/plugin-babel';
 import html from '@rollup/plugin-html';
 import path from 'path';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { terser } from 'rollup-plugin-terser';
 import babelPresetVenta from 'babel-preset-venta';
 
 
-
-const buildPath = process.env.BUILD_PATH || 'src';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const parentDir = path.join(__dirname, '..');
-
-const baseDir = path.resolve(process.cwd(), buildPath + '/app');
 
 
 const coreScript = {

@@ -2,9 +2,7 @@
 import { createServer, build } from 'vite';
 import { defineConfig } from 'vite';
 import rollupConfig from '../config/rollup.config.mjs';
-import { warn } from 'console';
 import path from 'path';
-//import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 
 const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -20,6 +18,9 @@ async function startVite() {
         alias: {
           '@': baseDir,
         }
+      },
+      esbuild: {
+        jsxFactory: 'VentaInternal.renderVentaNode',
       },
       build: {
         rollupOptions: rollupConfig,
