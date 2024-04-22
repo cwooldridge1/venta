@@ -19,6 +19,13 @@ async function startVite() {
           '@': baseDir,
         }
       },
+      css: {
+        modules: {
+          scopeBehaviour: 'local', // default is 'local'
+          globalModulePaths: [/global\.css$/], // styles in files matching this pattern will be treated as global
+          generateScopedName: '[name]__[local]___[hash:base64:5]', // custom format for generated class names
+        }
+      },
       mode: 'development',
       appType: 'spa',
       build: {
@@ -37,7 +44,7 @@ async function startVite() {
         jsxFactory: 'VentaInternal.renderVentaNode',
       },
     })
-    await build(buildConfig);
+    build(buildConfig);
 
     const serverConfig = defineConfig({
       root: './dist',
@@ -50,10 +57,11 @@ async function startVite() {
     }
     );
 
-    const server = await createServer(serverConfig);
+    // const server = await createServer(serverConfig);
+    //
+    // await server.listen();
+    // server.printUrls();
 
-    await server.listen();
-    server.printUrls();
   } catch (err) {
     console.error('Failed to start the server:', err);
     process.exit(1);
