@@ -13,7 +13,8 @@ const baseDir = path.resolve(process.cwd(), 'src/app');
 
 async function startVite() {
   try {
-    const buildConfig = defineConfig({
+
+    const baseBuild = {
       resolve: {
         alias: {
           '@': baseDir,
@@ -21,8 +22,8 @@ async function startVite() {
       },
       css: {
         modules: {
-          scopeBehaviour: 'local', // default is 'local'
-          globalModulePaths: [/global\.css$/], // styles in files matching this pattern will be treated as global
+          scopeBehaviour: 'local',
+          globalModulePaths: [/global\.css$/],
           generateScopedName: '[name]__[local]___[hash:base64:5]', // custom format for generated class names
         }
       },
@@ -32,19 +33,32 @@ async function startVite() {
         rollupOptions: rollupConfig,
         emptyOutDir: false,
         minify: 'terser',
-        watch: { // https://vitejs.dev/config/server-options.html#server-watch
+      },
+      esbuild: {
+        jsxFactory: 'VentaInternal.renderVentaNode',
+      },
+    }
+
+    await build(defineConfig(baseBuild))
+
+    // this allows to watch the files and rebuild on change 
+    const watchBuildConfig = {
+      ...baseBuild, build: {
+        ...baseBuild.build, watch: {
+          // https://vitejs.dev/config/build-options.html#build-watch
           include: path.join(process.cwd(), '**/*'),
           awaitWriteFinish: {
             stabilityThreshold: 100,
             pollInterval: 100
           }
         },
-      },
-      esbuild: {
-        jsxFactory: 'VentaInternal.renderVentaNode',
-      },
-    })
-    build(buildConfig);
+      }
+    }
+
+    // we also need this because this is not actually able to be
+    // awaited but we need it to the watch the files once the server is running
+    build(defineConfig(watchBuildConfig));
+
 
     const serverConfig = defineConfig({
       root: './dist',
@@ -54,13 +68,12 @@ async function startVite() {
         host: HOST,
         open: false
       }
-    }
-    );
+    });
 
-    // const server = await createServer(serverConfig);
-    //
-    // await server.listen();
-    // server.printUrls();
+    const server = await createServer(serverConfig);
+
+    await server.listen();
+    server.printUrls();
 
   } catch (err) {
     console.error('Failed to start the server:', err);
