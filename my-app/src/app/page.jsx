@@ -1,5 +1,5 @@
+import { RootLayout } from './components/layout.jsx';
 import styles from "./page.module.css";
-import { RootLayout } from './components/layout.jsx'
 
 export default function Home() {
   return (
@@ -8,7 +8,7 @@ export default function Home() {
         <div className={styles.description}>
           <p>
             Get started by editing&nbsp;
-            <code className={styles.code}>app/page.js</code>
+            <code className={styles.code}>app/page.tsx</code>
           </p>
           <div>
             <a
@@ -16,28 +16,12 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              By{" "}Venta
-              {/* <Image */}
-              {/*   src="/vercel.svg" */}
-              {/*   alt="Vercel Logo" */}
-              {/*   className={styles.vercelLogo} */}
-              {/*   width={100} */}
-              {/*   height={24} */}
-              {/*   priority */}
-              {/* /> */}
+              By{" "}
             </a>
           </div>
         </div>
 
         <div className={styles.center}>
-          {/* <img */}
-          {/*   className={styles.logo} */}
-          {/*   src="/next.svg" */}
-          {/*   alt="Next.js Logo" */}
-          {/*   width={180} */}
-          {/*   height={37} */}
-          {/*   priority */}
-          {/* /> */}
         </div>
 
         <div className={styles.grid}>

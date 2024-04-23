@@ -3,6 +3,12 @@ import { createServer, build } from 'vite';
 import { defineConfig } from 'vite';
 import rollupConfig from '../config/rollup.config.mjs';
 import path from 'path';
+import glob from 'glob';
+import { fileURLToPath } from 'url';
+import { getPostCssConfig, getTailwindConfig } from '../config/utils/load-config.js';
+import postcss from 'rollup-plugin-postcss';
+import autoprefixer from 'autoprefixer';
+import tailwindcss from 'tailwindcss';
 
 const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -15,16 +21,15 @@ async function startVite() {
   try {
 
     const baseBuild = {
+      css: {
+        modules: {
+          generateScopedName: '[name]__[local]___[hash:base64:5]',
+          hashPrefix: 'venta'
+        },
+      },
       resolve: {
         alias: {
           '@': baseDir,
-        }
-      },
-      css: {
-        modules: {
-          scopeBehaviour: 'local',
-          globalModulePaths: [/global\.css$/],
-          generateScopedName: '[name]__[local]___[hash:base64:5]', // custom format for generated class names
         }
       },
       mode: 'development',

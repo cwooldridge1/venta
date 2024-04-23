@@ -1,14 +1,13 @@
-import styles from "./page.module.css";
-import { RootLayout } from './components/layout.jsx'
+import { RootLayout } from './components/layout.jsx';
 
 export default function Home() {
   return (
     <RootLayout>
-      <main className={styles.main}>
-        <div className={styles.description}>
+      <main className="main">
+        <div className="description">
           <p>
             Get started by editing&nbsp;
-            <code className={styles.code}>app/page.js</code>
+            <code className="code">app/page.js</code>
           </p>
           <div>
             <a
@@ -16,34 +15,18 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              By{" "}Venta
-              {/* <Image */}
-              {/*   src="/vercel.svg" */}
-              {/*   alt="Vercel Logo" */}
-              {/*   className={styles.vercelLogo} */}
-              {/*   width={100} */}
-              {/*   height={24} */}
-              {/*   priority */}
-              {/* /> */}
+              By Venta
             </a>
           </div>
         </div>
 
-        <div className={styles.center}>
-          {/* <img */}
-          {/*   className={styles.logo} */}
-          {/*   src="/next.svg" */}
-          {/*   alt="Next.js Logo" */}
-          {/*   width={180} */}
-          {/*   height={37} */}
-          {/*   priority */}
-          {/* /> */}
+        <div className="center">
         </div>
 
-        <div className={styles.grid}>
+        <div className="grid">
           <a
             href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            className={styles.card}
+            className="card"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -55,19 +38,19 @@ export default function Home() {
 
           <a
             href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            className={styles.card}
+            className="card"
             target="_blank"
             rel="noopener noreferrer"
           >
             <h2>
               Learn <span>-&gt;</span>
             </h2>
-            <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
+            <p>Learn about Next.js in an interactive course with quizzes!</p>
           </a>
 
           <a
             href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            className={styles.card}
+            className="card"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -79,7 +62,7 @@ export default function Home() {
 
           <a
             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            className={styles.card}
+            className="card"
             target="_blank"
             rel="noopener noreferrer"
           >

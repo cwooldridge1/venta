@@ -46,9 +46,13 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/jest": "^29.5.12",
+    "autoprefixer": "^10.4.19",
     "babel-preset-venta": "file:../babel-preset-venta",
     "jest-environment-jsdom": "^29.7.0",
-    "rollup-plugin-terser": "^7.0.2"
+    "postcss-preset-env": "^9.5.9",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "tailwindcss": "^3.4.3"
   },
   "dependencies": {
     "vite": "^5.2.10"

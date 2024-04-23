@@ -14,6 +14,7 @@ const __dirname = path.dirname(__filename);
 const parentDir = path.join(__dirname, '..');
 
 
+
 const coreScript = {
   input: `${parentDir}/src/routing.ts`,
   output: {
@@ -21,7 +22,6 @@ const coreScript = {
     entryFileNames: 'core.js',
     format: 'iife', // this means it will be a self-executing function
   },
-  logLevel: 'error',
   plugins: [
     resolve(),
     commonjs(),
@@ -34,13 +34,17 @@ const coreScript = {
     }),
     terser(),
     html({
-      template: () => {
+      template: ({ files }) => {
+        const styles = files.css ? files.css.map(({ fileName }) => `<link rel='stylesheet' href='${fileName}' />`).join('\n') : '';
+        console.log('styles', styles)
+
         return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    ${styles}
     <title>Your Application</title>
 </head>
 <body id='root'>

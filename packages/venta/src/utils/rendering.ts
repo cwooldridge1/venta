@@ -85,6 +85,9 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
       const eventName = key.substring(2).toLowerCase();
       elem.addEventListener(eventName, value);
     } else {
+      if (key === 'className') {
+        key = 'class'
+      }
       if (value instanceof VentaState) {
         dependentStates.add(value)
         elem.setAttribute(key, value.value);
