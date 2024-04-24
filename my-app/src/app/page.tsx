@@ -1,4 +1,4 @@
-import { RootLayout } from '~/app/components/layout.jsx';
+import { RootLayout } from './components/layout.tsx';
 import styles from "./page.module.css";
 
 export default function Home() {

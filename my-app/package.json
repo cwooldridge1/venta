@@ -1,5 +1,5 @@
 {
-  "name": "hello",
+  "name": "my-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,5 +9,8 @@
   },
   "dependencies": {
     "venta": "file:packages/venta"
+  },
+  "devDependencies": {
+    "typescript": "^5"
   }
 }

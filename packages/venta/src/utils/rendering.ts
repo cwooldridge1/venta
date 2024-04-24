@@ -1,4 +1,4 @@
-import { type Props, type VentaNode, type NodeTypes } from "../types"
+import { type Props, type VentaNodeState, type NodeTypes, VentaNode } from "../types"
 import { VentaAppState, VentaState } from '../state'
 const
   { componentReferenceMap, incrementConditionalId, elementMap, stateMap, getConditionalId, conditionalReferenceMap, conditionalMap, getComponentId, incrementComponentId, componentStateMap } = VentaAppState
@@ -9,14 +9,14 @@ export const renderTextNode = (value: VentaState<any> | string) => {
   if (value instanceof VentaState) {
     node = document.createTextNode(value.value)
     value.addElement(node)
-    const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+    const stateRef: VentaNodeState = { element: node, attributeState: {}, childState: {} }
     stateRef.childState[value.getId()] = []
     stateRef.childState[value.getId()].push([0, value])
     elementMap.set(node, stateRef)
   }
   else {
     node = document.createTextNode(value as string)
-    const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+    const stateRef: VentaNodeState = { element: node, attributeState: {}, childState: {} }
     elementMap.set(node, stateRef)
   }
 
@@ -46,14 +46,14 @@ export const renderFineTunedResponsiveNode = (root: any, accessPaths: string[]) 
   if (lastState) {
     node = document.createTextNode(lastValue)
     lastState.addElement(node)
-    const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+    const stateRef: VentaNodeState = { element: node, attributeState: {}, childState: {} }
     stateRef.childState[lastState.getId()] = []
     stateRef.childState[lastState.getId()].push([0, lastState])
     elementMap.set(node, stateRef)
   }
   else {
     node = document.createTextNode(lastValue)
-    const stateRef: VentaNode = { element: node, attributeState: {}, childState: {} }
+    const stateRef: VentaNodeState = { element: node, attributeState: {}, childState: {} }
     elementMap.set(node, stateRef)
   }
 
@@ -62,12 +62,12 @@ export const renderFineTunedResponsiveNode = (root: any, accessPaths: string[]) 
 
 export const createAnchor = (meta: string) => {
   const anchor: NodeTypes = document.createComment(meta)
-  const stateRef: VentaNode = { element: anchor, attributeState: {}, childState: {} }
+  const stateRef: VentaNodeState = { element: anchor, attributeState: {}, childState: {} }
   elementMap.set(anchor, stateRef)
   return anchor
 }
 
-export const renderVentaNode = (type: any, props: Props, ...children: any[]) => {
+export const renderVentaNode = (type: string | Function, props: Props, ...children: VentaNode[]) => {
   if (typeof type === 'function') {
     incrementComponentId()
     const componentId = getComponentId()
@@ -77,7 +77,7 @@ export const renderVentaNode = (type: any, props: Props, ...children: any[]) => 
     return component
   }
   const elem = document.createElement(type);
-  const stateRef: VentaNode = { element: elem, attributeState: {}, childState: {} }
+  const stateRef: VentaNodeState = { element: elem, attributeState: {}, childState: {} }
   const dependentStates = new Set<VentaState<any>>();
 
   for (let [key, value] of Object.entries(props || {})) {
