@@ -8,11 +8,11 @@ export default function Home() {
         <a href='https://ventajs.dev/docs' target='_blank' rel='noreferrer'>
           <button className={styles.button}>
             View Documentation
-            <span className={styles.icon}/>
+            <span className={styles.icon} />
           </button>
         </a>
         <div>
-          <div className={styles.radialGradientOverlay}/>
+          <div className={styles.radialGradientOverlay} />
           <p className={styles.radialGradientText}>
             Venta.js
           </p>

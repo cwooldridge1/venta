@@ -29,22 +29,6 @@
   font-family: var(--font-mono);
 }
 
-.header {
-    align-items: center;
-    inset: 0 0 auto;
-    padding: 2rem 1rem 1.4rem;
-    border-radius: 0;
-    border: none;
-    border-bottom: 1px solid rgba(var(--callout-border-rgb), 0.25);
-    background: linear-gradient(
-      to bottom,
-      rgba(var(--background-start-rgb), 1),
-      rgba(var(--callout-rgb), 0.5)
-    );
-    background-clip: padding-box;
-    backdrop-filter: blur(24px);
-  }
-
 .radialGradientOverlay {
   position: absolute;
   top: 0;
@@ -65,17 +49,16 @@
   @media (min-width: 640px) {
     font-size: 5rem;
   }
-  font-weight: bold;
+  font-family: "Cinzel", serif;
   position: relative;
   z-index: 20;
   background-clip: text;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   color: transparent;
-  background-image: linear-gradient(to bottom, #fafafa, #aab5ab);
+  background-image: linear-gradient(to bottom, #fafafa, #aab83a);
   padding: 2rem;
   filter: drop-shadow(2px 80px 40px rgba(255, 255, 255, 0.30));
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 }
 
 
