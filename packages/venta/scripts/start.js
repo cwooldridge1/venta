@@ -5,10 +5,6 @@ import rollupConfig from '../config/rollup.config.mjs';
 import path from 'path';
 import glob from 'glob';
 import { fileURLToPath } from 'url';
-import { getPostCssConfig, getTailwindConfig } from '../config/utils/load-config.js';
-import postcss from 'rollup-plugin-postcss';
-import autoprefixer from 'autoprefixer';
-import tailwindcss from 'tailwindcss';
 
 const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
