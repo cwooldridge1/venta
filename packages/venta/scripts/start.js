@@ -3,15 +3,17 @@ import { createServer, build } from 'vite';
 import { defineConfig } from 'vite';
 import rollupConfig from '../config/rollup.config.mjs';
 import path from 'path';
-import glob from 'glob';
-import { fileURLToPath } from 'url';
+import { getDefaultImportAlias } from '../config/utils/get-config.js';
+import { DEFAULT_IMPORT_ALIAS } from '../constants.js';
+
+
 
 const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 
-const baseDir = path.resolve(process.cwd(), 'src/app');
 
+const alias = getDefaultImportAlias(process.cwd()) || DEFAULT_IMPORT_ALIAS
 
 async function startVite() {
   try {
@@ -24,9 +26,7 @@ async function startVite() {
         },
       },
       resolve: {
-        alias: {
-          '@': baseDir,
-        }
+        alias
       },
       mode: 'development',
       appType: 'spa',
@@ -63,6 +63,7 @@ async function startVite() {
 
     const serverConfig = defineConfig({
       root: './dist',
+      mode: 'development',
       server: {
         port: DEFAULT_PORT,
         strictPort: false,

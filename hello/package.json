@@ -1,5 +1,5 @@
 {
-  "name": "my-app",
+  "name": "hello",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,8 +9,5 @@
   },
   "dependencies": {
     "venta": "file:packages/venta"
-  },
-  "devDependencies": {
-    "eslint": "^8"
   }
 }

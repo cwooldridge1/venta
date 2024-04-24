@@ -14,10 +14,8 @@ export interface InstallTemplateArgs {
   root: string;
   packageManager: PackageManager;
   isOnline: boolean;
-
   template: TemplateType;
   mode: TemplateMode;
-  eslint: boolean;
   tailwind: boolean;
   importAlias: string;
 }

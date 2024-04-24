@@ -47,9 +47,6 @@ Options:
 
     Initialize with Tailwind CSS config. (default)
 
-  --eslint
-
-    Initialize with ESLint config.
 
   --import-alias <alias-to-configure>
 

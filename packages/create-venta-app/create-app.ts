@@ -18,14 +18,12 @@ export async function createApp({
   packageManager,
   typescript,
   tailwind,
-  eslint,
   importAlias,
 }: {
   appPath: string
   packageManager: PackageManager
   typescript: boolean
   tailwind: boolean
-  eslint: boolean
   importAlias: string
 }): Promise<void> {
   const mode: TemplateMode = typescript ? 'ts' : 'js'
@@ -72,7 +70,6 @@ export async function createApp({
     packageManager,
     isOnline,
     tailwind,
-    eslint,
     importAlias,
   })
 

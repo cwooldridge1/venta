@@ -65,13 +65,6 @@ const program = new Commander.Command(packageJson.name)
 `
   )
   .option(
-    '--eslint',
-    `
-
-  Initialize with eslint config.
-`
-  )
-  .option(
     '--import-alias <alias-to-configure>',
     `
 
@@ -211,7 +204,6 @@ async function run(): Promise<void> {
   if (!example) {
     const defaults: typeof preferences = {
       typescript: true,
-      eslint: true,
       tailwind: true,
       importAlias: '@/*',
       customizeImportAlias: false,
@@ -255,27 +247,6 @@ async function run(): Promise<void> {
       }
     }
 
-    if (
-      !process.argv.includes('--eslint') &&
-      !process.argv.includes('--no-eslint')
-    ) {
-      if (ciInfo.isCI) {
-        program.eslint = getPrefOrDefault('eslint')
-      } else {
-        const styledEslint = blue('ESLint')
-        const { eslint } = await prompts({
-          onState: onPromptState,
-          type: 'toggle',
-          name: 'eslint',
-          message: `Would you like to use ${styledEslint}?`,
-          initial: getPrefOrDefault('eslint'),
-          active: 'Yes',
-          inactive: 'No',
-        })
-        program.eslint = Boolean(eslint)
-        preferences.eslint = Boolean(eslint)
-      }
-    }
 
     if (
       !process.argv.includes('--tailwind') &&
@@ -351,7 +322,6 @@ async function run(): Promise<void> {
       packageManager,
       typescript: program.typescript,
       tailwind: program.tailwind,
-      eslint: program.eslint,
       importAlias: program.importAlias,
     })
   } catch (reason) {
@@ -376,7 +346,6 @@ async function run(): Promise<void> {
       appPath: resolvedProjectPath,
       packageManager,
       typescript: program.typescript,
-      eslint: program.eslint,
       tailwind: program.tailwind,
       importAlias: program.importAlias,
     })
