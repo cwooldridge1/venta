@@ -1,4 +1,4 @@
-import { RootLayout } from './components/layout.jsx';
+import { RootLayout } from './components/layout.js';
 
 export default function Home() {
   return (
@@ -23,7 +23,7 @@ export default function Home() {
             <p>
               Change this page by editing {' '}
               <code className="bg-gray-50 rounded mx-2 px-2 text-gray-800 inline-block my-4 font-mono">
-                app/page.jsx
+                app/page.tsx
               </code>
             </p>
           </div>
