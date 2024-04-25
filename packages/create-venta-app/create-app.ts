@@ -28,7 +28,7 @@ export async function createApp({
 }): Promise<void> {
   const mode: TemplateMode = typescript ? 'ts' : 'js'
   const template: TemplateType = tailwind
-    ? 'default-tw'
+    ? 'tw'
     : 'default'
 
 

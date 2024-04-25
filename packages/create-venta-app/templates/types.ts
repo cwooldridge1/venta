@@ -1,6 +1,6 @@
 import { PackageManager } from "../helpers/get-pkg-manager";
 
-export type TemplateType = "default" | "default-tw";
+export type TemplateType = "default" | "tw";
 export type TemplateMode = "js" | "ts";
 
 export interface GetTemplateFileArgs {

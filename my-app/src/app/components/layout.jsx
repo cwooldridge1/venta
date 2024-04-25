@@ -1,7 +1,6 @@
 import "../globals.css";
-import { VentaNode } from "venta";
 
-export function RootLayout({ children }: { children: VentaNode }) {
+export function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>{children}</body>
