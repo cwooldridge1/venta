@@ -37,8 +37,7 @@ const coreScript = {
         const styles = files.css ? files.css.map(({ fileName }) => `<link rel='stylesheet' href='${fileName}' />`).join('\n') : '';
         console.log('styles', styles)
 
-        return `
-<!DOCTYPE html>
+        return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
