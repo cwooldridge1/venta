@@ -481,7 +481,6 @@ module.exports = function(babel) {
             path.node,
           ),
           getRootObject(path.get('callee').node.object),
-          ...Array.from(identifiers)
         ],
       )
     );

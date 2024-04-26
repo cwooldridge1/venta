@@ -1,7 +1,6 @@
 import { getSharedState } from "../utils/enviroment-helpers";
-import type { VentaState } from '../types'
 
-const useMemo = (callback: () => any, dependencies: VentaState<any>[]) => {
+const useMemo = <T>(callback: () => T, dependencies: Venta.DependencyList) => {
   const { VentaMemoState: Memo, VentaState: State } = getSharedState().VentaAppState
 
   const state = new Memo(callback(), callback)

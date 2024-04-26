@@ -1,22 +1,21 @@
-import { type Props, type VentaNodeState, type NodeTypes, VentaNode } from "../types"
 import { VentaAppState, VentaState } from '../state'
 const
   { componentReferenceMap, incrementConditionalId, elementMap, stateMap, getConditionalId, conditionalReferenceMap, conditionalMap, getComponentId, incrementComponentId, componentStateMap } = VentaAppState
 
-export const renderTextNode = (value: VentaState<any> | string) => {
-  let node;
+export const renderTextNode = (value: Venta.VentaState<any> | string) => {
+  let node: Text;
 
   if (value instanceof VentaState) {
     node = document.createTextNode(value.value)
     value.addElement(node)
-    const stateRef: VentaNodeState = { element: node, attributeState: {}, childState: {} }
+    const stateRef: Venta.VentaNodeState = { element: node, attributeState: {}, childState: {} }
     stateRef.childState[value.getId()] = []
-    stateRef.childState[value.getId()].push([0, value])
+    stateRef.childState[value.getId()].push([0, value as Venta.VentaState<any>])
     elementMap.set(node, stateRef)
   }
   else {
     node = document.createTextNode(value as string)
-    const stateRef: VentaNodeState = { element: node, attributeState: {}, childState: {} }
+    const stateRef: Venta.VentaNodeState = { element: node, attributeState: {}, childState: {} }
     elementMap.set(node, stateRef)
   }
 
@@ -29,7 +28,7 @@ export const renderTextNode = (value: VentaState<any> | string) => {
  * */
 export const renderFineTunedResponsiveNode = (root: any, accessPaths: string[]) => {
   let lastState: VentaState<any> | undefined;
-  let node;
+  let node: Venta.VentaNode;
 
   if (root instanceof VentaState) {
     lastState = root;
@@ -46,14 +45,14 @@ export const renderFineTunedResponsiveNode = (root: any, accessPaths: string[]) 
   if (lastState) {
     node = document.createTextNode(lastValue)
     lastState.addElement(node)
-    const stateRef: VentaNodeState = { element: node, attributeState: {}, childState: {} }
+    const stateRef: Venta.VentaNodeState = { element: node, attributeState: {}, childState: {} }
     stateRef.childState[lastState.getId()] = []
     stateRef.childState[lastState.getId()].push([0, lastState])
     elementMap.set(node, stateRef)
   }
   else {
     node = document.createTextNode(lastValue)
-    const stateRef: VentaNodeState = { element: node, attributeState: {}, childState: {} }
+    const stateRef: Venta.VentaNodeState = { element: node, attributeState: {}, childState: {} }
     elementMap.set(node, stateRef)
   }
 
@@ -61,13 +60,13 @@ export const renderFineTunedResponsiveNode = (root: any, accessPaths: string[]) 
 }
 
 export const createAnchor = (meta: string) => {
-  const anchor: NodeTypes = document.createComment(meta)
-  const stateRef: VentaNodeState = { element: anchor, attributeState: {}, childState: {} }
+  const anchor: Venta.NodeTypes = document.createComment(meta)
+  const stateRef: Venta.VentaNodeState = { element: anchor, attributeState: {}, childState: {} }
   elementMap.set(anchor, stateRef)
   return anchor
 }
 
-export const renderVentaNode = (type: string | Function, props: Props, ...children: VentaNode[]) => {
+export const renderVentaNode = (type: string | Function, props: Venta.Props, ...children: Venta.VentaNode[]) => {
   if (typeof type === 'function') {
     incrementComponentId()
     const componentId = getComponentId()
@@ -77,7 +76,7 @@ export const renderVentaNode = (type: string | Function, props: Props, ...childr
     return component
   }
   const elem = document.createElement(type);
-  const stateRef: VentaNodeState = { element: elem, attributeState: {}, childState: {} }
+  const stateRef: Venta.VentaNodeState = { element: elem, attributeState: {}, childState: {} }
   const dependentStates = new Set<VentaState<any>>();
 
   for (let [key, value] of Object.entries(props || {})) {
@@ -130,8 +129,8 @@ export const renderVentaNode = (type: string | Function, props: Props, ...childr
 }
 
 
-const cache = new Map<string, NodeTypes>();
-const inverseCache = new Map<NodeTypes, string>();
+const cache = new Map<string, Venta.NodeTypes>();
+const inverseCache = new Map<Venta.NodeTypes, string>();
 
 let callCount = 0;
 /*
@@ -143,7 +142,7 @@ export const renderConditional = (
   contentIfTrue: (() => HTMLElement | Text),
   contentIfFalse: (() => HTMLElement | Text),
   id: number
-): NodeTypes => {
+): Venta.NodeTypes => {
   const testValue = test();
   const key = `${id}-${testValue}`
 
@@ -163,7 +162,7 @@ export const renderConditional = (
 };
 
 
-const handleComponentUnmount = (componentId: number, element: NodeTypes) => {
+const handleComponentUnmount = (componentId: number, element: Venta.NodeTypes) => {
   const { state, unmountCallbacks } = componentStateMap.get(componentId)!
   state.forEach(state => state.destroy())
   unmountCallbacks.forEach(callback => callback())
@@ -177,7 +176,7 @@ const handleComponentUnmount = (componentId: number, element: NodeTypes) => {
   componentReferenceMap.delete(element)
 }
 
-const handleUnmountConditional = (element: NodeTypes) => {
+const handleUnmountConditional = (element: Venta.NodeTypes) => {
   const conditionalId = conditionalReferenceMap.get(element)
   if (!conditionalId) return
   const cleanUp = conditionalMap.get(conditionalId)
@@ -186,7 +185,7 @@ const handleUnmountConditional = (element: NodeTypes) => {
   conditionalReferenceMap.delete(element)
 }
 
-export const handleUnmountElement = (element: NodeTypes, remove: boolean = true) => {
+export const handleUnmountElement = (element: Venta.NodeTypes, remove: boolean = true) => {
   const componentId = componentReferenceMap.get(element)
   if (componentId !== undefined) {
     handleComponentUnmount(componentId, element)
@@ -222,15 +221,15 @@ export const handleUnmountElement = (element: NodeTypes, remove: boolean = true)
 
 export const registerConditional = (
   test: () => any,
-  contentIfTrue: (() => NodeTypes),
-  contentIfFalse: (() => NodeTypes),
+  contentIfTrue: (() => Venta.NodeTypes),
+  contentIfFalse: (() => Venta.NodeTypes),
   ...deps: Array<VentaState<any> | any>
-): NodeTypes => {
+): Venta.NodeTypes => {
   const id = getConditionalId();
-  let lastContent: NodeTypes;
-  let localCache = new Map<boolean, NodeTypes>();
+  let lastContent: Venta.NodeTypes;
+  let localCache = new Map<boolean, Venta.NodeTypes>();
 
-  const handleNodeDeletion = (elem: NodeTypes) => {
+  const handleNodeDeletion = (elem: Venta.NodeTypes) => {
     const componentId = componentReferenceMap.get(elem)
     if (componentId !== undefined) {
       handleComponentUnmount(componentId, elem)
@@ -317,11 +316,10 @@ export const registerConditional = (
 * render loop is used for rendering a list of elements. It will keep track of the elements and update them as needed
 * @param func: a function that returns an array of html elements
 * @param iterable: is the itterable that the func is based off of 
-* @deps are any other dependency that is used in the loop
  */
-export const renderLoop = (func: () => Array<NodeTypes>, iterable: VentaState<any> | any[], ...deps: any[]) => {
+export const renderLoop = (func: () => Array<Venta.NodeTypes>, iterable: Venta.VentaState<any[]> | any[]) => {
   let lastContent = func();
-  let initialContent: NodeTypes | NodeTypes[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
+  let initialContent: Venta.NodeTypes | Venta.NodeTypes[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
   let parent: ParentNode;
   let parentListStartIndex: number;
 

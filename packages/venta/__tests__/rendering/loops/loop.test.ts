@@ -1,7 +1,9 @@
 import { describe, expect, it, beforeAll } from 'vitest'
-import { VentaState, useState } from "../../../src"
+import { useState } from "../../../src"
 import { componentReferenceMap, componentStateMap, conditionalMap, conditionalReferenceMap, elementMap } from "../../../src/state";
 import { registerConditional, renderLoop, renderVentaNode } from "../../../src/utils";
+
+type VentaState<T> = Venta.VentaState<T>
 
 const isLoopedRenderCorrect = ((parent: Element, arr: Array<any>, checkContent: boolean = true) => {
   if (!parent.children.length) return
@@ -196,7 +198,7 @@ describe('loop with with stateful child variables - dep check', () => {
     count = useState(0)
     elementMap.clear()
     const func = () => arr.value.map((item: number) => renderVentaNode('div', { key: item }, count))
-    elements = renderLoop(func, arr, count) as HTMLElement[]
+    elements = renderLoop(func, arr) as HTMLElement[]
 
     parent = document.createElement('div')
     parent.append(...elements)

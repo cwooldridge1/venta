@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 import { describe, expect, it, beforeAll } from 'vitest'
 import {
   elementMap,
@@ -10,7 +6,10 @@ import {
   registerConditional,
   renderTextNode,
 } from '../../../src/utils';
-import { NodeTypes, useState, VentaState } from '../../../src';
+import { useState } from '../../../src';
+
+type NodeTypes = Venta.NodeTypes
+type VentaState<T> = Venta.VentaState<T>
 
 
 describe('conditional jsx render with text nodes', () => {
@@ -24,7 +23,11 @@ describe('conditional jsx render with text nodes', () => {
     const trueContent = () => renderTextNode('Count is Greater than 2');
     const falseContent = () => renderTextNode(count);
 
+    const parent = document.createElement('div');
+
     element = registerConditional(test, trueContent, falseContent, count) as Text
+
+    parent.appendChild(element);
   });
 
   it('should render the correct conditional initially', () => {

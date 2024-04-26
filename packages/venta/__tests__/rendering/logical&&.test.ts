@@ -8,7 +8,10 @@ import {
   renderVentaNode,
 } from '../../src/utils';
 
-import { NodeTypes, useState, VentaState } from '../../src';
+import { useState } from '../../src';
+type VentaState<T> = Venta.VentaState<T>
+type NodeTypes = Venta.NodeTypes
+
 
 describe('Venta functions', () => {
 

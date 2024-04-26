@@ -1,13 +1,3 @@
-import { useState, useEffect, useMemo } from './hooks';
-export * from './types';
-export * from './components';
+export * from './hooks/index';
+export * from './components/index';
 
-export { useState, useEffect, useMemo };
-
-const Venta = {
-  useState,
-  useEffect,
-  useMemo,
-};
-
-export default Venta;

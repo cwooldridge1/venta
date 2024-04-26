@@ -7,7 +7,7 @@ export function isServerEnvironment() {
 export const getSharedState = () => {
   const isServer = isServerEnvironment();
   return {
-    VentaInternal: isServer ? VentaInternal : window.VentaInternal as typeof VentaInternal,
-    VentaAppState: isServer ? VentaAppState : window.VentaAppState as typeof VentaAppState
+    VentaInternal: isServer ? VentaInternal : window.VentaInternal,
+    VentaAppState: isServer ? VentaAppState : window.VentaAppState
   }
 }

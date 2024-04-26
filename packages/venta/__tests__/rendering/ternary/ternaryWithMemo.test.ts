@@ -6,7 +6,10 @@ import {
   registerConditional,
   renderVentaNode,
 } from '../../../src/utils';
-import { useMemo, useState, VentaState } from '../../../src';
+import { useMemo, useState } from '../../../src';
+
+type VentaState<T> = Venta.VentaState<T>
+
 
 
 describe('conditional jsx render', () => {

@@ -9,8 +9,11 @@ import {
   renderVentaNode,
   renderConditional,
 } from '../../../src/utils';
-import { useState, VentaState, Props, useEffect } from '../../../src';
+import { useState, useEffect } from '../../../src';
 
+
+type VentaState<T> = Venta.VentaState<T>
+type Props = Venta.Props
 
 const Component = ({ children }: Props) => {
   const state = useState(0);

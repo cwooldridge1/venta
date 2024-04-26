@@ -7,7 +7,9 @@ import {
   renderConditional,
   renderVentaNode,
 } from '../../../src/utils';
-import { useState, VentaState } from '../../../src';
+import { useState } from '../../../src';
+
+type VentaState<T> = Venta.VentaState<T>
 
 describe('Venta functions', () => {
 

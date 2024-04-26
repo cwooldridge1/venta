@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 import { describe, expect, it, beforeAll } from 'vitest'
 import {
   elementMap,
@@ -10,7 +6,8 @@ import {
   registerConditional,
   renderVentaNode,
 } from '../../../src/utils';
-import { useState, VentaState } from '../../../src';
+import { useState } from '../../../src';
+type VentaState<T> = Venta.VentaState<T>
 
 
 describe('test clean up of state html dependencies', () => {

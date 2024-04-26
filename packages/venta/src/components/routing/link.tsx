@@ -1,7 +1,7 @@
-/// <reference path="../../../types.d.ts" />
+/// <reference path="../../index.d.ts" />
 
-export function Link(props: VentaJSX.IntrinsicElements['a']) {
-  const handleClick = (event: MouseEvent) => {
+export function Link(props: Venta.AnchorHTMLAttributes<HTMLAnchorElement>) {
+  const handleClick = (event: Venta.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     history.pushState({}, '', props.href);
     window.dispatchEvent(new CustomEvent('venta-link'));
