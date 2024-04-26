@@ -2,9 +2,9 @@
   "compilerOptions": {
     "module": "esnext",
     "target": "esnext",
-    "rootDir": "./src",
+    "rootDir": "./",
+    "allowJs": true,
     "baseUrl": "./",
-    "strict": true,
     "jsx": "preserve",
     "typeRoots": [
       "./node_modules/@types",

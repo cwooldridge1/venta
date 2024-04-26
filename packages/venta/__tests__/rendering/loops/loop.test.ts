@@ -1,8 +1,4 @@
-/**
- * @jest-environment jsdom
- */
-
-import { describe, expect, it, beforeAll } from '@jest/globals'
+import { describe, expect, it, beforeAll } from 'vitest'
 import { VentaState, useState } from "../../../src"
 import { componentReferenceMap, componentStateMap, conditionalMap, conditionalReferenceMap, elementMap } from "../../../src/state";
 import { registerConditional, renderLoop, renderVentaNode } from "../../../src/utils";

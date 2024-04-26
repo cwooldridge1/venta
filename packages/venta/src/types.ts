@@ -15,6 +15,8 @@ export interface VentaNodeState {
 
 export type VentaNode =
   | HTMLElement | Text | Comment
+  | VentaState<any>
+  | VentaState<any>[]
   | string
   | number
   | Iterable<VentaNode>

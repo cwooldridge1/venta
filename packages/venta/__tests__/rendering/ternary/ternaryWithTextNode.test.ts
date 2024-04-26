@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { describe, expect, it, beforeAll } from '@jest/globals'
+import { describe, expect, it, beforeAll } from 'vitest'
 import {
   elementMap,
 } from '../../../src/state';

@@ -1,11 +1,13 @@
-import type { VentaInternal } from "../internal";
+import { VentaInternal } from "../internal";
 import { VentaAppState } from "../state";
 
-
-//the only reason this is here as it will be a nice abstraction if SSR is ever implemented
+export function isServerEnvironment() {
+  return typeof process !== 'undefined' && process.versions && process.versions.node;
+}
 export const getSharedState = () => {
+  const isServer = isServerEnvironment();
   return {
-    VentaInternal: window.VentaInternal as typeof VentaInternal,
-    VentaAppState: window.VentaAppState as typeof VentaAppState
+    VentaInternal: isServer ? VentaInternal : window.VentaInternal as typeof VentaInternal,
+    VentaAppState: isServer ? VentaAppState : window.VentaAppState as typeof VentaAppState
   }
 }

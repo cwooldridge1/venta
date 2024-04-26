@@ -1,8 +1,4 @@
-/**
- * @jest-environment jsdom
- */
-import { describe, expect, it, beforeAll } from '@jest/globals'
-
+import { describe, expect, it, beforeAll } from 'vitest'
 import {
   elementMap,
 } from '../../../src/state';
@@ -10,14 +6,15 @@ import {
   registerConditional,
   renderVentaNode,
 } from '../../../src/utils';
-import { useState, VentaState } from '../../../src';
+import { useMemo, useState, VentaState } from '../../../src';
 
 
 describe('conditional jsx render', () => {
-  let count: VentaState<number>, element: HTMLElement;
+  let count: VentaState<number>, c: VentaState<number>, element: HTMLElement;
 
   beforeAll(() => {
-    count = useState(0);
+    c = useState(0);
+    count = useMemo(() => c.value, [c])
 
     const test = () => count.value > 2;
 
@@ -30,6 +27,7 @@ describe('conditional jsx render', () => {
 
   it('should render the correct conditional initially', () => {
     expect(count.getSideEffects().size).toBe(1);
+    expect(c.getSideEffects().size).toBe(1);
     expect(elementMap.has(element)).toBe(true);
 
     element = document.body.querySelector('span')!;
@@ -37,7 +35,7 @@ describe('conditional jsx render', () => {
   });
 
   it('should update to "greater than 2" when count is set to 3', () => {
-    count.setValue(3);
+    c.setValue(3);
 
     element = document.body.querySelector('span')!;
     expect(elementMap.has(element)).toBe(true);
@@ -45,7 +43,7 @@ describe('conditional jsx render', () => {
   });
 
   it('should update back to "less than 2" when count is set to 1', () => {
-    count.setValue(1);
+    c.setValue(0);
 
     element = document.body.querySelector('span')!;
     expect(elementMap.has(element)).toBe(true);

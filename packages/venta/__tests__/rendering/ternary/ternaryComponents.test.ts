@@ -1,8 +1,4 @@
-/**
- * @jest-environment jsdom
- */
-
-import { describe, expect, it, beforeAll } from '@jest/globals'
+import { describe, expect, it, beforeAll, vi } from 'vitest'
 import {
   componentReferenceMap,
   componentStateMap,
@@ -13,7 +9,6 @@ import {
   renderVentaNode,
 } from '../../../src/utils';
 import { useState, VentaState, Props, useEffect } from '../../../src';
-import { jest } from '@jest/globals';
 
 
 const Component = ({ children }: Props) => {
@@ -69,7 +64,7 @@ describe('conditional jsx render', () => {
   });
 
   it('should true condition render properly', () => {
-    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
 
 
     count.setValue(3);
@@ -95,7 +90,7 @@ describe('conditional jsx render', () => {
   })
 
   it('state change of same test should not cause rerender', () => {
-    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
 
     count.setValue(4);
 
@@ -108,7 +103,7 @@ describe('conditional jsx render', () => {
   })
 
   it('reversion to initial state cleans up properly', () => {
-    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
 
     count.setValue(0);
 
