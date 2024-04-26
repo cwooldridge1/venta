@@ -1,4 +1,3 @@
-const babelConfig = require("../index.js");
 const babel = require("@babel/core");
 const plugin = require("../rendering.js");
 

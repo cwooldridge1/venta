@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest'
 const { normalizeCode, compileCode } = require("../testUtils/helpers");
 
 test("ternary render test", () => {
