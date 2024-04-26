@@ -23,6 +23,13 @@ create a TypeScript project:
 ✔ Would you like to use TypeScript? … No / Yes
 ```
 
+
+Aswell as whether you want to use Tailwind CSS:
+```bash
+✔ Would you like to use Tailwind CSS? … No / Yes
+
+```
+
 Select **Yes** to install the necessary types/dependencies and create a new TS project.
 
 ### Non-interactive
@@ -80,6 +87,5 @@ Options:
 `create-venta-app` allows you to create a new Venta.js app within seconds. It is officially maintained by the creator of Venta.js, and includes a number of benefits:
 
 - **Interactive Experience**: Running `npx create-venta-app@latest` (with no arguments) launches an interactive experience that guides you through setting up a project.
-- **Zero Dependencies**: Initializing a project is as quick as one second. Create Venta App has zero dependencies.
 - **Offline Support**: Create Venta App will automatically detect if you're offline and bootstrap your project using your local package cache.
 - **Support for Examples**: Create Venta App can bootstrap your application using an example from the Venta.js examples collection (e.g. `npx create-venta-app --example api-routes`).

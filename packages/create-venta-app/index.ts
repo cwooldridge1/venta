@@ -151,7 +151,7 @@ async function run(): Promise<void> {
       '\nPlease specify the project directory:\n' +
       `  ${cyan(program.name())} ${green('<project-directory>')}\n` +
       'For example:\n' +
-      `  ${cyan(program.name())} ${green('my-next-app')}\n\n` +
+      `  ${cyan(program.name())} ${green('my--app')}\n\n` +
       `Run ${cyan(`${program.name()} --help`)} to see all options.`
     )
     process.exit(1)
