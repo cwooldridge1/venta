@@ -146,8 +146,8 @@ test('loop with external identifier', () => {
     `
 
   const expectedCode = normalizeCode(`
-
     "use strict";
+
     function MyComponent() {
       var items = useState([1, 2, 3]);
       var val = 2;
@@ -157,10 +157,11 @@ test('loop with external identifier', () => {
             key: index
           }, val);
         });
-      }, items, val));
+      }, items));
     }
   `
   )
+
   expect(normalizeCode(compileCode(code))).toBe(expectedCode)
 })
 
@@ -185,26 +186,27 @@ test('nested loop that uses state', () => {
     }
     `
   const expectedCode = normalizeCode(`
-    "use strict";
+      "use strict";
 
-    function MyComponent() {
-      var items = useState([1, 2, 3]);
-      var state = useState(2);
-      return VentaInternal.renderVentaNode("div", null, VentaInternal.renderLoop(function () {
-        return items.values.map(function (item, index) {
-          return VentaInternal.renderVentaNode("div", {
-            key: index
-          }, VentaInternal.renderLoop(function () {
-            return item.map(function (val, index) {
-              return VentaInternal.renderVentaNode("div", {
-                key: val
-              }, state.value);
-            });
-          }, item,state));
-        });
-      }, items));
-    }
+      function MyComponent() {
+        var items = useState([1, 2, 3]);
+        var state = useState(2);
+        return VentaInternal.renderVentaNode("div", null, VentaInternal.renderLoop(function () {
+          return items.values.map(function (item, index) {
+            return VentaInternal.renderVentaNode("div", {
+              key: index
+            }, VentaInternal.renderLoop(function () {
+              return item.map(function (val, index) {
+                return VentaInternal.renderVentaNode("div", {
+                  key: val
+                }, state.value);
+              });
+            }, item));
+          });
+        }, items));
+      }
    `)
+
   expect(normalizeCode(compileCode(code))).toBe(expectedCode)
 })
 
@@ -239,5 +241,6 @@ test('conditional inside of loop', () => {
       }, items));
     }
   `)
+
   expect(normalizeCode(compileCode(code))).toBe(expectedCode)
 })

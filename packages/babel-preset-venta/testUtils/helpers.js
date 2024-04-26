@@ -21,7 +21,7 @@ const compileCode = function(code) {
   return result.code;
 };
 const normalizeCode = function(code) {
-  return code.replace(/\s/g, '');
+  return code.replace(/[\s;]/g, '');
 };
 
 module.exports = {
