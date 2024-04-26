@@ -4,9 +4,9 @@ import { VentaAppState } from "./state";
 window.VentaAppState = VentaAppState;
 import { VentaInternal } from "./internal";
 window.VentaInternal = VentaInternal;
+import.meta.glob('/assets/**/*') // this is needed so the assets are copied to the dist folder
 
 let lastElement: NodeTypes | undefined = undefined;
-
 
 const modules = import.meta.glob('/**/page.{jsx,tsx,ts,js}',
   {

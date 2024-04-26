@@ -20,6 +20,7 @@ const coreScript = {
   output: {
     entryFileNames: 'core.js',
     format: 'iife', // this means it will be a self-executing function
+    assetFileNames: `assets/[name].[ext]`
   },
   plugins: [
     resolve(),
@@ -42,7 +43,9 @@ const coreScript = {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     ${styles}
+    <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
     <title>Your Application</title>
 </head>
 <body id='root'>

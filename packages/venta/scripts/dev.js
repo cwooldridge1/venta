@@ -42,7 +42,7 @@ async function startVite() {
         port: DEFAULT_PORT,
         strictPort: false,
         host: HOST,
-        open: false
+        open: true
       }
     });
 
