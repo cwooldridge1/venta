@@ -1,5 +1,7 @@
 import path from 'path';
 import fs from 'fs';
+import rollupConfig from '../rollup.config.mjs';
+import { DEFAULT_IMPORT_ALIAS } from '../../constants.js';
 
 export function getDefaultImportAlias(dir) {
   const tsConfigPath = path.join(dir, 'tsconfig.json');
@@ -37,3 +39,35 @@ export function getDefaultImportAlias(dir) {
   return null;
 }
 
+export function getBuildConfig(mode) {
+  const isDev = mode === 'development';
+  const outputDir = isDev ? 'dist' : 'build';
+  console.log('outputDir', outputDir)
+
+
+  const alias = getDefaultImportAlias(process.cwd()) || DEFAULT_IMPORT_ALIAS
+
+  return {
+    css: {
+      modules: {
+        generateScopedName: '[name]__[local]___[hash:base64:5]',
+        hashPrefix: 'venta'
+      },
+    },
+    resolve: {
+      alias
+    },
+    mode,
+    appType: 'spa',
+    build: {
+      outDir: `${process.cwd()}/${outputDir}`,
+      sourcemap: isDev,
+      rollupOptions: rollupConfig,
+      emptyOutDir: !isDev,
+      minify: 'terser',
+    },
+    esbuild: {
+      jsxFactory: 'VentaInternal.renderVentaNode',
+    },
+  }
+}

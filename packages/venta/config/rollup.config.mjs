@@ -18,7 +18,6 @@ const parentDir = path.join(__dirname, '..');
 const coreScript = {
   input: `${parentDir}/src/routing.ts`,
   output: {
-    dir: './dist',
     entryFileNames: 'core.js',
     format: 'iife', // this means it will be a self-executing function
   },

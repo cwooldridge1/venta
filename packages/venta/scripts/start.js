@@ -1,69 +1,21 @@
 #!/usr/bin/env node
 import { createServer, build } from 'vite';
 import { defineConfig } from 'vite';
-import rollupConfig from '../config/rollup.config.mjs';
-import path from 'path';
-import { getDefaultImportAlias } from '../config/utils/get-config.js';
-import { DEFAULT_IMPORT_ALIAS } from '../constants.js';
+import { getBuildConfig } from '../config/utils/get-config.js';
 
-
-
-const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3000;
+const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 80;
 const HOST = process.env.HOST || '0.0.0.0';
 
-
-
-const alias = getDefaultImportAlias(process.cwd()) || DEFAULT_IMPORT_ALIAS
 
 async function startVite() {
   try {
 
-    const baseBuild = {
-      css: {
-        modules: {
-          generateScopedName: '[name]__[local]___[hash:base64:5]',
-          hashPrefix: 'venta'
-        },
-      },
-      resolve: {
-        alias
-      },
-      mode: 'development',
-      appType: 'spa',
-      build: {
-        rollupOptions: rollupConfig,
-        emptyOutDir: false,
-        minify: 'terser',
-      },
-      esbuild: {
-        jsxFactory: 'VentaInternal.renderVentaNode',
-      },
-    }
-
-    await build(defineConfig(baseBuild))
-
-    // this allows to watch the files and rebuild on change 
-    const watchBuildConfig = {
-      ...baseBuild, build: {
-        ...baseBuild.build, watch: {
-          // https://vitejs.dev/config/build-options.html#build-watch
-          include: path.join(process.cwd(), '**/*'),
-          awaitWriteFinish: {
-            stabilityThreshold: 100,
-            pollInterval: 100
-          }
-        },
-      }
-    }
-
-    // we also need this because this is not actually able to be
-    // awaited but we need it to the watch the files once the server is running
-    build(defineConfig(watchBuildConfig));
+    await build(defineConfig(getBuildConfig('production')))
 
 
     const serverConfig = defineConfig({
-      root: './dist',
-      mode: 'development',
+      root: './build',
+      mode: 'production',
       server: {
         port: DEFAULT_PORT,
         strictPort: false,
