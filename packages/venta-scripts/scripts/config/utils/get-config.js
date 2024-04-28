@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import rollupConfig from '../rollup.config.mjs';
-import { DEFAULT_IMPORT_ALIAS } from '../../constants.js';
+import { DEFAULT_IMPORT_ALIAS } from '../constants.js';
 
 export function getDefaultImportAlias(dir) {
   const tsConfigPath = path.join(dir, 'tsconfig.json');
@@ -42,7 +42,6 @@ export function getDefaultImportAlias(dir) {
 export function getBuildConfig(mode) {
   const isDev = mode === 'development';
   const outputDir = isDev ? 'dist' : 'build';
-  console.log('outputDir', outputDir)
 
 
   const alias = getDefaultImportAlias(process.cwd()) || DEFAULT_IMPORT_ALIAS

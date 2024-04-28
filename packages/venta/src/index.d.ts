@@ -85,6 +85,8 @@ declare namespace Venta {
   // Node types are the ouput of the render function
   type NodeTypes = HTMLElement | Text | Comment;
 
+
+
   // VentaNode is the input of the render function
   type VentaNode =
     | VentaElement
@@ -96,6 +98,9 @@ declare namespace Venta {
     | boolean
     | null
     | undefined
+
+
+  function Link(props: Venta.AnchorHTMLAttributes<HTMLAnchorElement>): HTMLAnchorElement;
 
   export interface VentaNodeState {
     element: NodeTypes
@@ -120,7 +125,9 @@ declare namespace Venta {
 
   type DependencyList = readonly VentaState<any>[];
 
-  function useEffect(effect: () => void, deps: DependencyList): void;
+  type EffectCallback = () => void | (() => void);
+
+  function useEffect(effect: EffectCallback, deps: DependencyList): void;
   function useMemo<T>(callback: () => T, deps: DependencyList): VentaState<T>;
 
   interface VentaMemoState<T> extends Omit<VentaState<T>, 'setValue'> {
@@ -129,7 +136,7 @@ declare namespace Venta {
 
   interface VentaState<T> {
     readonly value: T;
-    setValue(newValue: any): void;
+    setValue(newValue: T): void;
     getElements(): Set<Venta.NodeTypes>;
     addElement(element: Venta.NodeTypes): void;
     deleteElement(element: Venta.NodeTypes): void;
@@ -334,9 +341,6 @@ declare namespace Venta {
   //
   // Props / DOM Attributes
   // ----------------------------------------------------------------------
-
-  interface HTMLProps<T> extends AllHTMLAttributes<T>, Attributes {
-  }
 
   type DetailedHTMLProps<E extends HTMLAttributes<T>, T> = Attributes & E;
 

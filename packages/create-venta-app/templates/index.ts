@@ -100,14 +100,13 @@ export const installTemplate = async ({
     version: "0.1.0",
     private: true,
     scripts: {
-      dev: "venta dev",
-      build: "venta build",
-      start: "venta start",
+      dev: "venta-scripts dev",
+      start: "venta-scripts start",
+      build: "venta-scripts build",
     },
     dependencies: {
-      "venta": "file:packages/venta",
-    },
-    devDependencies: {},
+      "venta": "^0.0.13",
+    }
   };
 
   /**

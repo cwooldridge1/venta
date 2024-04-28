@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { createServer, build } from 'vite';
 import { defineConfig } from 'vite';
-import { getBuildConfig } from '../config/utils/get-config.js';
+import { getBuildConfig } from './config/utils/get-config.js';
 
 const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 80;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -11,7 +11,6 @@ async function startVite() {
   try {
 
     await build(defineConfig(getBuildConfig('production')))
-
 
     const serverConfig = defineConfig({
       root: './build',

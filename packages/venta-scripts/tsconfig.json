@@ -2,14 +2,17 @@
   "compilerOptions": {
     "module": "esnext",
     "target": "esnext",
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "rootDir": "./",
     "allowJs": true,
     "baseUrl": "./",
-    "jsx": "preserve",
     "typeRoots": [
-      "./node_modules/@types",
-      "./src/types.d.ts"
-    ]
+      "./node_modules/@types"
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
   }
 }

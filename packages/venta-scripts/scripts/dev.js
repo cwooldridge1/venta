@@ -2,7 +2,7 @@
 import { createServer, build } from 'vite';
 import { defineConfig } from 'vite';
 import path from 'path';
-import { getBuildConfig } from '../config/utils/get-config.js';
+import { getBuildConfig } from './config/utils/get-config.js';
 
 
 const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3000;

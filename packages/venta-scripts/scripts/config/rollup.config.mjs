@@ -1,22 +1,20 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import typescript from '@rollup/plugin-typescript';
 import { babel } from '@rollup/plugin-babel';
 import html from '@rollup/plugin-html';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { terser } from 'rollup-plugin-terser';
 import babelPresetVenta from 'babel-preset-venta';
 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const parentDir = path.join(__dirname, '..');
+const parentDir = path.join(__dirname, '../..');
 
 
 
 const coreScript = {
-  input: `${parentDir}/src/routing.ts`,
+  input: `${parentDir}/routing/spa-router.ts`,
   output: {
     entryFileNames: 'core.js',
     format: 'iife', // this means it will be a self-executing function
@@ -25,14 +23,10 @@ const coreScript = {
   plugins: [
     resolve(),
     commonjs(),
-    typescript({
-      tsconfig: `${parentDir}/tsconfig.json`
-    }),
     babel({
       babelHelpers: 'bundled',
       presets: [babelPresetVenta],
     }),
-    terser(),
     html({
       template: ({ files }) => {
         const styles = files.css ? files.css.map(({ fileName }) => `<link rel='stylesheet' href='${fileName}' />`).join('\n') : '';

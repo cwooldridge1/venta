@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { build } from 'vite';
 import { defineConfig } from 'vite';
-import { getBuildConfig } from '../config/utils/get-config.js';
+import { getBuildConfig } from './config/utils/get-config.js';
 
 
 async function startVite() {

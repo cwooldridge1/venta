@@ -81,6 +81,9 @@ export const renderVentaNode = (type: string | Function, props: Venta.Props, ...
 
   for (let [key, value] of Object.entries(props || {})) {
     if (key.startsWith('on')) {
+      if (key === 'onChange') {
+        key = 'onInput'
+      }
       const eventName = key.substring(2).toLowerCase();
       elem.addEventListener(eventName, value);
     } else {
@@ -197,12 +200,12 @@ export const handleUnmountElement = (element: Venta.NodeTypes, remove: boolean =
   if (stateRef) {
     for (const key in stateRef.attributeState) {
       stateRef.attributeState[key].forEach(([_, state]) => {
-        state.deleteElement(element)
+        (state as VentaState<any>).deleteElement(element)
       })
     }
     for (const key in stateRef.childState) {
       stateRef.childState[key].forEach(([_, state]) => {
-        state.deleteElement(element)
+        (state as VentaState<any>).deleteElement(element)
       })
     }
   }

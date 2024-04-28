@@ -1,0 +1,29 @@
+{
+  "name": "venta-scripts",
+  "version": "0.0.3",
+  "type": "module",
+  "description": "Scripts for venta.js",
+  "author": "Christian Wooldridge",
+  "license": "MIT",
+  "bin": {
+    "venta-scripts": "./bin/venta.cjs"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "routing/"
+  ],
+  "dependencies": {
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-html": "^1.0.3",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@vercel/ncc": "^0.38.1",
+    "babel-preset-venta": "^0.0.4",
+    "happy-dom": "^14.7.1",
+    "venta": "^0.0.13",
+    "vite": "^5.2.10"
+  }
+}

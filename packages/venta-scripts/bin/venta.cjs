@@ -19,11 +19,12 @@ const script = scriptIndex === -1 ? args[0] : args[scriptIndex];
 const nodeArgs = scriptIndex > 0 ? args.slice(0, scriptIndex) : [];
 
 if (['build', 'start', 'dev'].includes(script)) {
+  const scriptPath = require.resolve(`../scripts/${script}.js`);
+  const nodeArgsWithESM = ['--experimental-modules', scriptPath];
+
   const child = spawn(
     process.execPath,
-    nodeArgs
-      .concat(require.resolve('../scripts/' + script))
-      .concat(args.slice(scriptIndex + 1)),
+    nodeArgs.concat(nodeArgsWithESM).concat(args.slice(scriptIndex + 1)),
     { stdio: 'inherit' }
   );
 

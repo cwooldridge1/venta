@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
-import { VentaAppState } from "./state";
+import { VentaAppState } from "venta/src/state";
 window.VentaAppState = VentaAppState;
-import { VentaInternal } from "./internal";
+import { VentaInternal } from "venta/src/internal";
 window.VentaInternal = VentaInternal;
 import.meta.glob('/assets/**/*') // this is needed so the assets are copied to the dist folder
 

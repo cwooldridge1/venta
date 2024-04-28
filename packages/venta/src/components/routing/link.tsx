@@ -1,15 +1,15 @@
 /// <reference path="../../index.d.ts" />
 
-export function Link(props: Venta.AnchorHTMLAttributes<HTMLAnchorElement>) {
+import { renderVentaNode } from "../../../src/utils";
+
+export function Link({ children, href = '', ...rest }: Venta.AnchorHTMLAttributes<HTMLAnchorElement>) {
   const handleClick = (event: Venta.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    history.pushState({}, '', props.href);
+    history.pushState({}, '', href);
     window.dispatchEvent(new CustomEvent('venta-link'));
   };
 
-  return (
-    <a {...props} onClick={handleClick}>{props.children}</a>
-  );
+  return renderVentaNode('a', { onClick: handleClick, ...rest }, children)
 }
 
 export default Link;
