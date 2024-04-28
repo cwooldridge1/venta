@@ -1,0 +1,42 @@
+{
+  "name": "create-venta-app",
+  "version": "0.0.3",
+  "description": "Create a Venta app through the commandline.",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "create-venta-app": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "ncc build ./index.ts -w -o dist/",
+    "release": "ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register",
+    "build": "npm run release"
+  },
+  "keywords": [
+    "venta",
+    "javascript",
+    "typescript"
+  ],
+  "author": "Christian Wooldridge",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/async-retry": "1.4.2",
+    "@types/ci-info": "^3.1.0",
+    "@types/cross-spawn": "^6.0.6",
+    "@types/prompts": "2.4.2",
+    "@types/validate-npm-package-name": "3.0.0",
+    "@vercel/ncc": "^0.38.1",
+    "async-retry": "1.3.1",
+    "async-sema": "^3.1.1",
+    "commander": "2.20.0",
+    "conf": "10.2.0",
+    "fast-glob": "3.3.1",
+    "prompts": "2.4.2",
+    "typescript": "^5.4.5",
+    "update-check": "1.5.4",
+    "validate-npm-package-name": "3.0.0"
+  }
+}

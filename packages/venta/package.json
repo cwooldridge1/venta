@@ -1,0 +1,43 @@
+{
+  "name": "venta",
+  "type": "module",
+  "version": "0.0.13",
+  "description": "A light weight signal based javascript framework.",
+  "main": "./src/index.ts",
+  "types": "./src/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cwooldridgee1/venta.git",
+    "directory": "packages/venta"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/cwooldridge1/venta/issues"
+  },
+  "scripts": {
+    "test": "vitest"
+  },
+  "files": [
+    "src/"
+  ],
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "csstype": "^3.1.3",
+    "happy-dom": "^14.7.1",
+    "vitest": "^1.5.2"
+  }
+}
