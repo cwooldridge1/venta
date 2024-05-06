@@ -370,6 +370,9 @@ export const renderLoop = (func: () => [any, () => HTMLElement][], iterable: Ven
         const newContentKeys = new Set(newContent.map(([key, _]) => JSON.stringify(key)));
 
         const somethingGotDeleted = newContent.length < lastContent.length;
+        const isSameLength = newContent.length === lastContent.length;
+
+        const swapPairs = new Map<string, string>();
 
 
         let i = 0;
@@ -391,10 +394,10 @@ export const renderLoop = (func: () => [any, () => HTMLElement][], iterable: Ven
             somethingGotDeleted
             && !(parralell instanceof Comment)
             && !newContentKeys.has(parralell.getAttribute('key'))) {
-            if (htmlChildIndex === lastContent.length - 1) break;
+            if (htmlChildIndex === lastContent.length) break;
             parralell = lastContent[++htmlChildIndex];
           }
-          // if (htmlChildIndex === lastContent.length - 1) break;
+          if (htmlChildIndex === lastContent.length) break;
 
 
 
@@ -404,7 +407,20 @@ export const renderLoop = (func: () => [any, () => HTMLElement][], iterable: Ven
           else {
             const parallelKey = (parralell as HTMLElement).getAttribute('key');
             if (parallelKey !== JSON.stringify(key)) {
-              parralell.after(elem)
+              if (isSameLength) {
+                // this hurts my head
+                if (!swapPairs.get(key)) {
+                  swapPairs.set(parallelKey, key)
+                  if (htmlChildIndex === 0) {
+                    lastContent[0].before(elem);
+                  }
+                  else {
+                    lastContent[htmlChildIndex - 1].after(elem);
+                  }
+                }
+              } else {
+                parralell.after(elem)
+              }
             }
             //else it is the right spot
           }
@@ -440,7 +456,6 @@ export const renderLoop = (func: () => [any, () => HTMLElement][], iterable: Ven
 
 
       })
-
     });
   }
   if (!lastContent.length) {

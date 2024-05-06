@@ -98,6 +98,16 @@ describe('looped renders work with state and set state calls', () => {
     wasMinimalRerender(parent, elements, 0)
   }
   )
+
+  it('should handle swapping elements', () => {
+    console.log(arr.value)
+    const newArr = [arr.value[0], arr.value.at(-2), ...arr.value.slice(2, -2), arr.value[1], arr.value.at(-1)]
+    console.log({ newArr })
+    arr.setValue(newArr)
+    isLoopedRenderCorrect(parent, newArr)
+    wasMinimalRerender(parent, elements, 0)
+  }
+  )
 })
 
 // describe('test for when initial content is empty', () => {
