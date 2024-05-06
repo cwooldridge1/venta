@@ -41,7 +41,7 @@ export class VentaState<T> {
 
   protected updateNode(elem: Venta.NodeTypes, stateIndex: number) {
     const elementState = elementMap.get(elem)
-    if (!elementState) throw new Error('element state not found')
+    if (!elementState) return
     const { attributeState, childState } = elementState
 
     if (elem instanceof Element) {

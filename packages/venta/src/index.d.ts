@@ -112,13 +112,7 @@ declare namespace Venta {
 
   type FC<P = {}> = FunctionComponent<P>;
 
-  interface FunctionComponent<P = {}> {
-    (props: P): VentaNode;
-    propTypes?: WeakValidationMap<P> | undefined;
-    contextTypes?: ValidationMap<any> | undefined;
-    defaultProps?: Partial<P> | undefined;
-    displayName?: string | undefined;
-  }
+  type FunctionComponent<P> = (props: P) => VentaNode;
 
   function useState<S>(initialState: S): VentaState<S>;
 

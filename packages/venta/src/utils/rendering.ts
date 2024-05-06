@@ -72,6 +72,10 @@ export const renderVentaNode = (type: string | Function, props: Venta.Props, ...
     const componentId = getComponentId()
     componentStateMap.set(componentId, { state: [], unmountCallbacks: [] })
     const component = type({ ...props, children: children.length > 1 ? children : !children.length ? null : children[0] })
+    const key = props.key
+    if (key) {
+      component.setAttribute('key', key)
+    }
     componentReferenceMap.set(component, componentId)
     return component
   }
@@ -315,96 +319,132 @@ export const registerConditional = (
 };
 
 
+
+// this function is just an abstraction as we may have SSR later
+function batchDomUpdate(callback: () => void) {
+  callback()
+  // window.requestAnimationFrame(callback);
+}
+
 /*
 * render loop is used for rendering a list of elements. It will keep track of the elements and update them as needed
 * @param func: a function that returns an array of html elements
 * @param iterable: is the itterable that the func is based off of 
  */
-export const renderLoop = (func: () => Array<Venta.NodeTypes>, iterable: Venta.VentaState<any[]> | any[]) => {
-  let lastContent = func();
-  let initialContent: Venta.NodeTypes | Venta.NodeTypes[]; //used to determine initial anchor point. Text nodes are an invisible way to create an anchor
+export const renderLoop = (func: () => [any, () => HTMLElement][], iterable: VentaState<any[]> | any[]) => {
+  const rendered: [string, HTMLElement][] = func().map(([key, renderFunc]) => [key, renderFunc()])
+  let lastContent: (HTMLElement | Comment)[] = rendered.map(([_, elem]) => elem)
+
+  let oldElementsMap = new Map<string, HTMLElement>(rendered);
+
   let parent: ParentNode;
   let parentListStartIndex: number;
 
-  const getKey = (elem: HTMLElement) => {
-    const key = elem.getAttribute('key')
-    if (key) return key
-    throw Error('All elements in a loop must have a unique key');
-  }
   if (iterable instanceof VentaState) {
     iterable.addSideEffect(() => {
-      const newContent = func();
-      const oldKeysMap = new Map<string, number>();
-      const newKeysMap = new Map<string, number>();
-
       if (!parent) {
-        //basically figure out where the anchor point is to add children
-        if (Array.isArray(initialContent)) {
-          parent = lastContent[0].parentNode!;
-          const childrenList = Array.from(parent.childNodes);
-          parentListStartIndex = childrenList.indexOf(lastContent[0]);
-          //because the child could be some type of conditonal element we actually want to reset last content
-          lastContent = Array.from(parent.children).slice(parentListStartIndex, parentListStartIndex + lastContent.length) as (HTMLElement | Text)[]
-        } else {
-          parent = initialContent.parentNode!;
-          const childrenList = Array.from(parent.childNodes);
-          parentListStartIndex = childrenList.indexOf(initialContent as ChildNode);
-        }
+        parent = lastContent[0].parentNode!;
+        const childrenList = Array.from(parent.childNodes);
+        parentListStartIndex = childrenList.indexOf(lastContent[0]);
       }
 
-      // Create maps for keys
-      lastContent.forEach((elem, i) => {
-        if (elem instanceof Element) {
-          oldKeysMap.set(getKey(elem), i)
+      const newContent: [any, () => HTMLElement][] = func();
+      if (newContent.length === 0) {
+        oldElementsMap.clear();
+
+        let i = lastContent.length;
+        batchDomUpdate(() => {
+          while (i--) {
+            handleUnmountElement(lastContent[i], true);
+          }
+
+          lastContent = [document.createComment('venta-loop-anchor')];
+          parent.insertBefore(lastContent[0], parent.childNodes[parentListStartIndex]);
+        })
+        return
+      }
+
+
+      batchDomUpdate(() => {
+        let newContentRendered: [string, HTMLElement][] = Array(newContent.length);
+        const newContentKeys = new Set(newContent.map(([key, _]) => JSON.stringify(key)));
+
+        const somethingGotDeleted = newContent.length < lastContent.length;
+
+
+        let i = 0;
+        let htmlChildIndex = 0
+        while (i < newContent.length && htmlChildIndex < lastContent.length) {
+          let elem: HTMLElement;
+          const [key, renderFunc] = newContent[i];
+          const oldElem = oldElementsMap.get(key);
+          if (oldElem) {
+            elem = oldElem;
+            oldElementsMap.delete(key);
+          }
+          else {
+            elem = renderFunc();
+          }
+
+          let parralell = lastContent[htmlChildIndex];
+          while (
+            somethingGotDeleted
+            && !(parralell instanceof Comment)
+            && !newContentKeys.has(parralell.getAttribute('key'))) {
+            if (htmlChildIndex === lastContent.length - 1) break;
+            parralell = lastContent[++htmlChildIndex];
+          }
+          // if (htmlChildIndex === lastContent.length - 1) break;
+
+
+
+          if (lastContent[htmlChildIndex] instanceof Comment) {
+            parent.replaceChild(elem, parralell)
+          }
+          else {
+            const parallelKey = (parralell as HTMLElement).getAttribute('key');
+            if (parallelKey !== JSON.stringify(key)) {
+              parralell.after(elem)
+            }
+            //else it is the right spot
+          }
+          newContentRendered[i] = [key, elem];
+          i++;
+          htmlChildIndex++;
         }
-        else {
-          //text nodes are always replaced
-          const componentId = componentReferenceMap.get(elem)
-          if (componentId !== undefined) {
-            handleComponentUnmount(componentId, elem)
+
+        if (i < newContent.length) {
+          while (i < newContent.length) {
+            let elem: HTMLElement;
+            const [key, renderFunc] = newContent[i];
+            const oldElem = oldElementsMap.get(key);
+            if (oldElem) {
+              elem = oldElem;
+              oldElementsMap.delete(key);
+            }
+            else {
+              elem = renderFunc();
+            }
+            parent.appendChild(elem)
+            newContentRendered[i] = [key, elem];
+            i++;
           }
         }
-      })
-      newContent.forEach((elem, i) => {
-        if (elem instanceof Element) {
-          newKeysMap.set(getKey(elem), i);
-        }
-      })
 
-      // Remove old nodes
-      oldKeysMap.forEach((oldIndex, key) => {
-        if (!newKeysMap.has(key)) {
-          const node = lastContent[oldIndex]
-          handleUnmountElement(node)
-        }
-      });
+        oldElementsMap.forEach((elem) => {
+          handleUnmountElement(elem, true);
+        });
 
-      // with the new content just go through and see if anything is resuable
-      newContent.forEach((node, i) => {
-        if (node instanceof Element) {
-          const key = getKey(node);
-          const oldIndex = oldKeysMap.get(key);
-          if (oldIndex !== undefined) {
-            newContent[i] = lastContent[oldIndex]
-            handleUnmountElement(node)
-          }
-        }
+        oldElementsMap = new Map([...newContentRendered]);
+        lastContent = Array.from(oldElementsMap.values())
+
+
       })
 
-      // now remove all the old nodes and insert the new ones
-      lastContent.forEach((node) => {
-        node.remove()
-      })
-
-      newContent.forEach((node, i) => {
-        if (node instanceof Element) {
-          parent.insertBefore(node, parent.childNodes[parentListStartIndex + i]);
-        }
-      })
-
-      lastContent = newContent;
     });
   }
-  initialContent = lastContent.length ? lastContent : createAnchor('');
-  return initialContent;
+  if (!lastContent.length) {
+    lastContent = [document.createComment('venta-loop-anchor')]
+  }
+  return lastContent
 };

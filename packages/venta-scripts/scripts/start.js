@@ -13,7 +13,8 @@ async function startVite() {
     await build(defineConfig(getBuildConfig('production')))
 
     const serverConfig = defineConfig({
-      root: './build',
+      base: process.env.VENTA_BASE_PATH || '/',
+      root: './dist',
       mode: 'production',
       server: {
         port: DEFAULT_PORT,

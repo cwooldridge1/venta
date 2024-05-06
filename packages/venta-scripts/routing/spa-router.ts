@@ -5,6 +5,8 @@ import { VentaInternal } from "venta/src/internal";
 window.VentaInternal = VentaInternal;
 import.meta.glob('/assets/**/*') // this is needed so the assets are copied to the dist folder
 
+const BASE_PATH = import.meta.env.BASE_URL;
+
 let lastElement: Venta.NodeTypes | undefined = undefined;
 
 const modules = import.meta.glob('/**/page.{jsx,tsx,ts,js}',
@@ -20,7 +22,7 @@ const getRoutes = () => {
     const routeParts = baseRoute.split('/')
     routeParts.pop()
     const route = routeParts.join('')
-    return ['/'.concat(route), value]
+    return [BASE_PATH + route, value]
   })) as { [key: string]: () => Promise<any> }
 }
 
@@ -28,7 +30,10 @@ const routes = getRoutes()
 
 
 export const handleLocation = async () => {
-  const path = window.location.pathname;
+  let path = window.location.pathname;
+  if (path.endsWith('/index.html')) {
+    path = path.substring(0, path.length - '/index.html'.length)
+  }
   const component = await routes[path]()
 
   const root = document.getElementById("root")!;
