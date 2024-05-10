@@ -1,3 +1,5 @@
+
+const template = require('@babel/template').default;
 /*
 *  WARNING: THIS CODE MAY BE HARD TO READ AND UNDERSTAND
 * */
@@ -533,6 +535,106 @@ module.exports = function(babel) {
     );
   }
 
+  function getAccessPath(memberExpr) {
+    const path = [];
+
+    let current = memberExpr;
+
+    while (current.type === 'MemberExpression') {
+      if (current.property.name !== 'value') {
+        path.unshift(current.property.name);
+      }
+      current = current.object;
+    }
+
+    if (current.type === 'Identifier') {
+      path.unshift(current.name);
+    }
+
+    return path.map((_, index) => template.expression.ast(path.slice(0, index + 1).join('.')))
+  }
+
+  const getAllJsxAttributes = (path) => {
+    const attributes = {};
+    path.node.openingElement.attributes.forEach((attr) => {
+      const identifier = attr.name.name;
+      const value = attr.value;
+      if (t.isJSXExpressionContainer(value)) {
+        console.log('value', value.expression)
+        attributes[identifier] = value.expression;
+      }
+      else {
+        attributes[identifier] = value;
+      }
+    });
+    return attributes;
+  };
+
+  // Extract stateful JSX attributes as a plain object
+  const getStatefulJsxAttributes = (path) => {
+    const attributes = {};
+    path.node.openingElement.attributes.forEach((attr) => {
+      const identifier = attr.name.name;
+      if (t.isJSXExpressionContainer(attr.value)) {
+        const expression = attr.value.expression;
+        if (t.isMemberExpression(expression) && expression.property.name === 'value') {
+          const accessPaths = getAccessPath(expression);
+          attributes[identifier] = accessPaths;
+        }
+      }
+    });
+    return attributes;
+  };
+
+
+  const createObjectExpression = (obj) => {
+    return t.objectExpression(
+      Object.entries(obj).map(([key, value]) => {
+        if (key === 'className') key = 'class'
+        if (Array.isArray(value)) {
+          return t.objectProperty(t.stringLiteral(key), t.arrayExpression(value))
+        } else if (t.isObjectExpression(value)) {
+          return t.objectProperty(t.stringLiteral(key), value)
+        }
+        else {
+          t.objectProperty(t.stringLiteral(key), t.valueToNode(value))
+        }
+      }
+      )
+    );
+  };
+
+
+  // Convert Babel children nodes to a processed JSX array
+  const transformJsxChildren = (children) => {
+    return children.map((child) => {
+      if (t.isJSXText(child)) {
+        const text = child.value.trim();
+        return text ? t.stringLiteral(text) : null;
+      } else if (t.isJSXExpressionContainer(child)) {
+        return child.expression;
+      } else if (t.isJSXElement(child)) {
+        return child;
+      } else if (t.isJSXFragment(child)) {
+        return t.arrayExpression(child.children.map(transformJsxChildren));
+      } else {
+        return t.nullLiteral();
+      }
+    }).filter((child) => child !== null);
+  };
+
+  const jsxAttributesToObjectExpression = (attributes) => {
+    const props = attributes.map(attr => {
+      let key = attr.name.name;
+      if (key === 'className') key = 'class'
+      const value = t.isJSXExpressionContainer(attr.value) ? attr.value.expression : attr.value;
+
+      return t.objectProperty(t.stringLiteral(key), value);
+    });
+    return t.objectExpression(props);
+  };
+
+
   return {
     name: "venta-babel",
     visitor: {
@@ -563,25 +665,71 @@ module.exports = function(babel) {
               })
             }
           },
-          JSXExpressionContainer(path) {
-            path.traverse({
-              CallExpression(innerPath) {
-                handleCallExpression(innerPath)
-              },
-            })
-            path.traverse({
-              LogicalExpression(innerPath) {
-                registerLogicalExpression(innerPath)
+          JSXElement(path) {
+            const type = path.node.openingElement.name.name;
+            const isComponent = type[0] === type[0].toUpperCase();
+            if (isComponent) return
+            const statefulJsxAttributes = getStatefulJsxAttributes(path)
+            if (Object.keys(statefulJsxAttributes).length) {
+              const type = path.node.openingElement.name.name;
+              const propsObjectExpression = jsxAttributesToObjectExpression(path.node.openingElement.attributes);
+              console.log('propsObjectExpression', propsObjectExpression)
+              const children = transformJsxChildren(path.node.children);
 
-              }
-            })
-            path.traverse({
 
-              ConditionalExpression(innerPath) {
-                registerConditional(innerPath)
-              },
-            });
+
+              path.replaceWith(
+                t.callExpression(t.identifier('VentaInternal.createStatefulElement'), [
+                  t.stringLiteral(type),
+                  propsObjectExpression,
+                  createObjectExpression(statefulJsxAttributes),
+                  ...children
+                ])
+              )
+            }
           },
+          JSXExpressionContainer(path) {
+
+            const expression = path.node.expression;
+
+            // Check if the expression is a MemberExpression ending in `.value`
+            if (t.isMemberExpression(expression) && expression.property.name === 'value') {
+              // Ensure it's the only expression inside the JSXExpressionContainer
+              const parent = path.parent;
+
+              if (t.isJSXElement(parent) || t.isJSXFragment(parent)) {
+                const accessPath = getAccessPath(expression);
+
+                path.replaceWith(
+                  t.jSXExpressionContainer(
+                    t.callExpression(t.identifier('VentaInternal.createStatefulTextNode'), [
+                      expression,
+                      t.arrayExpression(accessPath)
+                    ])
+                  )
+                );
+              }
+            } else {
+
+              path.traverse({
+                CallExpression(innerPath) {
+                  handleCallExpression(innerPath)
+                },
+              })
+              path.traverse({
+                LogicalExpression(innerPath) {
+                  registerLogicalExpression(innerPath)
+
+                }
+              })
+              path.traverse({
+                ConditionalExpression(innerPath) {
+                  registerConditional(innerPath)
+                },
+              });
+            }
+          },
+
         });
       },
     },

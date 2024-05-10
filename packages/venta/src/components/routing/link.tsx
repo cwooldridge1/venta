@@ -1,6 +1,6 @@
 /// <reference path="../../index.d.ts" />
 
-import { renderVentaNode } from "../../../src/utils";
+import { createElement } from "../../../src/utils";
 
 export function Link({ children, href = '', ...rest }: Venta.AnchorHTMLAttributes<HTMLAnchorElement>) {
   const handleClick = (event: Venta.MouseEvent<HTMLAnchorElement>) => {
@@ -9,7 +9,7 @@ export function Link({ children, href = '', ...rest }: Venta.AnchorHTMLAttribute
     window.dispatchEvent(new CustomEvent('venta-link'));
   };
 
-  return renderVentaNode('a', { onClick: handleClick, ...rest }, children)
+  return createElement('a', { onClick: handleClick, ...rest }, children)
 }
 
 export default Link;

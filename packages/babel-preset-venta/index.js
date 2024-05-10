@@ -8,12 +8,14 @@ module.exports = (api) => {
       [
         "@babel/preset-react",
         {
-          "pragma": "VentaInternal.renderVentaNode",
+          "pragma": "VentaInternal.createElement",
         }
       ],
     ],
     plugins: [
+      // `${__dirname}/jsxAttributes.js`,
       `${__dirname}/rendering`,
+      `${__dirname}/component`,
     ]
   };
 };

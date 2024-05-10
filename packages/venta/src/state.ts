@@ -16,53 +16,63 @@ export const incrementConditionalId = () => {
   conditionalId += 1;
 };
 
-
+type ElementAttributes = { key: string, element: HTMLElement };
 
 export class VentaState<T> {
   private static currentStateId: number = 0;
   protected id: number;
   protected sideEffects: Set<Function>;
   protected elements: Set<Venta.NodeTypes>;
+  protected textNodes: Text[];
+  protected elementAttributes: ElementAttributes[] = [];
   value: T;
 
   constructor(
     value: T,
     sideEffects: Set<Function> = new Set(),
     elements: Set<Venta.NodeTypes> = new Set(),
+    textNodes: Text[] = []
   ) {
     this.id = VentaState.currentStateId++;
     this.value = value;
     this.sideEffects = sideEffects;
     this.elements = elements;
-
-    componentStateMap.get(getComponentId())?.state.push(this);
-    stateMap.set(this.id, this)
+    this.textNodes = textNodes;
   }
 
-  protected updateNode(elem: Venta.NodeTypes, stateIndex: number) {
-    const elementState = elementMap.get(elem)
-    if (!elementState) return
-    const { attributeState, childState } = elementState
-
-    if (elem instanceof Element) {
-      attributeState[stateIndex]?.forEach(([key, value]) => {
-        elem.setAttribute(key, value.value)
-        if ((elem.tagName === 'INPUT' || elem.tagName === 'TEXTAREA' || elem.tagName === 'SELECT') && key.toLowerCase() === 'value') {
-          (elem as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value = value.value;
-        }
-      })
-      childState[stateIndex]?.forEach(([index, value]) => {
-        elem.childNodes[index].textContent = value.value
-      })
-    } else {
-      elem.textContent = childState[stateIndex][0][1].value
-    }
-  }
+  // protected updateNode(elem: Venta.NodeTypes, stateIndex: number) {
+  //   const elementState = elementMap.get(elem)
+  //   if (!elementState) return
+  //   const { attributeState, childState } = elementState
+  //
+  //   if (elem instanceof Element) {
+  //     attributeState[stateIndex]?.forEach(([key, value]) => {
+  //       elem.setAttribute(key, value.value)
+  //       if ((elem.tagName === 'INPUT' || elem.tagName === 'TEXTAREA' || elem.tagName === 'SELECT') && key.toLowerCase() === 'value') {
+  //         (elem as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value = value.value;
+  //       }
+  //     })
+  //     childState[stateIndex]?.forEach(([index, value]) => {
+  //       elem.childNodes[index].textContent = value.value
+  //     })
+  //   } else {
+  //     elem.textContent = childState[stateIndex][0][1].value
+  //   }
+  // }
 
   setValue(newValue: any): void {
     this.value = newValue;
+    this.textNodes.forEach((node) => {
+      node.textContent = JSON.stringify(newValue)
+    });
+    this.elementAttributes.forEach(({ key, element }) => {
+      element.setAttribute(key, newValue);
+      if ((element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT') && key.toLowerCase() === 'value') {
+        (element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value = newValue;
+      }
+    })
     this.sideEffects.forEach((sideEffect) => sideEffect());
-    this.elements.forEach((node) => this.updateNode(node, this.id));
+    // this.elements.forEach((node) => this.updateNode(node, this.id));
   }
 
   getElements() {
@@ -71,6 +81,12 @@ export class VentaState<T> {
 
   addElement(element: Venta.NodeTypes) {
     this.elements.add(element)
+  }
+  addTextNode(element: Text) {
+    this.textNodes.push(element)
+  }
+  addElementAttribute(key: string, element: HTMLElement) {
+    this.elementAttributes.push({ key, element });
   }
 
   deleteElement(element: Venta.NodeTypes) {
@@ -106,8 +122,9 @@ export class VentaMemoState<T> extends VentaState<T> {
 
   setValue(_: T): void {
     this.value = this.callback();
+    this.textNodes.forEach((node) => node.textContent = JSON.stringify(this.value));
     this.sideEffects.forEach((sideEffect) => sideEffect());
-    this.elements.forEach((node) => this.updateNode(node, this.id));
+    // this.elements.forEach((node) => this.updateNode(node, this.id));
   }
 }
 

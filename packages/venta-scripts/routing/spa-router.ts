@@ -41,7 +41,7 @@ export const handleLocation = async () => {
     VentaInternal.handleUnmountElement(lastElement, false)
   }
 
-  let newElement = VentaInternal.renderVentaNode(component, {});
+  let newElement = VentaInternal.createComponent(component, {});
 
   if (lastElement) {
     lastElement.replaceWith(newElement);

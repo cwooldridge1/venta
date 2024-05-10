@@ -70,7 +70,8 @@ export function getBuildConfig(mode) {
       minify: isDev ? false : 'terser',
     },
     esbuild: {
-      jsxFactory: 'VentaInternal.renderVentaNode',
+      // jsxFactory: 'VentaInternal.createElement',
+      jsx: 'preserve',
     },
   }
 }
