@@ -1,4 +1,4 @@
-import { renderConditional, createComponent, registerConditional, createElement, createStatefulElement, createStatefulTextNode, renderLoop, createAnchor, handleUnmountElement } from "./utils/rendering";
+import { renderConditional, createComponent, registerConditional, createElement, createStatefulElement, createStatefulTextNode, renderLoop, createAnchor } from "./utils/rendering";
 
 export const VentaInternal = {
   renderConditional,
@@ -9,5 +9,4 @@ export const VentaInternal = {
   createComponent,
   renderLoop,
   createAnchor,
-  handleUnmountElement
 }

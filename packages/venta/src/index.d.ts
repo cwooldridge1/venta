@@ -119,7 +119,7 @@ declare namespace Venta {
 
   type DependencyList = readonly VentaState<any>[];
 
-  type EffectCallback = () => void | (() => void);
+  type EffectCallback = () => void
 
   function useEffect(effect: EffectCallback, deps: DependencyList): void;
   function useMemo<T>(callback: () => T, deps: DependencyList): VentaState<T>;

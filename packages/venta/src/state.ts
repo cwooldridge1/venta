@@ -1,111 +1,52 @@
-
-
-let componentId = 0;
-let conditionalId = 0;
-
-export const getComponentId = () => componentId;
-
-export const incrementComponentId = () => {
-  componentId += 1;
-};
-
-
-export const getConditionalId = () => conditionalId
-
-export const incrementConditionalId = () => {
-  conditionalId += 1;
-};
-
 type ElementAttributes = { key: string, element: HTMLElement };
 
 export class VentaState<T> {
-  private static currentStateId: number = 0;
   protected id: number;
-  protected sideEffects: Set<Function>;
-  protected elements: Set<Venta.NodeTypes>;
-  protected textNodes: Text[];
-  protected elementAttributes: ElementAttributes[] = [];
+  protected sideEffects?: Set<Function>
+  protected textNodes?: Text[]
+  protected elementAttributes?: ElementAttributes[];
   value: T;
 
   constructor(
     value: T,
-    sideEffects: Set<Function> = new Set(),
-    elements: Set<Venta.NodeTypes> = new Set(),
-    textNodes: Text[] = []
   ) {
-    this.id = VentaState.currentStateId++;
     this.value = value;
-    this.sideEffects = sideEffects;
-    this.elements = elements;
-    this.textNodes = textNodes;
   }
 
-  // protected updateNode(elem: Venta.NodeTypes, stateIndex: number) {
-  //   const elementState = elementMap.get(elem)
-  //   if (!elementState) return
-  //   const { attributeState, childState } = elementState
-  //
-  //   if (elem instanceof Element) {
-  //     attributeState[stateIndex]?.forEach(([key, value]) => {
-  //       elem.setAttribute(key, value.value)
-  //       if ((elem.tagName === 'INPUT' || elem.tagName === 'TEXTAREA' || elem.tagName === 'SELECT') && key.toLowerCase() === 'value') {
-  //         (elem as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value = value.value;
-  //       }
-  //     })
-  //     childState[stateIndex]?.forEach(([index, value]) => {
-  //       elem.childNodes[index].textContent = value.value
-  //     })
-  //   } else {
-  //     elem.textContent = childState[stateIndex][0][1].value
-  //   }
-  // }
 
   setValue(newValue: any): void {
     this.value = newValue;
-    this.textNodes.forEach((node) => {
+    this.textNodes?.forEach((node) => {
       node.textContent = JSON.stringify(newValue)
     });
-    this.elementAttributes.forEach(({ key, element }) => {
+    this.elementAttributes?.forEach(({ key, element }) => {
       element.setAttribute(key, newValue);
       if ((element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT') && key.toLowerCase() === 'value') {
         (element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value = newValue;
       }
     })
-    this.sideEffects.forEach((sideEffect) => sideEffect());
-    // this.elements.forEach((node) => this.updateNode(node, this.id));
+    this.sideEffects?.forEach((sideEffect) => sideEffect());
   }
 
-  getElements() {
-    return this.elements;
-  }
-
-  addElement(element: Venta.NodeTypes) {
-    this.elements.add(element)
-  }
   addTextNode(element: Text) {
+    if (!this.textNodes) this.textNodes = []
     this.textNodes.push(element)
   }
   addElementAttribute(key: string, element: HTMLElement) {
+    if (!this.elementAttributes) this.elementAttributes = []
     this.elementAttributes.push({ key, element });
   }
 
-  deleteElement(element: Venta.NodeTypes) {
-    this.elements.delete(element)
-  }
 
   addSideEffect(callback: Function) {
+    if (!this.sideEffects) this.sideEffects = new Set()
     this.sideEffects.add(callback)
   }
 
-  getSideEffects() { return this.sideEffects }
-
-  getId() { return this.id }
-
-  destroy() {
-    this.elements.forEach(elem => elementMap.delete(elem))
-    stateMap.delete(this.id)
+  getSideEffects() {
+    if (!this.sideEffects) this.sideEffects = new Set()
+    return this.sideEffects
   }
-
 }
 
 export class VentaMemoState<T> extends VentaState<T> {
@@ -113,43 +54,48 @@ export class VentaMemoState<T> extends VentaState<T> {
   constructor(
     value: T,
     callback: () => any,
-    sideEffects: Set<Function> = new Set(),
-    elements: Set<Venta.NodeTypes> = new Set(),
   ) {
-    super(value, sideEffects, elements)
+    super(value)
     this.callback = callback;
   }
 
   setValue(_: T): void {
     this.value = this.callback();
-    this.textNodes.forEach((node) => node.textContent = JSON.stringify(this.value));
-    this.sideEffects.forEach((sideEffect) => sideEffect());
-    // this.elements.forEach((node) => this.updateNode(node, this.id));
+    this.textNodes?.forEach((node) => {
+      node.textContent = JSON.stringify(this.value)
+    });
+    this.elementAttributes?.forEach(({ key, element }) => {
+      element.setAttribute(key, JSON.stringify(this.value));
+      if ((element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT') && key.toLowerCase() === 'value') {
+        (element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value = JSON.stringify(this.value);
+      }
+    })
+    this.sideEffects?.forEach((sideEffect) => sideEffect());
   }
 }
 
+class ComponentCounter {
+  private static count = 0;
+  increment() {
+    ComponentCounter.count++;
+  }
+  decrement() {
+    ComponentCounter.count--;
+  }
+  getCount() {
+    return ComponentCounter.count
+  }
+}
 
-export const componentReferenceMap = new Map<Venta.NodeTypes, number>(); // this is an inverse map tool essentially to help find the associated id with a component
-export const componentStateMap = new Map<number, { state: VentaState<unknown>[], unmountCallbacks: Venta.EffectCallback[] }>(); // key is the component id and the value is all state and unmount callbacks that are defined in a component
-export const stateMap = new Map<number, VentaState<unknown>>(); // all state is stored here, the key is the id and the value is the state
-export const elementMap = new Map<Venta.NodeTypes, Venta.VentaNodeState>(); // element mao store what elements have what dependencies to help know exactly what needs to be updated in an element
-export const conditionalMap = new Map<number, () => void>(); // conditonals are a special type of component and need to be kept track of mainly when used inside of things like looks to make sure they are cleaned up properly
-export const conditionalReferenceMap = new Map<Venta.NodeTypes, number>(); // this is an inverse map tool essentially to help find the associated id with a conditional
-
-
+export const componentCounter = new ComponentCounter()
+const componentCleanUpMap = new Map<number, (() => void)[]>()
+const elementToComponentId = new Map<Node, number>() // text nodes and comment nodes cant be branded so this is needed
 
 
 export const VentaAppState = {
-  stateMap,
-  getComponentId,
-  componentStateMap,
-  componentReferenceMap,
-  elementMap,
-  conditionalMap,
-  conditionalReferenceMap,
-  getConditionalId,
-  incrementComponentId,
-  incrementConditionalId,
+  componentCleanUpMap,
+  componentCounter,
+  elementToComponentId,
   VentaState,
   VentaMemoState
 }

@@ -1,16 +1,26 @@
+import { VentaState } from '../state';
 import { getSharedState } from '../utils/enviroment-helpers';
 
-const useEffect = (effect: () => Venta.EffectCallback, dependencies: Venta.DependencyList) => {
-  const { componentStateMap, getComponentId, stateMap } = getSharedState().VentaAppState
+const useEffect = (effect: () => Venta.EffectCallback | void, dependencies: Venta.DependencyList) => {
+  const { componentCleanUpMap, componentCounter } = getSharedState().VentaAppState
   const unmountCallback = effect();
   if (unmountCallback) {
-    componentStateMap.get(getComponentId())?.unmountCallbacks.push(unmountCallback)
+    const cleanUps = componentCleanUpMap.get(componentCounter.getCount())
+    if (!cleanUps) {
+      componentCleanUpMap.set(componentCounter.getCount(), [unmountCallback])
+    } else {
+      cleanUps.push(unmountCallback)
+    }
   }
-  dependencies.forEach((dep) => {
-    const state = stateMap.get(dep.getId())
-    if (!state) throw new Error('dependencies must be of type VentaState')
-    state.addSideEffect(effect)
-  })
+  if (unmountCallback) {
+    dependencies.forEach((dep) => {
+      if (dep instanceof VentaState) {
+        dep.addSideEffect(effect)
+      } else {
+        throw new Error('Dependency must be of type VentaState')
+      }
+    })
+  }
 }
 
 export default useEffect

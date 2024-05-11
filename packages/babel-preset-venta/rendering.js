@@ -554,21 +554,6 @@ module.exports = function(babel) {
     return path.map((_, index) => template.expression.ast(path.slice(0, index + 1).join('.')))
   }
 
-  const getAllJsxAttributes = (path) => {
-    const attributes = {};
-    path.node.openingElement.attributes.forEach((attr) => {
-      const identifier = attr.name.name;
-      const value = attr.value;
-      if (t.isJSXExpressionContainer(value)) {
-        console.log('value', value.expression)
-        attributes[identifier] = value.expression;
-      }
-      else {
-        attributes[identifier] = value;
-      }
-    });
-    return attributes;
-  };
 
   // Extract stateful JSX attributes as a plain object
   const getStatefulJsxAttributes = (path) => {
@@ -673,7 +658,6 @@ module.exports = function(babel) {
             if (Object.keys(statefulJsxAttributes).length) {
               const type = path.node.openingElement.name.name;
               const propsObjectExpression = jsxAttributesToObjectExpression(path.node.openingElement.attributes);
-              console.log('propsObjectExpression', propsObjectExpression)
               const children = transformJsxChildren(path.node.children);
 
 

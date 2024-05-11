@@ -2,6 +2,8 @@
 import { VentaAppState } from "venta/src/state";
 window.VentaAppState = VentaAppState;
 import { VentaInternal } from "venta/src/internal";
+import { COMPONENT_ID_ATTRIBUTE } from "../constants";
+import { getSharedState } from "venta/src/utils/enviroment-helpers";
 window.VentaInternal = VentaInternal;
 import.meta.glob('/assets/**/*') // this is needed so the assets are copied to the dist folder
 
@@ -29,6 +31,38 @@ const getRoutes = () => {
 const routes = getRoutes()
 
 
+// Create an observer instance
+const deletionObserver = new MutationObserver(mutations => {
+  const { componentCleanUpMap, elementToComponentId } = getSharedState().VentaAppState
+  console.log(componentCleanUpMap, elementToComponentId)
+  mutations.forEach(mutation => {
+    if (mutation.removedNodes.length) {
+      mutation.removedNodes.forEach(removedNode => {
+        if (removedNode instanceof HTMLElement) {
+          let id = removedNode[COMPONENT_ID_ATTRIBUTE]
+          if (id) {
+            id = parseInt(id);
+            const cleanUpFunctions = componentCleanUpMap.get(id);
+            cleanUpFunctions.forEach(func => func())
+            componentCleanUpMap.delete(id)
+          }
+        }
+        else {
+          const id = elementToComponentId.get(removedNode);
+          if (id) {
+            const cleanUpFunctions = componentCleanUpMap.get(id);
+            cleanUpFunctions.forEach(func => func())
+            elementToComponentId.delete(removedNode)
+            componentCleanUpMap.delete(id)
+          }
+        }
+      });
+    }
+  });
+});
+
+
+
 export const handleLocation = async () => {
   let path = window.location.pathname;
   if (path.endsWith('/index.html')) {
@@ -37,11 +71,14 @@ export const handleLocation = async () => {
   const component = await routes[path]()
 
   const root = document.getElementById("root")!;
-  if (lastElement) {
-    VentaInternal.handleUnmountElement(lastElement, false)
-  }
 
   let newElement = VentaInternal.createComponent(component, {});
+
+  const config = { childList: true, subtree: true }
+  if (VentaAppState.componentCleanUpMap.size > 0) {
+    deletionObserver.disconnect();
+    deletionObserver.observe(root, config);
+  }
 
   if (lastElement) {
     lastElement.replaceWith(newElement);
