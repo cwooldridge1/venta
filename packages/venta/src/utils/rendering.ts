@@ -179,17 +179,73 @@ export const registerConditional = (
 * @param iterable: is the itterable that the func is based off of 
  */
 export const renderLoop = (func: () => [any, () => HTMLElement][], iterable: VentaState<any[]> | any[]) => {
+
+  // set state = fresh diff 
+  //
   const rendered: [string, HTMLElement][] = func().map(([key, renderFunc]) => [key, renderFunc()])
   let lastContent: (HTMLElement | Comment)[] = rendered.map(([_, elem]) => elem)
-
-  let oldElementsMap = new Map<string, HTMLElement>(rendered);
 
   let parent: ParentNode;
   let parentListStartIndex: number;
 
   if (iterable instanceof VentaState) {
 
+    // const originalSlice = Array.prototype.slice;
+
+    iterable.value.push = (...values) => {
+      if (!parent) {
+        parent = lastContent[0].parentNode!;
+        const childrenList = Array.from(parent.childNodes);
+        parentListStartIndex = childrenList.indexOf(lastContent[0]);
+      }
+      Array.prototype.push.call(iterable.value, ...values)
+      const newContent: [any, () => HTMLElement][] = func();
+      for (let i = 0; i < newContent.length; i++) {
+        const elem = newContent[i][1]()
+        parent.appendChild(elem)
+        lastContent.push(elem)
+      }
+    }
     iterable.addSideEffect(() => {
+
+
+      iterable.value.splice = (index, deleteCount, ...items) => {
+        // Call original splice method to handle the array updates
+        Array.prototype.splice.apply(iterable.value, [index, deleteCount, ...items]);
+
+        // Remove elements from the DOM
+        for (let i = 0; i < deleteCount; i++) {
+          if (lastContent[index]) {
+            parent.removeChild(lastContent[index]);
+            lastContent.splice(index, 1);
+          }
+        }
+
+        // Generate new content based on the updated array
+        const temp = iterable.value;
+        iterable.value = items
+        const newContent = func(); // Assuming func() returns an array of [any, () => HTMLElement]
+        iterable.value = temp;
+
+        // Insert new DOM elements
+        for (let i = 0; i < newContent.length; i++) {
+          const elementFactory = newContent[i][1];
+          const elem = elementFactory();
+          const insertBeforeNode = lastContent[index] || null;
+          parent.insertBefore(elem, insertBeforeNode);
+          lastContent.splice(index + i, 0, elem);
+        }
+      };
+
+      iterable.value.push = (...values) => {
+        Array.prototype.push.call(iterable.value, ...values)
+        const newContent: [any, () => HTMLElement][] = func();
+        for (let i = lastContent.length; i < newContent.length; i++) {
+          const elem = newContent[i][1]()
+          parent.appendChild(elem)
+          lastContent.push(elem)
+        }
+      }
       if (!parent) {
         parent = lastContent[0].parentNode!;
         const childrenList = Array.from(parent.childNodes);
@@ -197,110 +253,31 @@ export const renderLoop = (func: () => [any, () => HTMLElement][], iterable: Ven
       }
 
       const newContent: [any, () => HTMLElement][] = func();
-      if (newContent.length === 0) {
-        oldElementsMap.clear();
 
 
-        let i = parent.childNodes.length;
-        while (i--) {
-          parent.removeChild(parent.lastChild);
-        }
-
-
-        lastContent = [document.createComment('venta-loop-anchor')];
-        parent.insertBefore(lastContent[0], parent.childNodes[parentListStartIndex]);
-
-        return
-      }
-
-
-      let newContentRendered: [string, HTMLElement][] = Array(newContent.length);
-      const newContentKeys = new Set(newContent.map(([key, _]) => JSON.stringify(key)));
-
-      const somethingGotDeleted = newContent.length < lastContent.length;
-      const isSameLength = newContent.length === lastContent.length;
-
-      const swapPairs = new Map<string, string>();
-
-
-      let i = 0;
-      let htmlChildIndex = 0
-      while (i < newContent.length && htmlChildIndex < lastContent.length) {
+      let i = 0
+      const lastContentLength = lastContent.length
+      const newContentLength = newContent.length
+      const frag = document.createDocumentFragment();
+      const newRenderedContent = new Array(newContentLength)
+      while (i < newContentLength) {
         let elem: HTMLElement;
-        const [key, renderFunc] = newContent[i];
-        const oldElem = oldElementsMap.get(key);
-        if (oldElem) {
-          elem = oldElem;
-          oldElementsMap.delete(key);
-        }
-        else {
-          elem = renderFunc();
-        }
+        const renderFunc = newContent[i][1];
 
-        let parralell = lastContent[htmlChildIndex];
-        while (
-          somethingGotDeleted
-          && !(parralell instanceof Comment)
-          && !newContentKeys.has(parralell.getAttribute('key'))) {
-          if (htmlChildIndex === lastContent.length) break;
-          parralell = lastContent[++htmlChildIndex];
+        elem = renderFunc();
+        if (i < lastContentLength) {
+          lastContent[i].remove()
         }
-        if (htmlChildIndex === lastContent.length) break;
-
-
-
-        if (lastContent[htmlChildIndex] instanceof Comment) {
-          parent.replaceChild(elem, parralell)
-        }
-        else {
-          const parallelKey = (parralell as HTMLElement).getAttribute('key');
-          if (parallelKey !== JSON.stringify(key)) {
-            if (isSameLength) {
-              // this hurts my head
-              if (!swapPairs.get(key)) {
-                swapPairs.set(parallelKey, key)
-                if (htmlChildIndex === 0) {
-                  lastContent[0].before(elem);
-                }
-                else {
-                  lastContent[htmlChildIndex - 1].after(elem);
-                }
-              }
-            } else {
-              parralell.after(elem)
-            }
-          }
-          //else it is the right spot
-        }
-        newContentRendered[i] = [key, elem];
+        frag.appendChild(elem)
+        newRenderedContent[i] = elem
         i++;
-        htmlChildIndex++;
       }
-
-      if (i < newContent.length) {
-        while (i < newContent.length) {
-          let elem: HTMLElement;
-          const [key, renderFunc] = newContent[i];
-          const oldElem = oldElementsMap.get(key);
-          if (oldElem) {
-            elem = oldElem;
-            oldElementsMap.delete(key);
-          }
-          else {
-            elem = renderFunc();
-          }
-          parent.appendChild(elem)
-          newContentRendered[i] = [key, elem];
-          i++;
-        }
+      parent.appendChild(frag);
+      while (i < lastContentLength) {
+        parent.removeChild(lastContent[i])
+        i++
       }
-
-      oldElementsMap.forEach((elem) => {
-        elem.remove();
-      });
-
-      oldElementsMap = new Map([...newContentRendered]);
-      lastContent = Array.from(oldElementsMap.values())
+      lastContent = newRenderedContent;
     });
   }
   if (!lastContent.length) {
