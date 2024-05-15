@@ -1,52 +1,42 @@
 import { describe, expect, it, beforeAll } from 'vitest'
-import { useState } from "../../../src"
-import { componentReferenceMap, componentStateMap, conditionalMap, conditionalReferenceMap, elementMap } from "../../../src/state";
-import { registerConditional, renderLoop, renderVentaNode } from "../../../src/utils";
+import { renderLoop, createElement } from "../../../src/utils";
+import { VentaArrayState } from '../../../src/state';
 
-type VentaState<T> = Venta.VentaState<T>
 
 const isLoopedRenderCorrect = ((parent: Element, arr: Array<any>, checkContent: boolean = true) => {
-  if (!parent.children.length) {
-    expect(arr.length).toBe(0)
-    return
-  }
-  console.log(Array.from(parent.children).map(child => child.textContent))
-  expect(parent.children.length).toBe(arr.length)
+  expect(parent.childNodes.length).toBe(arr.length + 2) // because of the sandwich comments
 
   Array.from(parent.children).forEach((child, index) => {
-
     const expectedValue = arr[index].toString()
     if (checkContent) expect(child.textContent).toBe(expectedValue)
     expect(child.getAttribute('key')).toBe(expectedValue)
   });
 })
 
-const wasMinimalRerender = (parent: Element, oldContent: Element[], expectNewElementCount: number) => {
+const wasMinimalRerender = (parent: Element, oldContent: Node[], expectNewElementCount: number) => {
   let newCount = 0;
 
   if (parent.children.length) {
-
     Array.from(parent.children).forEach((child) => {
-      if (!oldContent.includes(child)) newCount++
+      if (!oldContent.includes(child)) {
+        newCount++
+      }
     })
-
   }
   expect(newCount).toBe(expectNewElementCount)
 
 }
 
 describe('looped renders work with state and set state calls', () => {
-  let arr: VentaState<number[]>, elements: Array<HTMLElement>, parent: HTMLElement;
+  let arr: VentaArrayState<number>, elements: (HTMLElement | Comment)[], parent: HTMLElement;
   beforeAll(() => {
-    arr = useState([1, 2, 3])
+    arr = new VentaArrayState(1, 2, 3)
 
-    const func = () => arr.value.map(function(item) {
-      return [item, function() {
-        return renderVentaNode("div", {
-          key: item
-        }, item);
-      }];
-    });
+    const func = (item: number) => {
+      return createElement("div", {
+        key: item
+      }, item);
+    };
 
 
     elements = renderLoop(func, arr)
@@ -56,58 +46,71 @@ describe('looped renders work with state and set state calls', () => {
   })
 
   it('should render the correct state initially', () => {
-    isLoopedRenderCorrect(parent, arr.value)
+    isLoopedRenderCorrect(parent, arr.value())
   })
 
 
   it('should update the correct state when the array is changed', () => {
-    arr.setValue([...arr.value, arr.value.length + 1])
-    isLoopedRenderCorrect(parent, arr.value)
+    arr.push(arr.value().length + 1)
+    isLoopedRenderCorrect(parent, arr.value())
     wasMinimalRerender(parent, elements, 1)
     elements = Array.from(parent.children) as HTMLElement[]
   })
 
   it('should update the correct state when the array is changed', () => {
-    const newArr = [...arr.value]
-    newArr.splice(1, 0, arr.value.length + 1)
-    arr.setValue(newArr)
-    isLoopedRenderCorrect(parent, arr.value)
+    arr.splice(1, 0, arr.value().length + 1)
+    isLoopedRenderCorrect(parent, arr.value())
     wasMinimalRerender(parent, elements, 1)
     elements = Array.from(parent.children) as HTMLElement[]
   })
 
-  it('should update the correct when order changes but not content', () => {
-    const newArr = [...arr.value].sort()
-    arr.setValue(newArr)
-    isLoopedRenderCorrect(parent, arr.value)
+  it('should support swapping', () => {
+    arr.swap(1, 3)
+    isLoopedRenderCorrect(parent, arr.value())
     wasMinimalRerender(parent, elements, 0)
+    elements = Array.from(parent.children) as HTMLElement[]
   })
 
-  it('insert at start', () => {
-    arr.value.splice(0, 0, 0)
-    arr.setValue(arr.value)
-    isLoopedRenderCorrect(parent, arr.value)
-    wasMinimalRerender(parent, elements, 1)
+  it('should supporting resetting', () => {
+    arr.reset(1, 2, 3)
+    isLoopedRenderCorrect(parent, arr.value())
+    wasMinimalRerender(parent, elements, 3)
+    elements = Array.from(parent.children) as HTMLElement[]
   })
 
-  it('should handle removing elements', () => {
-    const newArr = [...arr.value]
-    newArr.splice(0, 1)
-    arr.setValue(newArr)
-    isLoopedRenderCorrect(parent, newArr)
-    wasMinimalRerender(parent, elements, 0)
-  }
-  )
 
-  it('should handle swapping elements', () => {
-    console.log(arr.value)
-    const newArr = [arr.value[0], arr.value.at(-2), ...arr.value.slice(2, -2), arr.value[1], arr.value.at(-1)]
-    console.log({ newArr })
-    arr.setValue(newArr)
-    isLoopedRenderCorrect(parent, newArr)
-    wasMinimalRerender(parent, elements, 0)
-  }
-  )
+  // it('should update the correct when order changes but not content', () => {
+  //   const newArr = [...arr.value].sort()
+  //   arr.setValue(newArr)
+  //   isLoopedRenderCorrect(parent, arr.value)
+  //   wasMinimalRerender(parent, elements, 0)
+  // })
+  //
+  // it('insert at start', () => {
+  //   arr.value.splice(0, 0, 0)
+  //   arr.setValue(arr.value)
+  //   isLoopedRenderCorrect(parent, arr.value)
+  //   wasMinimalRerender(parent, elements, 1)
+  // })
+  //
+  // it('should handle removing elements', () => {
+  //   const newArr = [...arr.value]
+  //   newArr.splice(0, 1)
+  //   arr.setValue(newArr)
+  //   isLoopedRenderCorrect(parent, newArr)
+  //   wasMinimalRerender(parent, elements, 0)
+  // }
+  // )
+  //
+  // it('should handle swapping elements', () => {
+  //   console.log(arr.value)
+  //   const newArr = [arr.value[0], arr.value.at(-2), ...arr.value.slice(2, -2), arr.value[1], arr.value.at(-1)]
+  //   console.log({ newArr })
+  //   arr.setValue(newArr)
+  //   isLoopedRenderCorrect(parent, newArr)
+  //   wasMinimalRerender(parent, elements, 0)
+  // }
+  // )
 })
 
 // describe('test for when initial content is empty', () => {

@@ -5,7 +5,8 @@ test("component with statful text node", () => {
   const input = `
     const App = () => {
       const count = useState(0);
-const id = 'yo';
+      const id = 'yo';
+      const arr = new VentaArrayState([1, 2, 3]);
 
       return (
         <Card>
@@ -18,6 +19,14 @@ const id = 'yo';
             <span className='yes'>world</span>
             <span id='1' className={id.value}>world</span>
           </p>
+        {arr.value().map((item) => {
+          return (
+<div>
+  <p>{item}</p>
+  <p>{item.value}</p>
+</div>
+)
+        })}
         </Card>
       );
     };

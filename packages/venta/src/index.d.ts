@@ -131,13 +131,8 @@ declare namespace Venta {
   interface VentaState<T> {
     readonly value: T;
     setValue(newValue: T): void;
-    getElements(): Set<Venta.NodeTypes>;
-    addElement(element: Venta.NodeTypes): void;
-    deleteElement(element: Venta.NodeTypes): void;
     addSideEffect(callback: Function): void;
     getSideEffects(): Set<Function>;
-    getId(): number;
-    destroy(): void;
   }
 
 
