@@ -100,12 +100,40 @@ export class VentaArrayState<T> {
   }
 
   unshift(...items: T[]) {
-    const res = this.arr.push(...items)
+    const res = this.arr.unshift(...items)
     this.applySideEffects(({ renderFunc, startAnchor }) => {
 
       const newContent = this.createElements(renderFunc, items)
       startAnchor.after(...newContent)
     })
+    return res;
+  }
+
+  sort(compareFn?: (a: T, b: T) => number) {
+    if (this.arr.length < 2) return this.arr
+
+    const res = this.arr.sort(compareFn)
+    this.applySideEffects(({ startAnchor, renderFunc, parent }) => {
+      const children = this.getChildren(startAnchor) as HTMLElement[]
+
+      const newContent = this.createElements(renderFunc, res)
+      const currentContentMap = new Map(children.map((child) => [child.getAttribute('key'), child]))
+
+      newContent.forEach((child, index) => {
+        const key = child.getAttribute('key')
+
+        const paralellElement = children[index]
+        const paralellElementKey = paralellElement.getAttribute('key')
+
+
+        if (key !== paralellElementKey) {
+          console.log('key', key, paralellElementKey)
+          const currentElement = currentContentMap.get(key)
+          parent.insertBefore(currentElement, paralellElement.nextSibling)
+        }
+      })
+    })
+
     return res;
   }
 
@@ -206,7 +234,7 @@ export class VentaArrayState<T> {
     return items.map(func)
   }
 
-  private getChildren(startAnchor: Comment): ChildNode[] {
+  private getChildren(startAnchor: Comment) {
     const parent = startAnchor.parentNode!;
     const children = Array.from(parent.childNodes)
     const startElementIndex = children.indexOf(startAnchor)

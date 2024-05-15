@@ -479,51 +479,6 @@ module.exports = function(babel) {
     })
 
 
-    stop = false;
-    // path.get('arguments.0').traverse({
-    //   ReturnStatement(innerPath) {
-    //     if (stop) return
-    //     stop = true;
-    //     const returnExpr = innerPath.get('argument');
-    //     let key = null;
-    //     if (returnExpr.node.type === 'JSXElement' || returnExpr.node.type === 'JSXFragment') {
-    //
-    //       const attributes = returnExpr.node.openingElement.attributes;
-    //       const keyAttribute = attributes.find(
-    //         (attr) => attr.name && attr.name.name === 'key'
-    //       );
-    //       key = keyAttribute.value.expression;
-    //     }
-    //     else if (returnExpr.node.type === 'CallExpression') {
-    //       const secondArg = returnExpr.node.arguments[1];
-    //       if (t.isObjectExpression(secondArg)) {
-    //         const keyProperty = secondArg.properties.find(
-    //           (prop) => t.isObjectProperty(prop) && t.isIdentifier(prop.key, { name: 'key' })
-    //         );
-    //         key = keyProperty ? keyProperty.value : null;
-    //       }
-    //     }
-    //     else {
-    //       throw new Error(`Expected JSXElement, JSXFragment or CallExpression in return type of map function. Received ${returnExpr.node.type} instead.`)
-    //     }
-    //
-    //     if (!key) {
-    //       throw new Error('The "key" parameter is required for each element returned from map function.');
-    //     }
-    //
-    //     innerPath.replaceWith(t.returnStatement(
-    //       t.arrayExpression([
-    //         key,
-    //         t.arrowFunctionExpression(
-    //           [],
-    //           returnExpr.node
-    //         )
-    //       ])
-    //     ));
-    //
-    //   }
-    // });
-
     path.replaceWith(
       t.callExpression(
         t.identifier("VentaInternal.renderLoop"),
