@@ -123,6 +123,7 @@ declare namespace Venta {
 
   function useEffect(effect: EffectCallback, deps: DependencyList): void;
   function useMemo<T>(callback: () => T, deps: DependencyList): VentaState<T>;
+  function useArray<T>(initialValue: T[]): VentaStateArray<T>;
 
   interface VentaMemoState<T> extends Omit<VentaState<T>, 'setValue'> {
     callback: () => T;
@@ -133,6 +134,18 @@ declare namespace Venta {
     setValue(newValue: T): void;
     addSideEffect(callback: Function): void;
     getSideEffects(): Set<Function>;
+  }
+
+  interface VentaStateArray<T> {
+    get value(): T[];
+    set value(newArr: T[]);
+    push(...items: T[]): number;
+    unshift(...items: T[]): number;
+    sort(compareFn?: (a: T, b: T) => number): T[];
+    splice(index: number, deleteCount?: number, ...items: T[]): T[];
+    pop(): T | undefined;
+    clear(): T[];
+    swap(index1: number, index2: number): void;
   }
 
 

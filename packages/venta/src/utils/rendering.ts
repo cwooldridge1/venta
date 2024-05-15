@@ -1,4 +1,4 @@
-import { VentaArrayState, VentaState, componentCounter } from '../state'
+import { VentaStateArray, VentaState, componentCounter } from '../state'
 import { getSharedState } from './enviroment-helpers';
 import { COMPONENT_ID_ATTRIBUTE } from '../constants'
 
@@ -171,22 +171,18 @@ export const registerConditional = (
   return lastContent;
 };
 
-/**
-* render loop is used for rendering a list of elements. It will keep track of the elements and update them as needed
-* @param func: a function that returns an array of html elements
-* @param iterable: is the itterable that the func is based off of 
-**/
-export const renderLoop = <T>(func: (item: T) => HTMLElement, iterable: T[] | VentaArrayState<T> | VentaState<T[]>) => {
 
-  if (iterable instanceof VentaArrayState) {
+export const renderLoop = <T>(func: (item: T) => HTMLElement, iterable: T[] | VentaStateArray<T> | VentaState<T[]>) => {
+
+  if (iterable instanceof VentaStateArray) {
     const content: (Comment | HTMLElement)[] = [document.createComment('venta-loop-anchor-start'), document.createComment('venta-loop-anchor-end')]
 
-    content.splice(1, 0, ...iterable.value().map(func))
-    iterable._addHTMLSideEffect(content[0] as Comment, content[content.length - 1] as Comment, func)
+    content.splice(1, 0, ...iterable.value.map(func))
+    iterable.addHTMLSideEffect(content[0] as Comment, content[content.length - 1] as Comment, func)
     return content
   }
   if (iterable instanceof VentaState) {
-    console.warn('You are using a VentaState as the iterable in a renderLoop. This is not not optimized and state changes will not be reflected in DOM. Please use a VentaArrayState instead.')
+    console.warn('You are using a VentaState as the iterable in a renderLoop. This is not not optimized and state changes will not be reflected in DOM. Please use a VentaStateArray instead.')
     return iterable.value.map(func)
   }
 

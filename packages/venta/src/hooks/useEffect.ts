@@ -1,4 +1,4 @@
-import { VentaState } from '../state';
+import { VentaState, VentaStateArray } from '../state';
 import { getSharedState } from '../utils/enviroment-helpers';
 
 const useEffect = (effect: () => Venta.EffectCallback | void, dependencies: Venta.DependencyList) => {
@@ -14,9 +14,10 @@ const useEffect = (effect: () => Venta.EffectCallback | void, dependencies: Vent
   }
   if (unmountCallback) {
     dependencies.forEach((dep) => {
-      if (dep instanceof VentaState) {
+      if (dep instanceof VentaState || dep instanceof VentaStateArray) {
         dep.addSideEffect(effect)
-      } else {
+      }
+      else {
         throw new Error('Dependency must be of type VentaState')
       }
     })

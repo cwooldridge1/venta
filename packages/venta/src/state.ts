@@ -74,10 +74,12 @@ export class VentaMemoState<T> extends VentaState<T> {
   }
 }
 type SideEffectMeta<T> = { startAnchor: Comment, endAnchor: Comment, parent: ParentNode, renderFunc: (item: T) => HTMLElement }
-export class VentaArrayState<T> {
+
+export class VentaStateArray<T> {
 
   private arr: T[]
   private sideEffectsMeta: SideEffectMeta<T>[] = []
+  private callbacks: Function[] = []
 
   constructor(
     ...items: T[]
@@ -85,8 +87,33 @@ export class VentaArrayState<T> {
     this.arr = items
   }
 
-  value() {
+  get value(): T[] {
     return [...this.arr]
+  }
+
+  set value(newArr: T[]) {
+    this.arr = newArr
+    this.applySideEffects(({ parent, startAnchor, endAnchor, renderFunc }) => {
+      const newContent = this.createElements(renderFunc, newArr)
+      const newContentLength = newContent.length;
+      const lastContent = this.getChildren(startAnchor)
+      const lastContentLength = lastContent.length
+
+      let i = 0;
+      while (i < lastContentLength && i < newContentLength) {
+        lastContent[i].replaceWith(newContent[i])
+        i++;
+      }
+      if (i < newContentLength) {
+        endAnchor.before(...newContent.slice(i))
+        return
+      }
+
+      while (i < lastContentLength) {
+        parent.removeChild(lastContent[i])
+        i++
+      }
+    })
   }
 
 
@@ -185,31 +212,6 @@ export class VentaArrayState<T> {
     return res;
   }
 
-  reset(...items: T[]) {
-    this.arr = items
-    this.applySideEffects(({ parent, startAnchor, endAnchor, renderFunc }) => {
-      const newContent = this.createElements(renderFunc, items)
-      const newContentLength = newContent.length;
-      const lastContent = this.getChildren(startAnchor)
-      const lastContentLength = lastContent.length
-
-      let i = 0;
-      while (i < lastContentLength && i < newContentLength) {
-        lastContent[i].replaceWith(newContent[i])
-        i++;
-      }
-      if (i < newContentLength) {
-        endAnchor.before(...newContent.slice(i))
-        return
-      }
-
-      while (i < lastContentLength) {
-        parent.removeChild(lastContent[i])
-        i++
-      }
-
-    })
-  }
 
   swap(index1: number, index2: number) {
     const temp = this.arr[index1]
@@ -250,10 +252,15 @@ export class VentaArrayState<T> {
       }
       func(meta)
     })
+    this.callbacks.forEach((callback) => callback())
   }
 
-  _addHTMLSideEffect(startAnchor: Comment, endAnchor: Comment, renderFunc: (arr: T) => HTMLElement) {
+  addHTMLSideEffect(startAnchor: Comment, endAnchor: Comment, renderFunc: (arr: T) => HTMLElement) {
     this.sideEffectsMeta.push({ startAnchor, endAnchor, parent: null, renderFunc });
+  }
+
+  addSideEffect(callback: Function) {
+    this.callbacks.push(callback)
   }
 }
 
