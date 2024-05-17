@@ -34,8 +34,8 @@ export const createStatefulElement = (type: keyof HTMLElementTagNameMap, props: 
   return elem
 }
 
-export const createComponent = <P>(component: Venta.ComponentType, props: P) => {
-  const elem = component(props)
+export const createComponent = <P>(component: Venta.ComponentType, props: P, children?: Venta.NodeTypes[]) => {
+  const elem = component(children ? { ...props, children } : props)
   if (elem instanceof HTMLElement) {
     elem[COMPONENT_ID_ATTRIBUTE] = componentCounter.getCount()
   } else {
@@ -102,8 +102,8 @@ let callCount = 0;
  * */
 export const renderConditional = (
   test: () => boolean,
-  contentIfTrue: (() => HTMLElement | Text),
-  contentIfFalse: (() => HTMLElement | Text),
+  contentIfTrue: () => Venta.NodeTypes,
+  contentIfFalse: () => Venta.NodeTypes,
   id: number
 ): Venta.NodeTypes => {
   const testValue = test();

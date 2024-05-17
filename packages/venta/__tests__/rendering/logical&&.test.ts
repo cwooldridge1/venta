@@ -1,11 +1,8 @@
 import { describe, expect, it, beforeAll } from 'vitest'
 
 import {
-  elementMap,
-} from '../../src/state';
-import {
   registerConditional,
-  renderVentaNode,
+  createElement,
 } from '../../src/utils';
 
 import { useState } from '../../src';
@@ -23,7 +20,7 @@ describe('Venta functions', () => {
 
       const test = () => count.value > 2;
 
-      const trueContent = () => renderVentaNode('span', {}, 'Count is Greater than 2');
+      const trueContent = () => createElement('span', {}, 'Count is Greater than 2');
       const falseContent = () => document.createComment('') as any
 
       element = registerConditional(test, trueContent, falseContent, count);
@@ -32,7 +29,6 @@ describe('Venta functions', () => {
 
     it('should render the correct conditional initially', () => {
       expect(count.getSideEffects().size).toBe(1);
-      expect(elementMap.size).toBe(0)
 
       element = document.body.querySelector('span')!;
       expect(element).toBe(null);
@@ -42,7 +38,6 @@ describe('Venta functions', () => {
       count.setValue(3);
 
       element = document.body.querySelector('span')!;
-      expect(elementMap.has(element)).toBe(true);
       expect(element.textContent).toBe('Count is Greater than 2');
     });
 
@@ -51,7 +46,6 @@ describe('Venta functions', () => {
 
       element = document.body.querySelector('span')!;
       expect(element).toBe(null)
-      expect(elementMap.size).toBe(0)
       expect(count.getSideEffects().size).toBe(1);
     });
   });

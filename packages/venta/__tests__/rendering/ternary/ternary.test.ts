@@ -1,11 +1,10 @@
 import { describe, expect, it, beforeAll } from 'vitest'
 
 import {
-  elementMap,
 } from '../../../src/state';
 import {
+  createElement,
   registerConditional,
-  renderVentaNode,
 } from '../../../src/utils';
 import { useState } from '../../../src';
 
@@ -19,8 +18,8 @@ describe('conditional jsx render', () => {
 
     const test = () => count.value > 2;
 
-    const trueContent = () => renderVentaNode('span', {}, 'Count is Greater than 2');
-    const falseContent = () => renderVentaNode('span', {}, 'Count is Less than 2');
+    const trueContent = () => createElement('span', {}, 'Count is Greater than 2');
+    const falseContent = () => createElement('span', {}, 'Count is Less than 2');
 
     element = registerConditional(test, trueContent, falseContent, count) as HTMLElement;
     document.body.appendChild(element);
@@ -28,8 +27,6 @@ describe('conditional jsx render', () => {
 
   it('should render the correct conditional initially', () => {
     expect(count.getSideEffects().size).toBe(1);
-    expect(elementMap.has(element)).toBe(true);
-
     element = document.body.querySelector('span')!;
     expect(element.textContent).toBe('Count is Less than 2');
   });
@@ -38,7 +35,6 @@ describe('conditional jsx render', () => {
     count.setValue(3);
 
     element = document.body.querySelector('span')!;
-    expect(elementMap.has(element)).toBe(true);
     expect(element.textContent).toBe('Count is Greater than 2');
   });
 
@@ -46,8 +42,6 @@ describe('conditional jsx render', () => {
     count.setValue(1);
 
     element = document.body.querySelector('span')!;
-    expect(elementMap.has(element)).toBe(true);
     expect(element.textContent).toBe('Count is Less than 2');
-    expect(elementMap.size).toBe(1);
   });
 });

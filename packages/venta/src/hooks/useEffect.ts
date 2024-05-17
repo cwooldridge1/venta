@@ -12,16 +12,15 @@ const useEffect = (effect: () => Venta.EffectCallback | void, dependencies: Vent
       cleanUps.push(unmountCallback)
     }
   }
-  if (unmountCallback) {
-    dependencies.forEach((dep) => {
-      if (dep instanceof VentaState || dep instanceof VentaStateArray) {
-        dep.addSideEffect(effect)
-      }
-      else {
-        throw new Error('Dependency must be of type VentaState')
-      }
-    })
-  }
+
+  dependencies.forEach((dep) => {
+    if (dep instanceof VentaState || dep instanceof VentaStateArray) {
+      dep.addSideEffect(effect)
+    }
+    else {
+      throw new Error('Dependency must be of type VentaState')
+    }
+  })
 }
 
 export default useEffect

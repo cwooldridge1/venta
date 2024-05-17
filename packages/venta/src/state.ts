@@ -30,6 +30,9 @@ export class VentaState<T> {
 
   addTextNode(element: Text) {
     if (!this.textNodes) this.textNodes = []
+    element.cleanUp = () => {
+      this.textNodes = this.textNodes?.filter((node) => node !== element)
+    }
     this.textNodes.push(element)
   }
   addElementAttribute(key: string, element: HTMLElement) {
@@ -46,6 +49,16 @@ export class VentaState<T> {
   getSideEffects() {
     if (!this.sideEffects) this.sideEffects = new Set()
     return this.sideEffects
+  }
+
+  _getTextNodes() {
+    if (!this.textNodes) this.textNodes = []
+    return this.textNodes
+  }
+
+  _getElementAttributes() {
+    if (!this.elementAttributes) this.elementAttributes = []
+    return this.elementAttributes
   }
 }
 
@@ -73,6 +86,8 @@ export class VentaMemoState<T> extends VentaState<T> {
     this.sideEffects?.forEach((sideEffect) => sideEffect());
   }
 }
+
+
 type SideEffectMeta<T> = { startAnchor: Comment, endAnchor: Comment, parent: ParentNode, renderFunc: (item: T) => HTMLElement }
 
 export class VentaStateArray<T> {
@@ -154,7 +169,6 @@ export class VentaStateArray<T> {
 
 
         if (key !== paralellElementKey) {
-          console.log('key', key, paralellElementKey)
           const currentElement = currentContentMap.get(key)
           parent.insertBefore(currentElement, paralellElement.nextSibling)
         }

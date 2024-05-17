@@ -90,10 +90,8 @@ declare namespace Venta {
   // VentaNode is the input of the render function
   type VentaNode =
     | VentaElement
-    | VentaState<any>
     | string
     | number
-    | Iterable<VentaNode>
     | NodeTypes
     | boolean
     | null
@@ -112,7 +110,7 @@ declare namespace Venta {
 
   type FC<P = {}> = FunctionComponent<P>;
 
-  type FunctionComponent<P> = (props: P) => VentaNode;
+  type FunctionComponent<P> = (props: P) => NodeTypes;
 
   function useState<S>(initialState: S): VentaState<S>;
 
@@ -125,15 +123,11 @@ declare namespace Venta {
   function useMemo<T>(callback: () => T, deps: DependencyList): VentaState<T>;
   function useArray<T>(initialValue: T[]): VentaStateArray<T>;
 
-  interface VentaMemoState<T> extends Omit<VentaState<T>, 'setValue'> {
-    callback: () => T;
-  }
+  interface VentaMemoState<T> extends Omit<VentaState<T>, 'setValue'> { }
 
   interface VentaState<T> {
     readonly value: T;
     setValue(newValue: T): void;
-    addSideEffect(callback: Function): void;
-    getSideEffects(): Set<Function>;
   }
 
   interface VentaStateArray<T> {

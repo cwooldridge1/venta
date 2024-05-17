@@ -2,8 +2,11 @@ import { VentaInternal } from "../internal";
 import { VentaAppState } from "../state";
 
 export function isServerEnvironment() {
-  return typeof process !== 'undefined' && process.versions && process.versions.node;
+  if (typeof process !== 'undefined') {
+    return process.versions && process.versions.node;
+  }
 }
+
 export const getSharedState = () => {
   const isServer = isServerEnvironment();
   return {
