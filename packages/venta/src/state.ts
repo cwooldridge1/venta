@@ -1,7 +1,6 @@
 type ElementAttributes = { key: string, element: HTMLElement };
 
 export class VentaState<T> {
-  protected id: number;
   protected sideEffects?: Set<Function>
   protected textNodes?: Text[]
   protected elementAttributes?: ElementAttributes[];
@@ -38,6 +37,10 @@ export class VentaState<T> {
   addElementAttribute(key: string, element: HTMLElement) {
     if (!this.elementAttributes) this.elementAttributes = []
     this.elementAttributes.push({ key, element });
+    element.cleanUp = () => {
+      const index = this.elementAttributes?.findIndex((attr) => attr.element === element)
+      this.elementAttributes?.splice(index, 1)
+    }
   }
 
 
