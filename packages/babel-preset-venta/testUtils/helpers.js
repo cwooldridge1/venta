@@ -1,5 +1,7 @@
 const babel = require("@babel/core");
 const plugin = require("../rendering.js");
+const componentPlugin = require("../component.js");
+const jsxAttributes = require("../jsxAttributes.js");
 
 
 const compileCode = function(code) {
@@ -10,12 +12,14 @@ const compileCode = function(code) {
       [
         "@babel/preset-react",
         {
-          "pragma": "VentaInternal.renderVentaNode",
+          "pragma": "VentaInternal.createElement"
         }
       ],
     ],
     plugins: [
-      plugin
+      jsxAttributes,
+      plugin,
+      componentPlugin,
     ]
   });
   return result.code;

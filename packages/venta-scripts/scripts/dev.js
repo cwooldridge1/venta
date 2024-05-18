@@ -36,6 +36,7 @@ async function startVite() {
 
 
     const serverConfig = defineConfig({
+      base: process.env.VENTA_BASE_PATH || '/',
       root: './dist',
       mode: 'development',
       server: {

@@ -1,7 +1,7 @@
 {
   "name": "babel-preset-venta",
   "description": "Babel preset for Venta.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "index.js",
   "scripts": {
     "test": "vitest"
@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@babel/core": "7.24.4",
+    "@babel/plugin-transform-runtime": "^7.24.3",
     "@babel/preset-env": "7.24.4",
     "@babel/preset-react": "7.24.1",
     "@babel/preset-typescript": "7.24.1"

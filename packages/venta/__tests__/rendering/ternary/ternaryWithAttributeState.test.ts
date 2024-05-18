@@ -3,6 +3,7 @@ import {
   registerConditional,
   createStatefulTextNode,
   createDeletionObserver,
+  createStatefulElement,
 } from '../../../src/utils';
 import { useState } from '../../../src';
 import { VentaState } from '../../../src/state';
@@ -20,7 +21,7 @@ describe('conditional jsx render with text nodes', () => {
     const test = () => count.value > 2;
 
     const trueContent = () => document.createTextNode('Count is Greater than 2');
-    const falseContent = () => createStatefulTextNode(count.value, [count]);
+    const falseContent = () => createStatefulElement('div', { id: count.value }, { id: [count] }, createStatefulTextNode(count.value, [count]));
 
     const parent = document.createElement('div');
 
@@ -44,7 +45,7 @@ describe('conditional jsx render with text nodes', () => {
     count.setValue(0);
 
     expect(count.getSideEffects().size).toBe(1);
-    expect(count._getElementAttributes().length).toBe(0);
+    expect(count._getElementAttributes().length).toBe(1);
     expect(count._getTextNodes().length).toBe(1);
 
     element = Array.from(count._getTextNodes())[0]
@@ -56,8 +57,9 @@ describe('conditional jsx render with text nodes', () => {
     count.setValue(1);
 
     expect(count.getSideEffects().size).toBe(1);
-    expect(count._getElementAttributes().length).toBe(0);
+    expect(count._getElementAttributes().length).toBe(1);
     expect(count._getTextNodes().length).toBe(1);
+
 
     element = Array.from(count._getTextNodes())[0]
     expect(element.textContent).toBe('1');

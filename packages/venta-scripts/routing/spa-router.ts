@@ -2,8 +2,13 @@
 import { VentaAppState } from "venta/src/state";
 window.VentaAppState = VentaAppState;
 import { VentaInternal } from "venta/src/internal";
+import { COMPONENT_ID_ATTRIBUTE } from "../constants";
+import { getSharedState } from "venta/src/utils/enviroment-helpers";
+import { createDeletionObserver } from "venta/src/utils/observers";
 window.VentaInternal = VentaInternal;
 import.meta.glob('/assets/**/*') // this is needed so the assets are copied to the dist folder
+
+const BASE_PATH = import.meta.env.BASE_URL;
 
 let lastElement: Venta.NodeTypes | undefined = undefined;
 
@@ -20,23 +25,34 @@ const getRoutes = () => {
     const routeParts = baseRoute.split('/')
     routeParts.pop()
     const route = routeParts.join('')
-    return ['/'.concat(route), value]
+    return [BASE_PATH + route, value]
   })) as { [key: string]: () => Promise<any> }
 }
 
 const routes = getRoutes()
 
 
+// Create an observer instance
+const deletionObserver = createDeletionObserver();
+
+
+
 export const handleLocation = async () => {
-  const path = window.location.pathname;
+  let path = window.location.pathname;
+  if (path.endsWith('/index.html')) {
+    path = path.substring(0, path.length - '/index.html'.length)
+  }
   const component = await routes[path]()
 
   const root = document.getElementById("root")!;
-  if (lastElement) {
-    VentaInternal.handleUnmountElement(lastElement, false)
-  }
 
-  let newElement = VentaInternal.renderVentaNode(component, {});
+  let newElement = VentaInternal.createComponent(component, {});
+
+  const config = { childList: true, subtree: true }
+  if (VentaAppState.componentCleanUpMap.size > 0) {
+    deletionObserver.disconnect();
+    deletionObserver.observe(root, config);
+  }
 
   if (lastElement) {
     lastElement.replaceWith(newElement);

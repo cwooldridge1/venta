@@ -2,6 +2,9 @@ import path from 'path';
 import fs from 'fs';
 import rollupConfig from '../rollup.config.mjs';
 import { DEFAULT_IMPORT_ALIAS } from '../constants.js';
+import { config } from 'dotenv';
+
+config();
 
 export function getDefaultImportAlias(dir) {
   const tsConfigPath = path.join(dir, 'tsconfig.json');
@@ -41,12 +44,13 @@ export function getDefaultImportAlias(dir) {
 
 export function getBuildConfig(mode) {
   const isDev = mode === 'development';
-  const outputDir = isDev ? 'dist' : 'build';
+  const outputDir = 'dist';
 
 
   const alias = getDefaultImportAlias(process.cwd()) || DEFAULT_IMPORT_ALIAS
 
   return {
+    base: process.env.VENTA_BASE_PATH || '/',
     css: {
       modules: {
         generateScopedName: '[name]__[local]___[hash:base64:5]',
@@ -63,10 +67,11 @@ export function getBuildConfig(mode) {
       sourcemap: isDev,
       rollupOptions: rollupConfig,
       emptyOutDir: !isDev,
-      minify: 'terser',
+      minify: isDev ? false : 'terser',
     },
     esbuild: {
-      jsxFactory: 'VentaInternal.renderVentaNode',
+      // jsxFactory: 'VentaInternal.createElement',
+      jsx: 'preserve',
     },
   }
 }

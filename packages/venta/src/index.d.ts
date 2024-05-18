@@ -90,10 +90,8 @@ declare namespace Venta {
   // VentaNode is the input of the render function
   type VentaNode =
     | VentaElement
-    | VentaState<any>
     | string
     | number
-    | Iterable<VentaNode>
     | NodeTypes
     | boolean
     | null
@@ -112,38 +110,36 @@ declare namespace Venta {
 
   type FC<P = {}> = FunctionComponent<P>;
 
-  interface FunctionComponent<P = {}> {
-    (props: P): VentaNode;
-    propTypes?: WeakValidationMap<P> | undefined;
-    contextTypes?: ValidationMap<any> | undefined;
-    defaultProps?: Partial<P> | undefined;
-    displayName?: string | undefined;
-  }
+  type FunctionComponent<P> = (props: P) => NodeTypes;
 
   function useState<S>(initialState: S): VentaState<S>;
 
 
   type DependencyList = readonly VentaState<any>[];
 
-  type EffectCallback = () => void | (() => void);
+  type EffectCallback = () => void
 
   function useEffect(effect: EffectCallback, deps: DependencyList): void;
   function useMemo<T>(callback: () => T, deps: DependencyList): VentaState<T>;
+  function useArray<T>(initialValue: T[]): VentaStateArray<T>;
 
-  interface VentaMemoState<T> extends Omit<VentaState<T>, 'setValue'> {
-    callback: () => T;
-  }
+  interface VentaMemoState<T> extends Omit<VentaState<T>, 'setValue'> { }
 
   interface VentaState<T> {
     readonly value: T;
     setValue(newValue: T): void;
-    getElements(): Set<Venta.NodeTypes>;
-    addElement(element: Venta.NodeTypes): void;
-    deleteElement(element: Venta.NodeTypes): void;
-    addSideEffect(callback: Function): void;
-    getSideEffects(): Set<Function>;
-    getId(): number;
-    destroy(): void;
+  }
+
+  interface VentaStateArray<T> {
+    get value(): T[];
+    set value(newArr: T[]);
+    push(...items: T[]): number;
+    unshift(...items: T[]): number;
+    sort(compareFn?: (a: T, b: T) => number): T[];
+    splice(index: number, deleteCount?: number, ...items: T[]): T[];
+    pop(): T | undefined;
+    clear(): T[];
+    swap(index1: number, index2: number): void;
   }
 
 

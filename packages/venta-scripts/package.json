@@ -1,6 +1,6 @@
 {
   "name": "venta-scripts",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "description": "Scripts for venta.js",
   "author": "Christian Wooldridge",
@@ -21,9 +21,10 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@vercel/ncc": "^0.38.1",
-    "babel-preset-venta": "^0.0.4",
+    "babel-preset-venta": "file:../babel-preset-venta",
+    "dotenv": "^16.4.5",
     "happy-dom": "^14.7.1",
-    "venta": "^0.0.13",
+    "venta": "file:../venta",
     "vite": "^5.2.10"
   }
 }

@@ -3,9 +3,7 @@
     "module": "esnext",
     "target": "esnext",
     "moduleResolution": "Node",
-    "rootDir": "./",
     "allowJs": true,
-    "baseUrl": "./",
     "jsx": "preserve",
     "typeRoots": [
       "./node_modules/@types",

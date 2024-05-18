@@ -1,12 +1,14 @@
-import { renderConditional, registerConditional, renderVentaNode, renderTextNode, renderFineTunedResponsiveNode, renderLoop, createAnchor, handleUnmountElement } from "./utils/rendering";
+import { createDeletionObserver } from "./utils/observers";
+import { renderConditional, createComponent, registerConditional, createElement, createStatefulElement, createStatefulTextNode, renderLoop, createAnchor } from "./utils/rendering";
 
 export const VentaInternal = {
+  createDeletionObserver,
   renderConditional,
   registerConditional,
-  renderVentaNode,
-  renderTextNode,
+  createElement,
+  createStatefulTextNode,
+  createStatefulElement,
+  createComponent,
   renderLoop,
   createAnchor,
-  renderFineTunedResponsiveNode,
-  handleUnmountElement
 }
