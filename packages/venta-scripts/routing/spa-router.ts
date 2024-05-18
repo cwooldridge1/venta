@@ -2,8 +2,6 @@
 import { VentaAppState } from "venta/src/state";
 window.VentaAppState = VentaAppState;
 import { VentaInternal } from "venta/src/internal";
-import { COMPONENT_ID_ATTRIBUTE } from "../constants";
-import { getSharedState } from "venta/src/utils/enviroment-helpers";
 import { createDeletionObserver } from "venta/src/utils/observers";
 window.VentaInternal = VentaInternal;
 import.meta.glob('/assets/**/*') // this is needed so the assets are copied to the dist folder
@@ -19,17 +17,53 @@ const modules = import.meta.glob('/**/page.{jsx,tsx,ts,js}',
 ) // this is generated at compile time - the / defaults to an alias see https://vitejs.dev/guide/features#glob-import-caveats
 
 
-const getRoutes = () => {
+const getRoutes = (): { [key: string]: () => Promise<any> } => {
+  console.log(modules)
   return Object.fromEntries(Object.entries(modules).map(([key, value]) => {
     const baseRoute = key.replace('/src/app/', '')
     const routeParts = baseRoute.split('/')
     routeParts.pop()
-    const route = routeParts.join('')
-    return [BASE_PATH + route, value]
-  })) as { [key: string]: () => Promise<any> }
+    const route = routeParts.join('/')
+    return [BASE_PATH + '/' + route, value]
+  }))
 }
 
 const routes = getRoutes()
+
+const isURLMatch = (route: string, url: string) => {
+  const routeParts = route.split('/').filter(Boolean);
+  const urlParts = url.split('/').filter(Boolean);
+
+  if (routeParts.length !== urlParts.length) {
+    return false;
+  }
+
+
+  for (let i = 0; i < routeParts.length; i++) {
+    const routePart = routeParts[i];
+    const urlPart = urlParts[i];
+
+    if (routePart.startsWith('[') && routePart.endsWith(']')) {
+    } else if (routePart !== urlPart) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+const matchRoute = (path: string) => {
+
+  const arr = Object.keys(routes)
+
+  for (let i = 0; i < arr.length; i++) {
+    const route = arr[i]
+    if (isURLMatch(route, path)) {
+      return route
+    }
+  }
+  return null;
+}
 
 
 // Create an observer instance
@@ -42,6 +76,11 @@ export const handleLocation = async () => {
   if (path.endsWith('/index.html')) {
     path = path.substring(0, path.length - '/index.html'.length)
   }
+  console.log(routes)
+  if (!routes[path]) {
+    path = matchRoute(path) || '/404'
+  }
+
   const component = await routes[path]()
 
   const root = document.getElementById("root")!;
