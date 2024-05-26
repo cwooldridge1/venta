@@ -50,6 +50,7 @@ test('works with list with components', () => {
       );
     }
     `
+  console.log(compileCode(code))
 
   const expectedCode = normalizeCode(`
     "use strict";
