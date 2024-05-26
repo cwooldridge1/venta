@@ -31,7 +31,6 @@ test("component with statful text node", () => {
       );
     };
     `;
-  console.log(compileCode(input));
   const code = normalizeCode(compileCode(input))
   const expectedCode = normalizeCode(
     `
@@ -40,6 +39,7 @@ test("component with statful text node", () => {
 var App = function App() {
   var count = useState(0);
   var id = 'yo';
+  var arr = new VentaArrayState([1, 2, 3]);
   return VentaInternal.createComponent(Card, null, [VentaInternal.createStatefulTextNode(count.value, [count]), VentaInternal.createStatefulTextNode(count.state.value, [count, count.state]), VentaInternal.registerConditional(function () {
     return count.value >= 1;
   }, function () {
@@ -48,13 +48,20 @@ var App = function App() {
     return VentaInternal.createComponent(Card, null, ["less than 1"]);
   }, count), VentaInternal.createElement("p", {
     "class": "yo"
-  }, "hello"), VentaInternal.createStatefulElement("p", {}, {
+  }, "hello"), VentaInternal.createStatefulElement("p", {
+    "id": id.value
+  }, {
     "id": [id]
   }, "hello", VentaInternal.createElement("span", null, "world"), VentaInternal.createElement("span", {
     "class": "yes"
-  }, "world"), VentaInternal.createStatefulElement("span", {}, {
+  }, "world"), VentaInternal.createStatefulElement("span", {
+    "id": '1',
+    "class": id.value
+  }, {
     "class": [id]
-  }, "world"))]);
+  }, "world")), VentaInternal.renderLoop(function (item) {
+    return VentaInternal.createElement("div", null, VentaInternal.createElement("p", null, item), VentaInternal.createElement("p", null, VentaInternal.createStatefulTextNode(item.value, [item])));
+  }, arr)]);
 };
 `)
   expect(code).toBe(expectedCode)

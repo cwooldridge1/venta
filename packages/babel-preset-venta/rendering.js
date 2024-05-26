@@ -31,13 +31,19 @@ module.exports = function(babel) {
     );
   }
 
-  const createFineTunedResponsiveNode = (root, accessPaths) => {
-    const accessPathNodes = accessPaths.map(path => t.stringLiteral(path));
-    return t.callExpression(
-      t.identifier('VentaInternal.renderFineTunedResponsiveNode'),
-      [root, t.arrayExpression(accessPathNodes)]
-    );
+  const createStatefulTextNode = (expression) => {
+    const accessPath = getAccessPath(expression);
+    if (accessPath.length === 0) {
+      return createTextNode(expression)
+    }
+
+
+    return t.callExpression(t.identifier('VentaInternal.createStatefulTextNode'), [
+      expression,
+      t.arrayExpression(accessPath)
+    ])
   }
+
 
 
   function getRootAndAccessPaths(node) {
@@ -235,9 +241,7 @@ module.exports = function(babel) {
         return wrapInRenderConditional(variables[0], new Set())
       }
       if (shouldBeTextNode(variables[0].type)) {
-        const { root, accessPaths } = getRootAndAccessPaths(variables[0]);
-
-        return createFineTunedResponsiveNode(root, accessPaths)
+        return createStatefulTextNode(variables[0])
       }
       return variables[0]
     }
@@ -252,9 +256,7 @@ module.exports = function(babel) {
 
     let leftFunc = left;
     if (shouldBeTextNode(left.type)) {
-      const { root, accessPaths } = getRootAndAccessPaths(left);
-
-      leftFunc = createFineTunedResponsiveNode(root, accessPaths)
+      leftFunc = createStatefulTextNode(left)
     }
     else if ((t.isLogicalExpression(variables[0]) && variables[0].operator === '&&')) {
       leftFunc = createLogicalAndExpression(variables[0])
@@ -284,9 +286,7 @@ module.exports = function(babel) {
         return wrapInRenderConditional(variables[0], new Set())
       }
       if (shouldBeTextNode(variables[0].type)) {
-        const { root, accessPaths } = getRootAndAccessPaths(variables[0]);
-
-        return createFineTunedResponsiveNode(root, accessPaths)
+        return createStatefulTextNode(variables[0])
       }
       return variables[0]
     }
@@ -297,9 +297,7 @@ module.exports = function(babel) {
 
     let leftFunc = left;
     if (shouldBeTextNode(left.type)) {
-      const { root, accessPaths } = getRootAndAccessPaths(left);
-
-      leftFunc = createFineTunedResponsiveNode(root, accessPaths)
+      leftFunc = createStatefulTextNode(left)
     }
     else if ((t.isLogicalExpression(variables[0]) && variables[0].operator === '&&')) {
       leftFunc = createLogicalAndExpression(variables[0])
