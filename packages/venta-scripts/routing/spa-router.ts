@@ -4,7 +4,6 @@ window.VentaAppState = VentaAppState;
 import { VentaInternal } from "venta/src/internal";
 import { createDeletionObserver } from "venta/src/utils/observers";
 import { NodeTypes } from "venta";
-import { createComponent } from "venta/src/utils/rendering";
 window.VentaInternal = VentaInternal;
 import.meta.glob('/assets/**/*') // this is needed so the assets are copied to the dist folder
 
@@ -49,7 +48,7 @@ const loaders = modulesToRoutes(loadingModules)
 
 const pathToRegex = (path: string) => {
   const escapedPath = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regexString = escapedPath.replace(/\[.*?\]/g, '([^/]+)');
+  const regexString = escapedPath.replace(/\\\[.*?\\\]/g, '([^/]+)');
   return new RegExp(`^${regexString}$`);
 };
 
@@ -93,6 +92,9 @@ const renderPage = async (path: string, children: () => NodeTypes) => {
     else {
       layoutLayers.push(null)
     }
+  }
+  if (layoutLayers.filter(v => v).length === 0) {
+    throw new Error('No layout file found. Must include root layout file.')
   }
   // now we can essentiall construct the layout tree
   for (let i = 0; i < layoutLayers.length; i++) {
@@ -184,7 +186,11 @@ export const handleLocation = async () => {
     path = path.substring(0, path.length - '/index.html'.length)
   }
   if (!routes[path]) {
-    path = matchRoute(path) || '/404'
+    path = matchRoute(path) || BASE_PATH + '/404'
+  }
+
+  if (!routes[path]) {
+    throw new Error('No route found.')
   }
 
   const component = await routes[path]()
