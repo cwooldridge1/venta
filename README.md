@@ -8,7 +8,7 @@ npx create-venta-app@latest
 See [npm create-venta-app](https://www.npmjs.com/package/create-venta-app) for more info on getting started.
 
 ### Disclaimer
-This framework is not polished and should not be used for producgtion applications. I am currently no longer working on this project and it is more of a proof of concept. I hope to eventually come back and polish off this repo. 
+This framework is not polished and should not be used for production applications. I am currently no longer working on this project and it is more of a proof of concept. I hope to eventually come back and polish off this repo. 
 
 ----
 ### Benchmarks
